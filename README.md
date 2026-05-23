@@ -1,6 +1,6 @@
 # Barangay Frontend (Accessible)
 
-This repository is a frontend-only React scaffold for an Accessible Web-Based Barangay Service & Complaint Management System.
+This repository is a frontend-only React scaffold for an Accessible Web-Based Barangay Service & Complaint Management System
 
 Quick start:
 
