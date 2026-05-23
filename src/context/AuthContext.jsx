@@ -31,7 +31,7 @@ export function AuthProvider({ children }){
 
   async function login(email, password, remember = true){
     try{
-      const res = await api.post('?action=login', { email, password })
+      const res = await api.post('/login', { email, password })
       if(res.data && res.data.success){
         const returnedStatus = String(res.data.user?.account_status || res.data.status || '').toLowerCase()
         const inferredStatus = returnedStatus || (typeof res.data.message === 'string' && /banned/i.test(res.data.message) ? 'banned' : (typeof res.data.message === 'string' && /suspended/i.test(res.data.message) ? 'suspended' : ''))
@@ -70,7 +70,7 @@ export function AuthProvider({ children }){
 
   async function register(data){
     try{
-      const res = await api.post('?action=register', data)
+      const res = await api.post('/register', data)
       if(res.data && res.data.success){
         localStorage.setItem('token', res.data.token)
         const registeredUser = {
