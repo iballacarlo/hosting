@@ -1,19 +1,9 @@
 import axios from 'axios'
 
-function getApiBase(){
-  const envBase = import.meta.env.VITE_API_BASE
-  if(envBase) return envBase
-
-  // Default backend URL expected by the project README.
-  // If you run PHP on a different host/port, set VITE_API_BASE.
-  // For mobile testing, use the same host as the frontend
-  const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-  return `http://${host}/barangay-api/api.php`
-}
-
+// Direct connection to your live InfinityFree backend URL
 const api = axios.create({
-  baseURL: getApiBase(),
-  timeout: 10000,
+  baseURL: 'http://brgymambogdos.infinityfreeapp.com/backend',
+  timeout: 15000, // Itinaas sa 15 seconds dahil mas matagal mag-respond ang cloud sa localhost
   headers: { 'Content-Type': 'application/json' }
 })
 
