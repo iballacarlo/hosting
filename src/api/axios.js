@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-// Direct connection to your live InfinityFree backend URL
+// Direct connection to your live Railway backend URL
 const api = axios.create({
-  baseURL: 'http://brgymambogdos.infinityfreeapp.com/backend/api.php',
-  timeout: 15000, // Itinaas sa 15 seconds dahil mas matagal mag-respond ang cloud sa localhost
+  baseURL: 'https://brgymambogdos.up.railway.app', 
+  timeout: 15000, 
   headers: { 'Content-Type': 'application/json' }
 })
 
