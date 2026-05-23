@@ -25,6 +25,10 @@ $uri = rtrim($uri, '/');
 if(strpos($uri, '/api.php') === 0){
   $uri = substr($uri, 8); // strlen('/api.php') === 8
 }
+if(empty($uri)){
+  $uri = '/';
+}
+
 // Also handle old /barangay_api/api.php paths for backwards compatibility
 $uri = str_replace('/barangay_api/api.php', '', $uri);
 // strip folder name when running under Apache (e.g. /barangay-api/api.php/seed)
