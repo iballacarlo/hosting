@@ -2,10 +2,7 @@
 
 $path = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 
-$file = __DIR__ . $path;
-
-if ($path !== '/' && file_exists($file)) {
-    return false;
-}
+// Always route requests to api.php
+$_SERVER['REQUEST_URI'] = $path;
 
 require __DIR__ . '/api.php';
