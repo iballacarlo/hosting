@@ -70,7 +70,7 @@ export function AuthProvider({ children }){
 
   async function register(data){
     try{
-      const res = await api.post('/?action=register', data)
+      const res = await api.post('?action=register', data)
       if(res.data && res.data.success){
         localStorage.setItem('token', res.data.token)
         const registeredUser = {
