@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // Direct connection to your live Railway backend URL
 const api = axios.create({
-  baseURL: 'https://brgymambogdos.up.railway.app', 
+  baseURL: 'https://brgymambogdos.up.railway.app/index.php', 
   timeout: 15000, 
   headers: { 'Content-Type': 'application/json' }
 })
