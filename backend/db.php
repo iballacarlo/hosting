@@ -1,4 +1,16 @@
 <?php
+// 1. Payagan ang iyong Vercel layout na makipag-usap dito sa backend mo nang walang CORS error
+header("Access-Control-Allow-Origin: https://brgymambogdos.vercel.app");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Credentials: true");
+
+// Pag-handle sa mga OPTIONS requests ng browser
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
 $cfg = require __DIR__ . '/config.php';
 
 try {

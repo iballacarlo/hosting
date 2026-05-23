@@ -3,12 +3,6 @@
 -- COMPLETE FIXED SQL FILE
 -- =====================================================
 
-CREATE DATABASE IF NOT EXISTS barangay_db
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
-
-USE barangay_db;
-
 -- =====================================================
 -- RESIDENT TABLE
 -- =====================================================
