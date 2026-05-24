@@ -49,61 +49,96 @@ function getBearerToken(){
   return null;
 }
 
+function tableExists($pdo, $table){
+  static $cache = [];
+  if(isset($cache[$table])) return $cache[$table];
+  try {
+    $pdo->query("SELECT 1 FROM `{$table}` LIMIT 1");
+    $cache[$table] = true;
+  } catch (PDOException $e) {
+    $cache[$table] = false;
+  }
+  return $cache[$table];
+}
+
 function findUserByToken($pdo, $token){
   if(!$token) return null;
   // check residents
-  $stmt = $pdo->prepare('SELECT resident_id as id, first_name, last_name, email, "resident" as role FROM Resident WHERE api_token = ?');
-  $stmt->execute([$token]);
-  $r = $stmt->fetch();
-  if($r) return $r;
+  if(tableExists($pdo, 'Resident')){
+    $stmt = $pdo->prepare('SELECT resident_id as id, first_name, last_name, email, "resident" as role FROM Resident WHERE api_token = ?');
+    $stmt->execute([$token]);
+    $r = $stmt->fetch();
+    if($r) return $r;
+  }
   // check staff
-  $stmt = $pdo->prepare('SELECT staff_id as id, full_name as first_name, email, "staff" as role FROM Staff WHERE api_token = ?');
-  $stmt->execute([$token]);
-  $s = $stmt->fetch();
-  if($s) return $s;
+  if(tableExists($pdo, 'Staff')){
+    $stmt = $pdo->prepare('SELECT staff_id as id, full_name as first_name, email, "staff" as role FROM Staff WHERE api_token = ?');
+    $stmt->execute([$token]);
+    $s = $stmt->fetch();
+    if($s) return $s;
+  }
   return null;
 }
 
 function findUserByEmail($pdo, $email){
   if(!$email) return null;
-  $stmt = $pdo->prepare('SELECT resident_id AS id, first_name, last_name, email, password, api_token, "resident" AS role FROM Resident WHERE email = ?');
-  $stmt->execute([$email]);
-  $r = $stmt->fetch();
-  if($r) return $r;
-  $stmt = $pdo->prepare('SELECT staff_id AS id, full_name AS first_name, email, password, api_token, "staff" AS role FROM Staff WHERE email = ?');
-  $stmt->execute([$email]);
-  return $stmt->fetch();
+  if(tableExists($pdo, 'Resident')){
+    $stmt = $pdo->prepare('SELECT resident_id AS id, first_name, last_name, email, password, api_token, "resident" AS role FROM Resident WHERE email = ?');
+    $stmt->execute([$email]);
+    $r = $stmt->fetch();
+    if($r) return $r;
+  }
+  if(tableExists($pdo, 'Staff')){
+    $stmt = $pdo->prepare('SELECT staff_id AS id, full_name AS first_name, email, password, api_token, "staff" AS role FROM Staff WHERE email = ?');
+    $stmt->execute([$email]);
+    return $stmt->fetch();
+  }
+  return null;
 }
 
 function updateUserApiToken($pdo, $role, $id, $token){
   if($role === 'staff'){
-    $pdo->prepare('UPDATE Staff SET api_token = ? WHERE staff_id = ?')->execute([$token, $id]);
+    if(tableExists($pdo, 'Staff')){
+      $pdo->prepare('UPDATE Staff SET api_token = ? WHERE staff_id = ?')->execute([$token, $id]);
+    }
   } else {
-    $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $id]);
+    if(tableExists($pdo, 'Resident')){
+      $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $id]);
+    }
   }
 }
 
 function updateUserPassword($pdo, $role, $id, $hash){
   if($role === 'staff'){
-    $pdo->prepare('UPDATE Staff SET password = ?, api_token = NULL WHERE staff_id = ?')->execute([$hash, $id]);
+    if(tableExists($pdo, 'Staff')){
+      $pdo->prepare('UPDATE Staff SET password = ?, api_token = NULL WHERE staff_id = ?')->execute([$hash, $id]);
+    }
   } else {
-    $pdo->prepare('UPDATE Resident SET password = ?, api_token = NULL WHERE resident_id = ?')->execute([$hash, $id]);
+    if(tableExists($pdo, 'Resident')){
+      $pdo->prepare('UPDATE Resident SET password = ?, api_token = NULL WHERE resident_id = ?')->execute([$hash, $id]);
+    }
   }
 }
 
 function restoreTestAccounts($pdo){
-  $adminEmail = 'admin@gmail.com';
-  $adminPass = '123';
-  $stmt = $pdo->prepare('SELECT staff_id FROM Staff WHERE email = ?');
-  $stmt->execute([$adminEmail]);
-  $admin = $stmt->fetch();
-  $adminHash = password_hash($adminPass, PASSWORD_BCRYPT);
-  if($admin){
-    $pdo->prepare('UPDATE Staff SET full_name = ?, role = ?, password = ?, contact_number = ?, account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')
-      ->execute(['Admin', 'Admin', $adminHash, '0000000000', 'Active', $admin['staff_id']]);
-  } else {
-    $pdo->prepare('INSERT INTO Staff (full_name, role, email, password, contact_number, account_status) VALUES (?, ?, ?, ?, ?, ?)')
-      ->execute(['Admin', 'Admin', $adminEmail, $adminHash, '0000000000', 'Active']);
+  if(!tableExists($pdo, 'Resident')){
+    return;
+  }
+
+  if(tableExists($pdo, 'Staff')){
+    $adminEmail = 'admin@gmail.com';
+    $adminPass = '123';
+    $stmt = $pdo->prepare('SELECT staff_id FROM Staff WHERE email = ?');
+    $stmt->execute([$adminEmail]);
+    $admin = $stmt->fetch();
+    $adminHash = password_hash($adminPass, PASSWORD_BCRYPT);
+    if($admin){
+      $pdo->prepare('UPDATE Staff SET full_name = ?, role = ?, password = ?, contact_number = ?, account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')
+        ->execute(['Admin', 'Admin', $adminHash, '0000000000', 'Active', $admin['staff_id']]);
+    } else {
+      $pdo->prepare('INSERT INTO Staff (full_name, role, email, password, contact_number, account_status) VALUES (?, ?, ?, ?, ?, ?)')
+        ->execute(['Admin', 'Admin', $adminEmail, $adminHash, '0000000000', 'Active']);
+    }
   }
 
   $resEmail = 'carlo@gmail.com';
