@@ -236,37 +236,40 @@ if($uri === '/login' && $method === 'POST'){
     restoreTestAccounts($pdo);
   }
   // try staff
-  $stmt = $pdo->prepare('SELECT staff_id, full_name, email, password, account_status, suspension_end_date FROM Staff WHERE email = ?');
-  $stmt->execute([$data['email']]);
-  $s = $stmt->fetch();
-  if($s && password_verify($data['password'], $s['password'])){
-    $now = new DateTime('now');
-    $staffStatus = trim($s['account_status'] ?? '');
-    if(strcasecmp($staffStatus, 'Banned') === 0){
-      json(['success'=>false,'message'=>'Your account has been banned. Please contact the barangay for assistance.','status'=>'Banned']);
-    }
-    if(strcasecmp($staffStatus, 'Suspended') === 0){
-      if(!empty(trim($s['suspension_end_date'] ?? ''))){
-        $end = DateTime::createFromFormat('Y-m-d', $s['suspension_end_date']);
-        if($end){
-          $end->setTime(23, 59, 59);
-        }
-        if($end && $end >= $now){
-          json(['success'=>false,'message'=>'Your account is suspended until '.$end->format('F j, Y').'.','status'=>'Suspended','suspension_end_date'=>$s['suspension_end_date']]);
-        }
-        $pdo->prepare('UPDATE Staff SET account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')->execute(['Active', $s['staff_id']]);
-      } else {
-        json(['success'=>false,'message'=>'Your account is suspended. Please contact the barangay for assistance.','status'=>'Suspended']);
+  if(tableExists($pdo, 'Staff')){
+    $stmt = $pdo->prepare('SELECT staff_id, full_name, email, password, account_status, suspension_end_date FROM Staff WHERE email = ?');
+    $stmt->execute([$data['email']]);
+    $s = $stmt->fetch();
+    if($s && password_verify($data['password'], $s['password'])){
+      $now = new DateTime('now');
+      $staffStatus = trim($s['account_status'] ?? '');
+      if(strcasecmp($staffStatus, 'Banned') === 0){
+        json(['success'=>false,'message'=>'Your account has been banned. Please contact the barangay for assistance.','status'=>'Banned']);
       }
+      if(strcasecmp($staffStatus, 'Suspended') === 0){
+        if(!empty(trim($s['suspension_end_date'] ?? ''))){
+          $end = DateTime::createFromFormat('Y-m-d', $s['suspension_end_date']);
+          if($end){
+            $end->setTime(23, 59, 59);
+          }
+          if($end && $end >= $now){
+            json(['success'=>false,'message'=>'Your account is suspended until '.$end->format('F j, Y').'.','status'=>'Suspended','suspension_end_date'=>$s['suspension_end_date']]);
+          }
+          $pdo->prepare('UPDATE Staff SET account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')->execute(['Active', $s['staff_id']]);
+        } else {
+          json(['success'=>false,'message'=>'Your account is suspended. Please contact the barangay for assistance.','status'=>'Suspended']);
+        }
+      }
+      $token = bin2hex(random_bytes(16));
+      $pdo->prepare('UPDATE Staff SET api_token = ? WHERE staff_id = ?')->execute([$token, $s['staff_id']]);
+      json(['success'=>true,'token'=>$token,'user'=>['id'=>$s['staff_id'],'name'=>$s['full_name'],'role'=>'staff']]);
     }
-    $token = bin2hex(random_bytes(16));
-    $pdo->prepare('UPDATE Staff SET api_token = ? WHERE staff_id = ?')->execute([$token, $s['staff_id']]);
-    json(['success'=>true,'token'=>$token,'user'=>['id'=>$s['staff_id'],'name'=>$s['full_name'],'role'=>'staff']]);
   }
   // try resident
-  $stmt = $pdo->prepare('SELECT resident_id, first_name, last_name, email, password, account_status, suspension_end_date FROM Resident WHERE email = ?');
-  $stmt->execute([$data['email']]);
-  $r = $stmt->fetch();
+  if(tableExists($pdo, 'Resident')){
+    $stmt = $pdo->prepare('SELECT resident_id, first_name, last_name, email, password, account_status, suspension_end_date FROM Resident WHERE email = ?');
+    $stmt->execute([$data['email']]);
+    $r = $stmt->fetch();
   if($r && password_verify($data['password'], $r['password'])){
     $now = new DateTime('now');
     $accountStatus = trim($r['account_status'] ?? '');
