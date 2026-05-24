@@ -33,12 +33,13 @@ if ($uri === '') {
 error_log("REQUEST METHOD: " . $method);
 error_log("REQUEST URI: " . $uri);
 
-// Also handle old /barangay_api/api.php paths for backwards compatibility
-$uri = str_replace('/barangay_api/api.php', '', $uri);
-// strip folder name when running under Apache (e.g. /barangay-api/api.php/seed)
-// this removes the first path component and an optional "/api.php" that follows
-$uri = preg_replace('#^/(?:[^/]+)(?:/api\.php)?#', '', $uri);
-if(empty($uri)) $uri = '/';
+// Also handle legacy /barangay_api/api.php or /api.php paths for backwards compatibility
+if (strpos($uri, '/barangay_api/api.php') === 0 || strpos($uri, '/barangay-api/api.php') === 0 || strpos($uri, '/api.php') === 0) {
+    $uri = preg_replace('#^/(?:[^/]+)(?:/api\.php)?#', '', $uri);
+    if ($uri === '') {
+        $uri = '/';
+    }
+}
 
 function getBearerToken(){
   $h = getallheaders();
