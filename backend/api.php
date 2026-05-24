@@ -1,9 +1,8 @@
 <?php
-// Simple PHP REST API for demo purposes
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Palitan ang asterisko (*) ng saktong Vercel domain mo para tugma sa db.php
+// CORS
 header("Access-Control-Allow-Origin: https://brgymambogdos.vercel.app");
 header("Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -14,20 +13,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-
 require __DIR__ . '/db.php';
 
+// REQUEST INFO
 $method = $_SERVER['REQUEST_METHOD'];
+
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+// remove trailing slash
 $uri = rtrim($uri, '/');
-// When using php -S with a router script, REQUEST_URI might include the script name
-// Strip api.php if it's in the path
-if(strpos($uri, '/api.php') === 0){
-  $uri = substr($uri, 8); // strlen('/api.php') === 8
+
+if ($uri === '') {
+    $uri = '/';
 }
-if(empty($uri)){
-  $uri = '/';
-}
+
+// DEBUG
+error_log("REQUEST METHOD: " . $method);
+error_log("REQUEST URI: " . $uri);
 
 // Also handle old /barangay_api/api.php paths for backwards compatibility
 $uri = str_replace('/barangay_api/api.php', '', $uri);
