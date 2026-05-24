@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-
 const api = axios.create({
   baseURL: 'https://brgymambogdos.up.railway.app',
   timeout: 15000,
@@ -8,7 +7,6 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 })
-
 
 api.interceptors.request.use(config => {
   const token =
