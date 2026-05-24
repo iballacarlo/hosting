@@ -298,6 +298,7 @@ if($uri === '/login' && $method === 'POST'){
     json(['success'=>true,'token'=>$token,'user'=>['id'=>$r['resident_id'],'name'=>($r['first_name'].' '.$r['last_name']),'role'=>'resident','account_status'=>$r['account_status'],'suspension_end_date'=>$r['suspension_end_date']]]);
   }
   json(['success'=>false,'message'=>'Invalid credentials']);
+  }
 }
 
 // Route: /me - get current user from Bearer token
