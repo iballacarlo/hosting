@@ -20,6 +20,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+error_log("URI => " . $uri);
+
 // remove trailing slash
 $uri = rtrim($uri, '/');
 
