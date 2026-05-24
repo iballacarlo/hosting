@@ -1,12 +1,3 @@
--- =====================================================
--- Barangay Service & Complaint Management System
--- COMPLETE FIXED SQL FILE
--- =====================================================
-
--- =====================================================
--- RESIDENT TABLE
--- =====================================================
-
 CREATE TABLE IF NOT EXISTS Resident (
   resident_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -18,7 +9,6 @@ CREATE TABLE IF NOT EXISTS Resident (
   gender VARCHAR(32) DEFAULT NULL,
 
   address VARCHAR(500) DEFAULT NULL,
-  contact_number VARCHAR(50) DEFAULT NULL,
 
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
@@ -31,9 +21,6 @@ CREATE TABLE IF NOT EXISTS Resident (
   api_token VARCHAR(255) DEFAULT NULL
 );
 
--- =====================================================
--- STAFF TABLE
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS Staff (
   staff_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -45,18 +32,12 @@ CREATE TABLE IF NOT EXISTS Staff (
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
 
-  contact_number VARCHAR(50) DEFAULT NULL,
-
   account_status VARCHAR(50) DEFAULT 'Active',
 
   suspension_end_date DATE DEFAULT NULL,
 
   api_token VARCHAR(255) DEFAULT NULL
 );
-
--- =====================================================
--- CATEGORY TABLE
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS Category (
   category_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -66,9 +47,7 @@ CREATE TABLE IF NOT EXISTS Category (
   description VARCHAR(1000) DEFAULT NULL
 );
 
--- =====================================================
--- COMPLAINT TABLE
--- =====================================================
+
 
 CREATE TABLE IF NOT EXISTS Complaint (
   complaint_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -111,9 +90,7 @@ CREATE TABLE IF NOT EXISTS Complaint (
     ON DELETE SET NULL
 );
 
--- =====================================================
--- COMPLAINT ATTACHMENT TABLE
--- =====================================================
+
 
 CREATE TABLE IF NOT EXISTS Complaint_Attachment (
   attachment_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -130,9 +107,6 @@ CREATE TABLE IF NOT EXISTS Complaint_Attachment (
     ON DELETE CASCADE
 );
 
--- =====================================================
--- DOCUMENT REQUEST TABLE
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS Document_Request (
   request_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -157,9 +131,6 @@ CREATE TABLE IF NOT EXISTS Document_Request (
   FOREIGN KEY (processed_by) REFERENCES Staff(staff_id) ON DELETE SET NULL
 );
 
--- =====================================================
--- DIGITAL ID TABLE
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS Digital_ID (
   digital_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -182,9 +153,6 @@ CREATE TABLE IF NOT EXISTS Digital_ID (
     ON DELETE CASCADE
 );
 
--- =====================================================
--- ACCESSIBILITY SETTINGS TABLE
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS Accessibility_Settings (
   accessibility_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -205,9 +173,6 @@ CREATE TABLE IF NOT EXISTS Accessibility_Settings (
     ON DELETE CASCADE
 );
 
--- =====================================================
--- NOTIFICATION TABLE
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS Notification (
   notification_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -228,9 +193,6 @@ CREATE TABLE IF NOT EXISTS Notification (
     ON DELETE CASCADE
 );
 
--- =====================================================
--- REPORT LOG TABLE
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS Report_Log (
   report_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -247,9 +209,6 @@ CREATE TABLE IF NOT EXISTS Report_Log (
     ON DELETE SET NULL
 );
 
--- =====================================================
--- DEFAULT CATEGORIES
--- =====================================================
 
 INSERT IGNORE INTO Category (category_id, category_name, description)
 VALUES
@@ -261,11 +220,7 @@ VALUES
 (6, 'Public Safety', 'Public safety concerns'),
 (7, 'Other', 'Other concerns');
 
--- =====================================================
--- DEFAULT ADMIN ACCOUNT
--- EMAIL: admin@gmail.com
--- PASSWORD: 123
--- =====================================================
+
 
 DELETE FROM Staff WHERE email = 'admin@gmail.com';
 
@@ -274,7 +229,6 @@ INSERT INTO Staff (
   role,
   email,
   password,
-  contact_number,
   account_status
 )
 VALUES (
@@ -282,15 +236,9 @@ VALUES (
   'Admin',
   'admin@gmail.com',
   '$2y$12$SehuW12J4Nm5YLfemjdnlOUC6pqt0oHDxITB7anKQP2l6jXV.p8Bm',
-  '0000000000',
   'Active'
 );
 
--- =====================================================
--- DEFAULT RESIDENT ACCOUNT
--- EMAIL: carlo@gmail.com
--- PASSWORD: 123
--- =====================================================
 
 DELETE FROM Resident WHERE email = 'carlo@gmail.com';
 
@@ -301,7 +249,6 @@ INSERT INTO Resident (
   birth_date,
   gender,
   address,
-  contact_number,
   email,
   password,
   account_status,
@@ -314,13 +261,9 @@ VALUES (
   '2000-01-01',
   'Male',
   'Sample Address',
-  '0000000000',
   'carlo@gmail.com',
   '$2y$12$y.1LWnWa33aNTPCaK3hg..u.FeDm57.odqQEsVSzycSCUVT/.oWf2',
   'Active',
   NOW()
 );
 
--- =====================================================
--- FINISHED
--- =====================================================
