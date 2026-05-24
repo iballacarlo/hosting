@@ -133,11 +133,11 @@ function restoreTestAccounts($pdo){
     $admin = $stmt->fetch();
     $adminHash = password_hash($adminPass, PASSWORD_BCRYPT);
     if($admin){
-      $pdo->prepare('UPDATE Staff SET full_name = ?, role = ?, password = ?, contact_number = ?, account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')
-        ->execute(['Admin', 'Admin', $adminHash, '0000000000', 'Active', $admin['staff_id']]);
+      $pdo->prepare('UPDATE Staff SET full_name = ?, role = ?, password = ?, account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')
+        ->execute(['Admin', 'Admin', $adminHash, 'Active', $admin['staff_id']]);
     } else {
-      $pdo->prepare('INSERT INTO Staff (full_name, role, email, password, contact_number, account_status) VALUES (?, ?, ?, ?, ?, ?)')
-        ->execute(['Admin', 'Admin', $adminEmail, $adminHash, '0000000000', 'Active']);
+      $pdo->prepare('INSERT INTO Staff (full_name, role, email, password, account_status) VALUES (?, ?, ?, ?, ?, ?)')
+        ->execute(['Admin', 'Admin', $adminEmail, $adminHash, 'Active']);
     }
   }
 
@@ -148,11 +148,11 @@ function restoreTestAccounts($pdo){
   $resident = $stmt->fetch();
   $residentHash = password_hash($resPass, PASSWORD_BCRYPT);
   if($resident){
-    $pdo->prepare('UPDATE Resident SET first_name = ?, last_name = ?, birth_date = ?, gender = ?, address = ?, contact_number = ?, password = ?, account_status = ?, suspension_end_date = NULL WHERE resident_id = ?')
-      ->execute(['Carlo', 'Resident', '2000-01-01', 'Male', 'Sample Address', '0000000000', $residentHash, 'Active', $resident['resident_id']]);
+    $pdo->prepare('UPDATE Resident SET first_name = ?, last_name = ?, birth_date = ?, gender = ?, address = ?, password = ?, account_status = ?, suspension_end_date = NULL WHERE resident_id = ?')
+      ->execute(['Carlo', 'Resident', '2000-01-01', 'Male', 'Sample Address', $residentHash, 'Active', $resident['resident_id']]);
   } else {
-    $pdo->prepare('INSERT INTO Resident (first_name, middle_name, last_name, birth_date, gender, address, contact_number, email, password, account_status, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())')
-      ->execute(['Carlo', '', 'Resident', '2000-01-01', 'Male', 'Sample Address', '0000000000', $resEmail, $residentHash, 'Active']);
+    $pdo->prepare('INSERT INTO Resident (first_name, middle_name, last_name, birth_date, gender, address, email, password, account_status, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())')
+      ->execute(['Carlo', '', 'Resident', '2000-01-01', 'Male', 'Sample Address', $resEmail, $residentHash, 'Active']);
   }
 }
 
@@ -220,8 +220,8 @@ if($uri === '/register' && $method === 'POST'){
   $stmt->execute([$data['email']]);
   if($stmt->fetch()) json(['success'=>false,'message'=>'Email already registered']);
   $hash = password_hash($data['password'], PASSWORD_BCRYPT);
-  $stmt = $pdo->prepare('INSERT INTO Resident (first_name, middle_name, last_name, birth_date, gender, address, contact_number, email, password, account_status, registration_date) VALUES (?,?,?,?,?,?,?,?,?,"Active",NOW())');
-  $stmt->execute([$data['first_name'] ?? '', $data['middle_name'] ?? '', $data['last_name'] ?? '', $data['birth_date'] ?? null, $data['gender'] ?? null, $data['address'] ?? null, $data['contact_number'] ?? null, $data['email'], $hash]);
+  $stmt = $pdo->prepare('INSERT INTO Resident (first_name, middle_name, last_name, birth_date, gender, address, email, password, account_status, registration_date) VALUES (?,?,?,?,?,?,?,?,?,"Active",NOW())');
+  $stmt->execute([$data['first_name'] ?? '', $data['middle_name'] ?? '', $data['last_name'] ?? '', $data['birth_date'] ?? null, $data['gender'] ?? null, $data['address'] ?? null, $data['email'], $hash]);
   $id = $pdo->lastInsertId();
   $token = bin2hex(random_bytes(16));
   $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $id]);  $residentName = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')) ?: $data['email'];
@@ -553,7 +553,7 @@ if($uri === '/residents' && $method === 'GET'){
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
   if($user['role'] !== 'staff') json(['success'=>false,'message'=>'Forbidden']);
-  $stmt = $pdo->query('SELECT resident_id, first_name, middle_name, last_name, email, contact_number, account_status, suspension_end_date, registration_date FROM Resident ORDER BY registration_date DESC');
+  $stmt = $pdo->query('SELECT resident_id, first_name, middle_name, last_name, email, account_status, suspension_end_date, registration_date FROM Resident ORDER BY registration_date DESC');
   json(['success'=>true,'data'=>$stmt->fetchAll()]);
 }
 
