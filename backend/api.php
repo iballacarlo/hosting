@@ -270,35 +270,35 @@ if($uri === '/login' && $method === 'POST'){
     $stmt = $pdo->prepare('SELECT resident_id, first_name, last_name, email, password, account_status, suspension_end_date FROM Resident WHERE email = ?');
     $stmt->execute([$data['email']]);
     $r = $stmt->fetch();
-  if($r && password_verify($data['password'], $r['password'])){
-    $now = new DateTime('now');
-    $accountStatus = trim($r['account_status'] ?? '');
-    if(strcasecmp($accountStatus, 'Banned') === 0){
-      json(['success'=>false,'message'=>'Your account has been banned. Please contact the barangay for assistance.','status'=>'Banned']);
-    }
-    if(strcasecmp($accountStatus, 'Suspended') === 0){
-      if(!empty(trim($r['suspension_end_date'] ?? ''))){
-        $end = DateTime::createFromFormat('Y-m-d', $r['suspension_end_date']);
-        if($end){
-          $end->setTime(23, 59, 59);
-        }
-        if($end && $end >= $now){
-          json(['success'=>false,'message'=>'Your account is suspended until '.$end->format('F j, Y').'.','status'=>'Suspended','suspension_end_date'=>$r['suspension_end_date']]);
-        }
-        // suspension expired; automatically reactivate
-        $pdo->prepare('UPDATE Resident SET account_status = ?, suspension_end_date = NULL WHERE resident_id = ?')->execute(['Active', $r['resident_id']]);
-        $r['account_status'] = 'Active';
-        $r['suspension_end_date'] = null;
-      } else {
-        json(['success'=>false,'message'=>'Your account is suspended. Please contact the barangay for assistance.','status'=>'Suspended']);
+    if($r && password_verify($data['password'], $r['password'])){
+      $now = new DateTime('now');
+      $accountStatus = trim($r['account_status'] ?? '');
+      if(strcasecmp($accountStatus, 'Banned') === 0){
+        json(['success'=>false,'message'=>'Your account has been banned. Please contact the barangay for assistance.','status'=>'Banned']);
       }
+      if(strcasecmp($accountStatus, 'Suspended') === 0){
+        if(!empty(trim($r['suspension_end_date'] ?? ''))){
+          $end = DateTime::createFromFormat('Y-m-d', $r['suspension_end_date']);
+          if($end){
+            $end->setTime(23, 59, 59);
+          }
+          if($end && $end >= $now){
+            json(['success'=>false,'message'=>'Your account is suspended until '.$end->format('F j, Y').'.','status'=>'Suspended','suspension_end_date'=>$r['suspension_end_date']]);
+          }
+          // suspension expired; automatically reactivate
+          $pdo->prepare('UPDATE Resident SET account_status = ?, suspension_end_date = NULL WHERE resident_id = ?')->execute(['Active', $r['resident_id']]);
+          $r['account_status'] = 'Active';
+          $r['suspension_end_date'] = null;
+        } else {
+          json(['success'=>false,'message'=>'Your account is suspended. Please contact the barangay for assistance.','status'=>'Suspended']);
+        }
+      }
+      $token = bin2hex(random_bytes(16));
+      $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $r['resident_id']]);
+      json(['success'=>true,'token'=>$token,'user'=>['id'=>$r['resident_id'],'name'=>($r['first_name'].' '.$r['last_name']),'role'=>'resident','account_status'=>$r['account_status'],'suspension_end_date'=>$r['suspension_end_date']]]);
     }
-    $token = bin2hex(random_bytes(16));
-    $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $r['resident_id']]);
-    json(['success'=>true,'token'=>$token,'user'=>['id'=>$r['resident_id'],'name'=>($r['first_name'].' '.$r['last_name']),'role'=>'resident','account_status'=>$r['account_status'],'suspension_end_date'=>$r['suspension_end_date']]]);
   }
   json(['success'=>false,'message'=>'Invalid credentials']);
-  }
 }
 
 // Route: /me - get current user from Bearer token
