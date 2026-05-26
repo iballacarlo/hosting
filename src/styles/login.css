@@ -384,6 +384,26 @@ html.font-xlarge .login-auth-shell .login-card{
   margin-bottom:48px;
 }
 
+@media (max-width: 560px){
+  html.font-medium .login-auth-shell .login-main,
+  html.font-large .login-auth-shell .login-main,
+  html.font-xlarge .login-auth-shell .login-main{
+    padding-bottom:42px;
+  }
+
+  html.font-medium .login-auth-shell .login-info,
+  html.font-large .login-auth-shell .login-info,
+  html.font-xlarge .login-auth-shell .login-info{
+    padding-bottom:28px;
+  }
+
+  html.font-medium .login-auth-shell .login-card,
+  html.font-large .login-auth-shell .login-card,
+  html.font-xlarge .login-auth-shell .login-card{
+    margin-bottom:24px;
+  }
+}
+
 .login-layout{
   position:relative;
   z-index:1;
