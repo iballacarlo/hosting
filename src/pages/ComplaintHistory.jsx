@@ -6,6 +6,7 @@ import '../styles/history.css'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
+import { sortCategories, withAllFirst } from '../utils/sortOptions'
 
 export default function ComplaintHistory(){
 
@@ -108,7 +109,7 @@ export default function ComplaintHistory(){
       try {
         const res = await api.get('/categories')
         if(!cancelled && res.data?.success && Array.isArray(res.data.data)){
-          setCategories(res.data.data)
+          setCategories(sortCategories(res.data.data, category => category.category_name || category.name))
         }
       } catch {
         if(!cancelled) setCategories([])
@@ -399,9 +400,9 @@ export default function ComplaintHistory(){
                   value={filter}
                   onChange={e => setFilter(e.target.value)}
                 >
-                  <option>All</option>
-                  <option>Resolved</option>
-                  <option>Pending</option>
+                  {withAllFirst(['Resolved', 'Pending']).map(option => (
+                    <option key={option}>{option}</option>
+                  ))}
                 </select>
 
                 <input
@@ -619,7 +620,7 @@ export default function ComplaintHistory(){
                         onChange={(e) => handleEditFieldChange('category', e.target.value)}
                       >
                         <option value="">Select Category</option>
-                        {categories.map(category => (
+                        {sortCategories(categories, category => category.category_name || category.name).map(category => (
                           <option
                             key={category.category_id || category.id || category.category_name || category.name}
                             value={category.category_id || category.id}

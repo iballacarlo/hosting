@@ -10,6 +10,7 @@ import api from '../api/axios'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import BacoorLogo from '../assets/Bacoor.png'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
+import { withAllFirst } from '../utils/sortOptions'
 
 const REQUEST_DOC_TYPES = [
   'Barangay Clearance',
@@ -386,12 +387,9 @@ export default function ManageDocuments(){
                     value={filterStatus}
                     onChange={e => setFilterStatus(e.target.value)}
                   >
-                    <option value="All">All Status</option>
-                    <option value="Requested">Requested</option>
-                    <option value="Processing">Processing</option>
-                    <option value="Ready">Ready</option>
-                    <option value="Released">Released</option>
-                    <option value="Received">Received</option>
+                    {withAllFirst(['Requested', 'Processing', 'Ready', 'Released', 'Received']).map(option => (
+                      <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
+                    ))}
                   </select>
 
                   <input

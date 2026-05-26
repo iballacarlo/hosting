@@ -6,6 +6,13 @@ import api from '../api/axios'
 import StatusBadge from '../components/StatusBadge'
 import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
+import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
+
+const EDIT_DOCUMENT_TYPES = sortTextAsc([
+  'Barangay Clearance',
+  'Certificate of Indigency',
+  'Certificate of Residency'
+])
 
 export default function DocumentHistory(){
 
@@ -271,10 +278,9 @@ export default function DocumentHistory(){
                   value={filter}
                   onChange={e => setFilter(e.target.value)}
                 >
-                  <option>All</option>
-                  <option>Submitted</option>
-                  <option>Released</option>
-                  <option>Received</option>
+                  {withAllFirst(['Submitted', 'Released', 'Received']).map(option => (
+                    <option key={option}>{option}</option>
+                  ))}
                 </select>
 
                 <input
@@ -467,9 +473,9 @@ export default function DocumentHistory(){
                         onChange={(e) => handleEditFieldChange('document_type', e.target.value)}
                       >
                         <option value="">Select Document Type</option>
-                        <option value="Barangay Clearance">Barangay Clearance</option>
-                        <option value="Residency">Certificate of Residency</option>
-                        <option value="Indigency">Certificate of Indigency</option>
+                        {EDIT_DOCUMENT_TYPES.map(documentType => (
+                          <option key={documentType} value={documentType}>{documentType}</option>
+                        ))}
                       </select>
                     </div>
 

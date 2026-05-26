@@ -8,6 +8,7 @@ import '../styles/form.css'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { sortCategories } from '../utils/sortOptions'
 
 const getUserFullName = (user) => {
   if (!user) return ''
@@ -70,17 +71,17 @@ export default function ComplaintForm(){
       try {
         const res = await api.get('/categories')
         if(!cancelled && res.data?.success && Array.isArray(res.data.data)){
-          setCategories(res.data.data)
+          setCategories(sortCategories(res.data.data, category => category.category_name || category.name))
         }
       } catch {
         if(!cancelled){
-          setCategories([
+          setCategories(sortCategories([
             { id: 1, category_id: 1, name: 'Noise Complaint', category_name: 'Noise Complaint' },
             { id: 2, category_id: 2, name: 'Garbage Collection', category_name: 'Garbage Collection' },
             { id: 3, category_id: 3, name: 'Road/Drainage Issue', category_name: 'Road/Drainage Issue' },
             { id: 4, category_id: 4, name: 'Peace and Order', category_name: 'Peace and Order' },
             { id: 5, category_id: 5, name: 'Other', category_name: 'Other' },
-          ])
+          ], category => category.category_name || category.name))
         }
       }
     }
@@ -259,7 +260,7 @@ export default function ComplaintForm(){
                 >
                   <option value="">Select Category</option>
                   {categories.length > 0 ? (
-                    categories.map((category) => (
+                    sortCategories(categories, category => category.category_name || category.name).map((category) => (
                       <option
                         key={category.category_id || category.id || category.category_name || category.name}
                         value={category.category_id || category.id || category.category_name || category.name}

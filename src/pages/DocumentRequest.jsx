@@ -9,12 +9,13 @@ import { useAuth } from '../context/AuthContext'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { addressData } from '../data/addressData'
 import { useNavigate } from 'react-router-dom'
+import { sortTextAsc } from '../utils/sortOptions'
 
-const DEFAULT_DOC_TYPES = [
+const DEFAULT_DOC_TYPES = sortTextAsc([
   'Barangay Clearance',
   'Certificate of Residency',
   'Certificate of Indigency',
-]
+])
 
 const getUserFullName = (user) => {
   if (!user) return ''
@@ -87,7 +88,7 @@ export default function DocumentRequest(){
         const res = await api.get('/document-types')
         if(cancelled || !res.data?.success || !Array.isArray(res.data.data)) return
 
-        const names = res.data.data.map(item => item.document_name || item.name).filter(Boolean)
+        const names = sortTextAsc(res.data.data.map(item => item.document_name || item.name).filter(Boolean))
         const statuses = {}
         res.data.data.forEach(item => {
           const name = item.document_name || item.name
@@ -334,7 +335,7 @@ export default function DocumentRequest(){
                   }}
                 >
                   <option value="">Select Phase</option>
-                  {Object.keys(addressData).map(p => (
+                  {sortTextAsc(Object.keys(addressData)).map(p => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
@@ -352,7 +353,7 @@ export default function DocumentRequest(){
                   disabled={!phase}
                 >
                   <option value="">Select Street</option>
-                  {phase && addressData[phase].map(s => (
+                  {phase && sortTextAsc(addressData[phase]).map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
@@ -396,7 +397,7 @@ export default function DocumentRequest(){
               </label>
               <div className="form-field">
                 <div className={`type-chips ${errors.type ? 'type-chips-error' : ''}`} role="group" aria-label="Document type">
-                  {docTypes.map(t => {
+                  {sortTextAsc(docTypes).map(t => {
                     const isDisabled = documentStatuses[t] === 'disabled'
                     return (
                       <button

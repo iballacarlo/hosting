@@ -6,6 +6,7 @@ import StatusBadge from '../components/StatusBadge'
 import '../styles/history.css'
 import api from '../api/axios'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
+import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
 
 export default function ManageResidents(){
 
@@ -34,7 +35,7 @@ export default function ManageResidents(){
 
   useEffect(()=>{ load() }, [])
 
-  const statusOptions = ['Active', 'Suspended', 'Banned']
+  const statusOptions = sortTextAsc(['Active', 'Suspended', 'Banned'])
 
   const handleSearch = () => {
     setQuery(searchTerm.trim())
@@ -128,9 +129,8 @@ export default function ManageResidents(){
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="All">All Statuses</option>
-                {statusOptions.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
+                {withAllFirst(statusOptions).map(opt => (
+                  <option key={opt} value={opt}>{opt === 'All' ? 'All Statuses' : opt}</option>
                 ))}
               </select>
             </div>

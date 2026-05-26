@@ -16,15 +16,16 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  ArcElement,
   PointElement,
   LineElement,
   Title,
   Tooltip,
   Legend
 } from 'chart.js'
-import { Bar, Line } from 'react-chartjs-2'
+import { Bar, Doughnut, Line } from 'react-chartjs-2'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Title, Tooltip, Legend)
 
 export default function AdminReports(){
   const [loading, setLoading] = useState(true)
@@ -87,26 +88,60 @@ export default function AdminReports(){
     return { monthIndex: idx, month: monthName(idx), totalComplaints: totalC, resolved: resolvedC, totalRequests: totalR, released: releasedR }
   })
 
+  const countBy = (items, getKey) => {
+    return items.reduce((acc, item) => {
+      const key = String(getKey(item) || 'Unspecified').trim() || 'Unspecified'
+      acc[key] = (acc[key] || 0) + 1
+      return acc
+    }, {})
+  }
+
+  const topEntries = (map, limit = 8) => Object.entries(map)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+
+  const complaintStatusEntries = topEntries(countBy(complaints, item => item.status || 'Submitted'), 6)
+  const complaintCategoryEntries = topEntries(countBy(complaints, item => item.category || item.category_name || 'Unspecified'), 8)
+  const documentStatusEntries = topEntries(countBy(docs, item => item.status || 'Submitted'), 6)
+
   const fmt = (v) => (v == null ? '—' : String(Math.round((v + Number.EPSILON) * 100) / 100))
 
   const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top', labels: { boxWidth: 12 } },
+      legend: { position: 'bottom', labels: { boxWidth: 12 } },
       title: { display: false }
     },
     scales: {
-      x: { ticks: { maxRotation: 45, minRotation: 0, autoSkip: true } },
-      y: { beginAtZero: true }
+      x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false } },
+      y: { beginAtZero: true, ticks: { precision: 0 } }
     }
   }
 
   const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { position: 'top' } },
-    scales: { x: { ticks: { maxRotation: 45, minRotation: 0, autoSkip: true } }, y: { beginAtZero: true } }
+    plugins: { legend: { position: 'bottom' } },
+    scales: { x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } }
+  }
+
+  const horizontalBarOptions = {
+    ...barOptions,
+    indexAxis: 'y',
+    scales: {
+      x: { beginAtZero: true, ticks: { precision: 0 } },
+      y: { ticks: { autoSkip: false } }
+    }
+  }
+
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 12 } },
+      title: { display: false }
+    }
   }
 
   return (
@@ -199,27 +234,64 @@ export default function AdminReports(){
           <section className="dashboard-panel reports-panel">
             <div className="panel-head">
               <div>
-                <h2 className="panel-title">Charts</h2>
+                <h2 className="panel-title">Visual Reports</h2>
                 <p className="panel-sub">
-                  Visual analytics will be displayed here.
+                  Counts are grouped from the current complaints and document request records.
                 </p>
               </div>
             </div>
 
-            <div style={{ padding: 12 }}>
-              <h3 style={{ marginTop: 0 }}>Complaints vs Requests (Monthly)</h3>
-              <div style={{ maxWidth: 900 }}>
+            <div className="reports-chart-grid">
+              <div className="reports-chart-card reports-chart-card-wide">
+                <h3 className="reports-chart-title">Monthly Workload</h3>
+                <p className="reports-chart-note">Complaints and document requests submitted each month.</p>
                 <div className="chart-container">
                   <Bar
-                    data={{ labels: monthlySummary.map(r => r.month), datasets: [ { label: 'Complaints', data: monthlySummary.map(r => r.totalComplaints), backgroundColor: '#3b82f6' }, { label: 'Requests', data: monthlySummary.map(r => r.totalRequests), backgroundColor: '#10b981' } ] }}
+                    data={{ labels: monthlySummary.map(r => r.month.slice(0, 3)), datasets: [ { label: 'Complaints', data: monthlySummary.map(r => r.totalComplaints), backgroundColor: '#2563eb' }, { label: 'Document Requests', data: monthlySummary.map(r => r.totalRequests), backgroundColor: '#059669' } ] }}
                     options={barOptions}
                   />
                 </div>
+              </div>
 
-                <h3 style={{ marginTop: 18 }}>Resolved Complaints (Monthly)</h3>
+              <div className="reports-chart-card">
+                <h3 className="reports-chart-title">Complaint Status</h3>
+                <p className="reports-chart-note">Share of complaints by current status.</p>
+                <div className="chart-container">
+                  <Doughnut
+                    data={{ labels: complaintStatusEntries.map(([label]) => label), datasets: [{ data: complaintStatusEntries.map(([, value]) => value), backgroundColor: ['#2563eb', '#f59e0b', '#059669', '#dc2626', '#7c3aed', '#64748b'] }] }}
+                    options={doughnutOptions}
+                  />
+                </div>
+              </div>
+
+              <div className="reports-chart-card">
+                <h3 className="reports-chart-title">Top Complaint Categories</h3>
+                <p className="reports-chart-note">Most common categories in submitted complaints.</p>
+                <div className="chart-container">
+                  <Bar
+                    data={{ labels: complaintCategoryEntries.map(([label]) => label), datasets: [{ label: 'Complaints', data: complaintCategoryEntries.map(([, value]) => value), backgroundColor: '#0891b2' }] }}
+                    options={horizontalBarOptions}
+                  />
+                </div>
+              </div>
+
+              <div className="reports-chart-card">
+                <h3 className="reports-chart-title">Document Request Status</h3>
+                <p className="reports-chart-note">Current status of document requests.</p>
+                <div className="chart-container">
+                  <Doughnut
+                    data={{ labels: documentStatusEntries.map(([label]) => label), datasets: [{ data: documentStatusEntries.map(([, value]) => value), backgroundColor: ['#059669', '#2563eb', '#f59e0b', '#dc2626', '#7c3aed', '#64748b'] }] }}
+                    options={doughnutOptions}
+                  />
+                </div>
+              </div>
+
+              <div className="reports-chart-card reports-chart-card-wide">
+                <h3 className="reports-chart-title">Resolved and Released Trend</h3>
+                <p className="reports-chart-note">Completed complaints and released documents by month.</p>
                 <div className="chart-container">
                   <Line
-                    data={{ labels: monthlySummary.map(r => r.month), datasets: [ { label: 'Resolved', data: monthlySummary.map(r => r.resolved), borderColor: '#06b6d4', tension: 0.2, fill: false } ] }}
+                    data={{ labels: monthlySummary.map(r => r.month.slice(0, 3)), datasets: [ { label: 'Resolved Complaints', data: monthlySummary.map(r => r.resolved), borderColor: '#0891b2', backgroundColor: '#0891b2', tension: 0.25, fill: false }, { label: 'Released Documents', data: monthlySummary.map(r => r.released), borderColor: '#059669', backgroundColor: '#059669', tension: 0.25, fill: false } ] }}
                     options={lineOptions}
                   />
                 </div>
@@ -266,9 +338,47 @@ export default function AdminReports(){
   )
 
   function exportCsv(){
-    const headers = ['Month','Total Complaints','Resolved','Total Requests','Released']
-    const rows = monthlySummary.map(r => [r.month, r.totalComplaints, r.resolved, r.totalRequests, r.released])
-    const csv = [headers, ...rows].map(r => r.map(cell => typeof cell === 'string' ? `"${cell.replace(/"/g,'""')}"` : cell).join(',')).join('\n')
+    const escapeRow = (row) => row.map(cell => `"${String(cell ?? '').replace(/"/g,'""')}"`).join(',')
+    const lines = []
+    lines.push(escapeRow(['Reports and Analytics Export', now.toLocaleString('en-US')]))
+    lines.push('')
+    lines.push(escapeRow(['Summary']))
+    lines.push(escapeRow(['Metric', 'Value']))
+    lines.push(escapeRow(['Total Complaints This Month', totalComplaintsThisMonth]))
+    lines.push(escapeRow(['Resolved Complaints This Month', resolvedComplaintsThisMonth]))
+    lines.push(escapeRow(['Document Requests This Month', totalDocsThisMonth]))
+    lines.push(escapeRow(['Released Documents This Month', releasedDocsThisMonth]))
+    lines.push(escapeRow(['Average Complaint Resolution Days', avgResolutionDays == null ? '' : fmt(avgResolutionDays)]))
+    lines.push('')
+    lines.push(escapeRow(['Monthly Summary']))
+    lines.push(escapeRow(['Month','Total Complaints','Resolved Complaints','Total Document Requests','Released Documents']))
+    monthlySummary.forEach(r => lines.push(escapeRow([r.month, r.totalComplaints, r.resolved, r.totalRequests, r.released])))
+    lines.push('')
+    lines.push(escapeRow(['Complaint Records']))
+    lines.push(escapeRow(['Complaint ID','Date Submitted','Category','Title','Status','Anonymous','Incident Location','Incident Date']))
+    complaints.forEach(item => lines.push(escapeRow([
+      item.complaint_id,
+      item.date_submitted,
+      item.category || item.category_name,
+      item.title,
+      item.status,
+      item.anonymous ? 'Yes' : 'No',
+      item.incident_location || item.location,
+      item.incident_date
+    ])))
+    lines.push('')
+    lines.push(escapeRow(['Document Request Records']))
+    lines.push(escapeRow(['Request ID','Reference Number','Date Requested','Document Type','Resident','Status','Purpose']))
+    docs.forEach(item => lines.push(escapeRow([
+      item.request_id,
+      item.reference_number,
+      item.date_requested,
+      item.document_type,
+      item.name || item.full_name,
+      item.status,
+      item.purpose
+    ])))
+    const csv = lines.join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

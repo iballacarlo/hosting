@@ -6,8 +6,9 @@ import '../styles/form.css'
 import { Settings, Tags, Save, RotateCcw, Accessibility } from 'lucide-react'
 import { useSettings } from '../context/SettingsContext'
 import api from '../api/axios'
+import { sortCategories, sortTextAsc } from '../utils/sortOptions'
 
-const DEFAULT_CATEGORIES = ['Noise', 'Garbage', 'Traffic', 'Water Supply', 'Electricity', 'Public Safety', 'Other']
+const DEFAULT_CATEGORIES = sortCategories(['Noise', 'Garbage', 'Traffic', 'Water Supply', 'Electricity', 'Public Safety', 'Other'])
 const DEFAULT_SYSTEM_NAME = 'Barangay Service & Complaint Management System'
 const DEFAULT_CONTACT_EMAIL = 'brgy.mambog.ii@gmail.com'
 const DEFAULT_DOCUMENT_TYPES = [
@@ -49,7 +50,7 @@ export default function AdminSettings(){
         if(cancelled) return
 
         if(categoryRes.data?.success && Array.isArray(categoryRes.data.data)){
-          setCategories(categoryRes.data.data.map(category => category.category_name || category.name).filter(Boolean))
+          setCategories(sortCategories(categoryRes.data.data.map(category => category.category_name || category.name).filter(Boolean)))
         } else {
           setCategories(DEFAULT_CATEGORIES)
         }
@@ -94,12 +95,15 @@ export default function AdminSettings(){
     const v = newCat.trim()
     if(!v) return
     if(categories.some(c => c.toLowerCase() === v.toLowerCase())) return
-    setCategories(prev => [...prev, v])
+    setCategories(prev => sortCategories([...prev, v]))
     setNewCat('')
   }
 
-  function removeCategory(idx){
-    setCategories(prev => prev.filter((_, i) => i !== idx))
+  function removeCategory(categoryToRemove){
+    setCategories(prev => {
+      const isOther = ['other', 'others'].includes(String(categoryToRemove || '').trim().toLowerCase())
+      return isOther ? prev : sortCategories(prev.filter(category => category !== categoryToRemove))
+    })
   }
 
   async function resetDefaults(){
@@ -136,7 +140,7 @@ export default function AdminSettings(){
   async function save(){
     try {
       await Promise.all([
-        api.put('/categories', { categories }),
+        api.put('/categories', { categories: sortCategories(categories) }),
         api.put('/document-types', {
           document_types: Object.entries(documentStatuses).map(([document_name, status]) => ({
             document_name,
@@ -253,7 +257,9 @@ export default function AdminSettings(){
                 </div>
 
                 <div className="type-chips" style={{ marginTop: 12 }}>
-                  {categories.map((c, idx) => (
+                  {sortCategories(categories).map((c, idx) => {
+                    const isOther = ['other', 'others'].includes(String(c || '').trim().toLowerCase())
+                    return (
                     <div
                       key={c + idx}
                       className="type-chip"
@@ -263,20 +269,23 @@ export default function AdminSettings(){
                       <span>{c}</span>
                       <button
                         type="button"
-                        onClick={() => removeCategory(idx)}
+                        onClick={() => removeCategory(c)}
                         aria-label={`Remove ${c}`}
+                        disabled={isOther}
+                        title={isOther ? 'Other category cannot be removed' : `Remove ${c}`}
                         style={{
                           border: 'none',
                           background: 'transparent',
-                          cursor: 'pointer',
+                          cursor: isOther ? 'not-allowed' : 'pointer',
                           fontWeight: 900,
-                          opacity: 0.8
+                          opacity: isOther ? 0.35 : 0.8
                         }}
                       >
                         ✕
                       </button>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
 
                 <div className="helper" style={{ marginTop: 10 }}>
@@ -304,7 +313,8 @@ export default function AdminSettings(){
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {Object.entries(documentStatuses).map(([docType, status]) => {
+                  {sortTextAsc(Object.keys(documentStatuses)).map((docType) => {
+                    const status = documentStatuses[docType]
                     const isDisabled = status === 'disabled'
                     return (
                       <div

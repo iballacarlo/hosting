@@ -274,6 +274,10 @@ function ensureDefaultCategories($pdo){
   }
 }
 
+function categoryOrderSql(){
+  return "CASE WHEN LOWER(category_name) IN ('other', 'others') THEN 1 ELSE 0 END ASC, category_name ASC";
+}
+
 function getComplaintSelectSql($where = ''){
   return 'SELECT c.*, 
       cat.category_name AS category,
@@ -285,6 +289,20 @@ function getComplaintSelectSql($where = ''){
     LEFT JOIN Resident r ON c.resident_id = r.resident_id ' . $where . '
     ORDER BY c.date_submitted DESC
     LIMIT 200';
+}
+
+function maskAnonymousComplaints($rows, $maskResidentId = false){
+  foreach($rows as &$row){
+    if(!empty($row['anonymous'])){
+      $row['resident_name'] = 'Anonymous';
+      $row['name'] = 'Anonymous';
+      if($maskResidentId){
+        $row['resident_id'] = null;
+      }
+    }
+  }
+  unset($row);
+  return $rows;
 }
 
 function getComplaintAttachments($pdo, $complaintIds){
@@ -1167,7 +1185,7 @@ if($uri === '/categories'){
   ensureDefaultCategories($pdo);
 
   if($method === 'GET'){
-    $stmt = $pdo->query('SELECT category_id, category_name, description FROM Category ORDER BY category_name ASC');
+    $stmt = $pdo->query('SELECT category_id, category_name, description FROM Category ORDER BY ' . categoryOrderSql());
     json(['success'=>true,'data'=>$stmt->fetchAll()]);
   }
 
@@ -1187,6 +1205,10 @@ if($uri === '/categories'){
       if($name !== '') $names[] = $name;
     }
     $names = array_values(array_unique($names));
+    $lowerNames = array_map('strtolower', $names);
+    if(!in_array('other', $lowerNames, true) && !in_array('others', $lowerNames, true)){
+      $names[] = 'Other';
+    }
 
     $pdo->beginTransaction();
     try {
@@ -1207,6 +1229,7 @@ if($uri === '/categories'){
         $placeholders = implode(',', array_fill(0, count($names), '?'));
         $deleteSql = 'DELETE FROM Category
           WHERE category_name NOT IN (' . $placeholders . ')
+          AND LOWER(category_name) NOT IN (\'other\', \'others\')
           AND category_id NOT IN (SELECT DISTINCT category_id FROM Complaint WHERE category_id IS NOT NULL)';
         $pdo->prepare($deleteSql)->execute($names);
       }
@@ -1217,7 +1240,7 @@ if($uri === '/categories'){
       json(['success'=>false,'message'=>'Failed to save categories'], 500);
     }
 
-    $stmt = $pdo->query('SELECT category_id, category_name, description FROM Category ORDER BY category_name ASC');
+    $stmt = $pdo->query('SELECT category_id, category_name, description FROM Category ORDER BY ' . categoryOrderSql());
     json(['success'=>true,'data'=>$stmt->fetchAll()]);
   }
 }
@@ -1272,11 +1295,11 @@ if($uri === '/complaints'){
 
     if($user['role'] === 'staff'){
       $stmt = $pdo->query(getComplaintSelectSql());
-      $rows = $stmt->fetchAll();
+      $rows = maskAnonymousComplaints($stmt->fetchAll(), true);
     } else {
       $stmt = $pdo->prepare(getComplaintSelectSql('WHERE c.resident_id = ?'));
       $stmt->execute([$user['id']]);
-      $rows = $stmt->fetchAll();
+      $rows = maskAnonymousComplaints($stmt->fetchAll(), false);
     }
 
     $rows = attachComplaintMedia($pdo, $rows);
@@ -1297,7 +1320,8 @@ if($uri === '/complaints'){
     $complaintId = $pdo->lastInsertId();
     saveComplaintUploads($pdo, $complaintId);
 
-    $authorName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: ($user['email'] ?? 'Resident');
+    $isAnonymous = !empty($data['anonymous']);
+    $authorName = $isAnonymous ? 'Anonymous' : (trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: ($user['email'] ?? 'Resident'));
     $message = 'New complaint submitted by ' . $authorName . ': ' . trim($data['title'] ?? $data['description'] ?? 'Complaint');
     if($message === ''){
       $message = 'New complaint submitted by ' . $authorName;

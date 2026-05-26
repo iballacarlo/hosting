@@ -8,6 +8,7 @@ import '../styles/history.css'
 import api from '../api/axios'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
+import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
 
 export default function ManageComplaints(){
   const location = useLocation()
@@ -96,7 +97,7 @@ export default function ManageComplaints(){
     }
   }, [highlightedComplaintId, items])
 
-  const statusOptions = ['Submitted', 'Pending', 'Resolved', 'Closed']
+  const statusOptions = sortTextAsc(['Submitted', 'Pending', 'Resolved', 'Closed'])
   async function handleUpdate(id, status){
     const item = items.find(i => i.complaint_id === id)
     if(!item) return
@@ -713,11 +714,9 @@ export default function ManageComplaints(){
                     value={filterStatus}
                     onChange={e => setFilterStatus(e.target.value)}
                   >
-                    <option value="All">All Status</option>
-                    <option value="Submitted">Submitted</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Closed">Closed</option>
+                    {withAllFirst(['Submitted', 'Pending', 'Resolved', 'Closed']).map(option => (
+                      <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
+                    ))}
                   </select>
 
                   <input

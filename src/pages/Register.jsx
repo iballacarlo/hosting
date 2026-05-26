@@ -8,6 +8,7 @@ import api from '../api/axios'
 import '../styles/login.css'
 import Logo from '../assets/Bacoor.png'
 import { addressData } from '../data/addressData'
+import { sortTextAsc } from '../utils/sortOptions'
 // use AuthContext.register for creating account + auto-login
 
 export default function Register(){
@@ -542,9 +543,9 @@ export default function Register(){
                       onChange={e => setField('gender', e.target.value)}
                     >
                       <option value="">Select</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Prefer not to say">Prefer not to say</option>
+                      {sortTextAsc(['Male', 'Female', 'Prefer not to say']).map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -581,7 +582,7 @@ export default function Register(){
                       }}
                     >
                       <option value="">Select Phase</option>
-                      {Object.keys(addressData).map(phase => (
+                      {sortTextAsc(Object.keys(addressData)).map(phase => (
                         <option key={phase} value={phase}>{phase}</option>
                       ))}
                     </select>
@@ -596,7 +597,7 @@ export default function Register(){
                       disabled={!form.phase}
                     >
                       <option value="">Select Street</option>
-                      {form.phase && addressData[form.phase].map(street => (
+                      {form.phase && sortTextAsc(addressData[form.phase]).map(street => (
                         <option key={street} value={street}>{street}</option>
                       ))}
                     </select>
