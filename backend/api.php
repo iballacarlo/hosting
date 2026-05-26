@@ -15,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require __DIR__ . '/db.php';
 
+const RESET_OTP_TTL_SECONDS = 900;
+const RESET_OTP_RESEND_SECONDS = 30;
+
 // REQUEST INFO
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -59,6 +62,136 @@ function tableExists($pdo, $table){
     $cache[$table] = false;
   }
   return $cache[$table];
+}
+
+function ensurePasswordResetTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Password_Reset (
+    reset_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    user_role VARCHAR(20) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    last_sent_at DATETIME NOT NULL,
+    used_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_password_reset_user (user_id, user_role),
+    INDEX idx_password_reset_email (email),
+    INDEX idx_password_reset_expires_at (expires_at)
+  )');
+
+  $ready = true;
+}
+
+function getPasswordReset($pdo, $user){
+  ensurePasswordResetTable($pdo);
+  $stmt = $pdo->prepare('SELECT * FROM Password_Reset WHERE user_id = ? AND user_role = ? LIMIT 1');
+  $stmt->execute([$user['id'], $user['role']]);
+  return $stmt->fetch();
+}
+
+function upsertPasswordResetOtp($pdo, $user, $code){
+  ensurePasswordResetTable($pdo);
+  $hash = password_hash($code, PASSWORD_BCRYPT);
+  $stmt = $pdo->prepare('INSERT INTO Password_Reset (user_id, user_role, email, otp_hash, expires_at, last_sent_at)
+    VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW())
+    ON DUPLICATE KEY UPDATE
+      email = VALUES(email),
+      otp_hash = VALUES(otp_hash),
+      expires_at = VALUES(expires_at),
+      last_sent_at = VALUES(last_sent_at),
+      used_at = NULL');
+  $stmt->execute([$user['id'], $user['role'], $user['email'], $hash]);
+}
+
+function deletePasswordResetOtp($pdo, $user){
+  ensurePasswordResetTable($pdo);
+  $stmt = $pdo->prepare('DELETE FROM Password_Reset WHERE user_id = ? AND user_role = ?');
+  $stmt->execute([$user['id'], $user['role']]);
+}
+
+function secondsUntilOtpCanResend($reset){
+  if(!$reset || empty($reset['last_sent_at'])) return 0;
+  $lastSent = strtotime($reset['last_sent_at']);
+  if(!$lastSent) return 0;
+  $elapsed = time() - $lastSent;
+  return max(0, RESET_OTP_RESEND_SECONDS - $elapsed);
+}
+
+function sendSmtpCommand($socket, $command, $expectCodes){
+  if($command !== null){
+    fwrite($socket, $command . "\r\n");
+  }
+
+  $response = '';
+  while(($line = fgets($socket, 515)) !== false){
+    $response .= $line;
+    if(strlen($line) >= 4 && $line[3] === ' ') break;
+  }
+
+  $code = substr($response, 0, 3);
+  if(!in_array($code, $expectCodes, true)){
+    throw new Exception('SMTP error: ' . trim($response));
+  }
+
+  return $response;
+}
+
+function sendOtpEmail($toEmail, $code){
+  $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+  $smtpPort = intval(getenv('SMTP_PORT') ?: 587);
+  $smtpUser = getenv('SMTP_USER') ?: 'brgy.mambog.ii@gmail.com';
+  $smtpPass = getenv('SMTP_PASS') ?: 'icgo ivis conp gudt';
+  $fromEmail = getenv('SMTP_FROM') ?: $smtpUser;
+  $fromName = getenv('SMTP_FROM_NAME') ?: 'Barangay Mambog II';
+
+  if(!$smtpPass){
+    throw new Exception('SMTP_PASS is not configured');
+  }
+
+  $socket = fsockopen($smtpHost, $smtpPort, $errno, $errstr, 20);
+  if(!$socket){
+    throw new Exception('Unable to connect to SMTP server: ' . $errstr);
+  }
+
+  stream_set_timeout($socket, 20);
+
+  try {
+    sendSmtpCommand($socket, null, ['220']);
+    sendSmtpCommand($socket, 'EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'), ['250']);
+    sendSmtpCommand($socket, 'STARTTLS', ['220']);
+
+    if(!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)){
+      throw new Exception('Unable to start SMTP TLS');
+    }
+
+    sendSmtpCommand($socket, 'EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'), ['250']);
+    sendSmtpCommand($socket, 'AUTH LOGIN', ['334']);
+    sendSmtpCommand($socket, base64_encode($smtpUser), ['334']);
+    sendSmtpCommand($socket, base64_encode($smtpPass), ['235']);
+    sendSmtpCommand($socket, 'MAIL FROM:<' . $fromEmail . '>', ['250']);
+    sendSmtpCommand($socket, 'RCPT TO:<' . $toEmail . '>', ['250', '251']);
+    sendSmtpCommand($socket, 'DATA', ['354']);
+
+    $subject = 'Your Barangay Mambog II password reset OTP';
+    $body = "Hello,\r\n\r\nYour password reset OTP is: {$code}\r\n\r\nThis code expires in 15 minutes. If you did not request this, you can ignore this email.\r\n\r\nBarangay Mambog II";
+    $headers = [
+      'From: ' . $fromName . ' <' . $fromEmail . '>',
+      'To: <' . $toEmail . '>',
+      'Subject: ' . $subject,
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=UTF-8'
+    ];
+    $message = implode("\r\n", $headers) . "\r\n\r\n" . $body . "\r\n.";
+
+    sendSmtpCommand($socket, $message, ['250']);
+    sendSmtpCommand($socket, 'QUIT', ['221']);
+  } finally {
+    fclose($socket);
+  }
 }
 
 function findUserByToken($pdo, $token){
@@ -345,26 +478,59 @@ if($uri === '/me' && $method === 'GET'){
 if($uri === '/forgot-password' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
   if(empty($data['email'])) json(['success'=>false,'message'=>'Email is required']);
+  if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address']);
   $user = findUserByEmail($pdo, $data['email']);
   if(!$user) json(['success'=>false,'message'=>'Email not found']);
 
-  $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-  updateUserApiToken($pdo, $user['role'], $user['id'], $code);
+  $existingReset = getPasswordReset($pdo, $user);
+  $waitSeconds = secondsUntilOtpCanResend($existingReset);
+  if($waitSeconds > 0){
+    json([
+      'success'=>false,
+      'message'=>'Please wait before requesting another OTP.',
+      'retry_after'=>$waitSeconds
+    ]);
+  }
 
-  json(['success'=>true,'message'=>'Reset code generated successfully','token'=>$code]);
+  $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+  try {
+    upsertPasswordResetOtp($pdo, $user, $code);
+    sendOtpEmail($user['email'], $code);
+  } catch (Exception $e) {
+    deletePasswordResetOtp($pdo, $user);
+    error_log('Password reset OTP email failed: ' . $e->getMessage());
+    json(['success'=>false,'message'=>'Unable to send OTP email. Please try again later.']);
+  }
+
+  json([
+    'success'=>true,
+    'message'=>'OTP sent to your email.',
+    'expires_in'=>RESET_OTP_TTL_SECONDS,
+    'resend_after'=>RESET_OTP_RESEND_SECONDS
+  ]);
 }
 
 // Route: /reset-password
 if($uri === '/reset-password' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
   if(empty($data['email']) || empty($data['token']) || empty($data['password'])) json(['success'=>false,'message'=>'Email, reset code, and password are required']);
+  if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address']);
   $user = findUserByEmail($pdo, $data['email']);
   if(!$user) json(['success'=>false,'message'=>'Email not found']);
-  if($user['api_token'] !== $data['token']) json(['success'=>false,'message'=>'Invalid reset code']);
+
+  $reset = getPasswordReset($pdo, $user);
+  if(!$reset || !empty($reset['used_at'])) json(['success'=>false,'message'=>'Invalid or expired reset code']);
+  if(strtotime($reset['expires_at']) < time()){
+    deletePasswordResetOtp($pdo, $user);
+    json(['success'=>false,'message'=>'Reset code expired. Please request a new OTP.']);
+  }
+  if(!password_verify(trim($data['token']), $reset['otp_hash'])) json(['success'=>false,'message'=>'Invalid reset code']);
   if(strlen($data['password']) < 6) json(['success'=>false,'message'=>'Password must be at least 6 characters']);
 
   $hash = password_hash($data['password'], PASSWORD_BCRYPT);
   updateUserPassword($pdo, $user['role'], $user['id'], $hash);
+  deletePasswordResetOtp($pdo, $user);
 
   json(['success'=>true,'message'=>'Password reset successful']);
 }

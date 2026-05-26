@@ -24,9 +24,10 @@ export default function ForgotPassword(){
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
-  const [generatedToken, setGeneratedToken] = useState('')
   const [step, setStep] = useState(searchParams.get('token') ? 2 : 1)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [resendSeconds, setResendSeconds] = useState(0)
+  const [expiresAt, setExpiresAt] = useState(null)
   
   const panelRef = useRef(null)
 
@@ -50,6 +51,15 @@ export default function ForgotPassword(){
     }
   }, [settingsOpen])
 
+  useEffect(() => {
+    if(resendSeconds <= 0) return undefined
+    const timer = window.setInterval(() => {
+      setResendSeconds(seconds => Math.max(0, seconds - 1))
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [resendSeconds])
+
   function validateStep1(){
     const e = {}
     if(!email.trim()) e.email = 'Email is required'
@@ -69,8 +79,7 @@ export default function ForgotPassword(){
     return Object.keys(e).length === 0
   }
 
-  async function handleRequestReset(e){
-    e.preventDefault()
+  async function requestResetCode(){
     if(!validateStep1()) return
 
     setLoading(true)
@@ -79,19 +88,33 @@ export default function ForgotPassword(){
       const data = res.data
       
       if(data.success){
-        setGeneratedToken(data.token)
-        setToken(data.token)
-        setSuccessMessage('Reset code generated successfully!')
+        setToken('')
+        setSuccessMessage(data.message || 'OTP sent to your email.')
+        setResendSeconds(data.resend_after || 30)
+        setExpiresAt(Date.now() + ((data.expires_in || 900) * 1000))
         setErrors({})
         setStep(2)
       } else {
+        if(data.retry_after) setResendSeconds(data.retry_after)
         setErrors({ form: data.message || 'Failed to request reset' })
       }
     } catch(err){
-      setErrors({ form: err.message || 'Network error' })
+      const data = err?.response?.data
+      if(data?.retry_after) setResendSeconds(data.retry_after)
+      setErrors({ form: data?.message || err.message || 'Network error' })
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleRequestReset(e){
+    e.preventDefault()
+    await requestResetCode()
+  }
+
+  async function handleResendCode(){
+    if(resendSeconds > 0 || loading) return
+    await requestResetCode()
   }
 
   async function handleResetPassword(e){
@@ -106,6 +129,8 @@ export default function ForgotPassword(){
       if(data.success){
         setSuccessMessage('Password reset successfully! Redirecting to login...')
         setErrors({})
+        setResendSeconds(0)
+        setExpiresAt(null)
         setTimeout(() => navigate('/login'), 2000)
       } else {
         setErrors({ form: data.message || 'Failed to reset password' })
@@ -309,6 +334,9 @@ export default function ForgotPassword(){
                 <div className="card-head">
                   <h2 id="resetPasswordTitle" className="card-title">Reset password</h2>
                   <p className="card-sub">Enter your reset code and new password.</p>
+                  {expiresAt && (
+                    <p className="card-sub">Your OTP expires in 15 minutes.</p>
+                  )}
                 </div>
 
                 <InputField
@@ -354,12 +382,6 @@ export default function ForgotPassword(){
                   autoComplete="new-password"
                 />
 
-                {generatedToken && (
-                  <div className="info-box" style={{backgroundColor: 'var(--info-bg)', padding: '12px', borderRadius: '6px', fontSize: '0.85rem', color: 'var(--info-color)', marginBottom: '12px'}}>
-                    <strong>Your Reset Code:</strong> <code style={{display: 'block', marginTop: '4px', wordBreak: 'break-all', fontFamily: 'monospace'}}>{generatedToken}</code>
-                  </div>
-                )}
-
                 {successMessage && <div className="success">{successMessage}</div>}
                 {errors.form && <div className="error">{errors.form}</div>}
 
@@ -372,12 +394,23 @@ export default function ForgotPassword(){
                 <p className="muted bottom-text">
                   <button
                     type="button"
+                    onClick={handleResendCode}
+                    disabled={loading || resendSeconds > 0}
+                    style={{background: 'none', border: 'none', color: resendSeconds > 0 ? 'var(--muted-color)' : 'var(--link-color)', cursor: resendSeconds > 0 ? 'not-allowed' : 'pointer', textDecoration: 'underline', marginRight: '12px'}}
+                  >
+                    {resendSeconds > 0 ? `Resend OTP in ${resendSeconds}s` : 'Resend OTP'}
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => {
                       setStep(1)
                       setPassword('')
                       setConfirmPassword('')
                       setErrors({})
                       setSuccessMessage('')
+                      setResendSeconds(0)
+                      setExpiresAt(null)
                     }}
                     style={{background: 'none', border: 'none', color: 'var(--link-color)', cursor: 'pointer', textDecoration: 'underline'}}
                   >

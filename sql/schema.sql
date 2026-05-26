@@ -194,6 +194,25 @@ CREATE TABLE IF NOT EXISTS Notification (
 );
 
 
+CREATE TABLE IF NOT EXISTS Password_Reset (
+  reset_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  user_id INT NOT NULL,
+  user_role VARCHAR(20) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+
+  otp_hash VARCHAR(255) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  last_sent_at DATETIME NOT NULL,
+  used_at DATETIME DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uq_password_reset_user (user_id, user_role),
+  INDEX idx_password_reset_email (email),
+  INDEX idx_password_reset_expires_at (expires_at)
+);
+
+
 CREATE TABLE IF NOT EXISTS Report_Log (
   report_id INT AUTO_INCREMENT PRIMARY KEY,
 

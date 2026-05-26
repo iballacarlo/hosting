@@ -82,3 +82,19 @@ With the rewrite in place both `http://localhost/barangay-api/seed` and
 Notes:
 - Passwords in the SQL seed are left blank; when you register/login via the app the API will store hashed passwords and tokens.
 - This PHP API is a minimal demo and uses token strings stored in the DB (not full JWT). For production, add HTTPS, JWT, input validation, and stricter auth.
+
+Password reset OTP email:
+- The backend sends password reset OTPs through Gmail SMTP.
+- Set these Railway environment variables on the backend service:
+
+```text
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=brgy.mambog.ii@gmail.com
+SMTP_PASS=icgo ivis conp gudt
+SMTP_FROM=brgy.mambog.ii@gmail.com
+SMTP_FROM_NAME=Barangay Mambog II
+```
+
+- OTPs can be resent after 30 seconds and expire after 15 minutes.
+- The app creates the `Password_Reset` table automatically if it is missing, but `sql/schema.sql` also includes it for fresh databases.
