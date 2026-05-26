@@ -424,6 +424,14 @@ function sendOtpEmail($toEmail, $code, $type = 'password_reset'){
     }
     throw new Exception($message);
   }
+
+  if(!array_key_exists('sent', $result) || empty($result['sent'])){
+    throw new Exception('Mail API did not confirm that the email was sent. Update and redeploy the Google Apps Script mail relay.');
+  }
+
+  if(!empty($result['sentTo']) && strcasecmp(trim($result['sentTo']), trim($toEmail)) !== 0){
+    throw new Exception('Mail API sent the email to a different recipient');
+  }
 }
 
 function getLastHttpStatus($headers){

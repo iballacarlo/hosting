@@ -656,7 +656,7 @@ export default function Register(){
                       setOtp('')
                       setSuccessMessage('')
                     }}
-                    placeholder="you@email.com"
+                    placeholder="you@gmail.com"
                     autoComplete="email"
                   />
 

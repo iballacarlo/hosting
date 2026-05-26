@@ -122,7 +122,12 @@ function doPost(e) {
       name: data.fromName || 'Barangay Mambog II'
     });
 
-    return json({ success: true });
+    return json({
+      success: true,
+      sent: true,
+      sentTo: data.to,
+      remainingDailyQuota: MailApp.getRemainingDailyQuota()
+    });
   } catch (err) {
     return json({ success: false, message: err.message });
   }
