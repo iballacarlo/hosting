@@ -366,6 +366,12 @@ html.high-contrast{
   overflow:visible;
 }
 
+html.font-medium .login-auth-shell .login-main,
+html.font-large .login-auth-shell .login-main,
+html.font-xlarge .login-auth-shell .login-main{
+  padding-bottom:64px;
+}
+
 .login-layout{
   position:relative;
   z-index:1;

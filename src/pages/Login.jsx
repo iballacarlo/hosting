@@ -100,7 +100,7 @@ export default function Login(){
   ]), [])
 
   return (
-    <div className="login-shell">
+    <div className="login-shell login-auth-shell">
       <header className="login-topbar">
         <div className="topbar-left">
           <Link to="/login" className="topbar-brand" aria-label="Go to login page">
