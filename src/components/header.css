@@ -226,6 +226,36 @@ html.dark .mark-all-read-btn{
   min-width: fit-content;
 }
 
+.notification-filter-row{
+  display:flex;
+  gap:6px;
+  padding:10px 12px 0;
+  border-bottom:0;
+  overflow-x:auto;
+}
+
+.notification-filter-chip{
+  flex:0 0 auto;
+  border:1px solid var(--border-color);
+  background: color-mix(in srgb, var(--card-bg) 88%, transparent);
+  color: var(--text-color);
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:0.78rem;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.notification-filter-chip.active{
+  border-color: var(--primary-color);
+  background: var(--primary-soft);
+  color: var(--primary-color);
+}
+
+.notification-filter-chip:hover{
+  background: var(--surface-2);
+}
+
 .notification-modal-content{
   padding:12px 14px;
   color: var(--text-color);

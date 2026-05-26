@@ -15,8 +15,7 @@ export default function Header(){
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
-  const [notificationsViewed, setNotificationsViewed] = useState(false)
-  const [lastSeenUnreadCount, setLastSeenUnreadCount] = useState(0)
+  const [notificationFilter, setNotificationFilter] = useState('all')
   const menuRef = useRef(null)
   const settingsRef = useRef(null)
   const notificationsRef = useRef(null)
@@ -51,6 +50,62 @@ export default function Header(){
   }, [menuOpen, settingsOpen, notificationsOpen])
 
   const isNotificationRead = (notification) => notification?.is_read ?? notification?.read ?? false
+  const getNotificationStorageKey = () => {
+    const userKey = user?.id || user?.user_id || user?.email || user?.username || 'guest'
+    return `notifications_last_opened_${userKey}`
+  }
+
+  const getNotificationTime = (notification) => {
+    const rawDate = notification?.created_at || notification?.date_created || notification?.createdAt
+    const date = rawDate ? new Date(rawDate) : null
+    return date && !Number.isNaN(date.getTime()) ? date.getTime() : 0
+  }
+
+  const getLastOpenedNotificationsAt = () => {
+    if(typeof window === 'undefined' || !user) return 0
+    return Number(localStorage.getItem(getNotificationStorageKey()) || 0)
+  }
+
+  const getLatestNotificationTime = (list) => {
+    return list.reduce((latest, notification) => Math.max(latest, getNotificationTime(notification)), 0)
+  }
+
+  const getBadgeCount = (list) => {
+    const lastOpenedAt = getLastOpenedNotificationsAt()
+    if(lastOpenedAt > 0){
+      return list.filter(notification => getNotificationTime(notification) > lastOpenedAt).length
+    }
+    return list.filter(notification => !isNotificationRead(notification)).length
+  }
+
+  const markNotificationsPanelOpened = (list) => {
+    if(typeof window === 'undefined' || !user) return
+    const latestTime = getLatestNotificationTime(list)
+    localStorage.setItem(getNotificationStorageKey(), String(Math.max(Date.now(), latestTime)))
+    setUnreadCount(0)
+  }
+
+  const getNotificationKind = (notification) => {
+    const payload = notification?.data || {}
+    const rawCategory = String(notification?.category || notification?.type || payload.category || payload.type || '').toLowerCase()
+    const rawMessage = String(notification?.message || '').toLowerCase()
+    if(/complaint/.test(rawCategory) || /complaint/.test(rawMessage) || payload.complaint_id || payload.complaintId) return 'complaint'
+    if(/doc|document|request/.test(rawCategory) || /doc|document|request/.test(rawMessage) || payload.request_id || payload.requestId || payload.reference_number) return 'document'
+    if(/register|registration|new resident|new user|account/.test(rawCategory) || /register|registration|new resident|new user|account/.test(rawMessage)) return 'registration'
+    return 'other'
+  }
+
+  const notificationFilterOptions = [
+    { key: 'all', label: 'All' },
+    { key: 'complaint', label: 'Complaints' },
+    { key: 'document', label: 'Documents' },
+    { key: 'registration', label: 'Registration' }
+  ]
+
+  const filteredNotifications = notifications.filter(notification =>
+    notificationFilter === 'all' || getNotificationKind(notification) === notificationFilter
+  )
+  const unreadNotificationCount = notifications.filter(notification => !isNotificationRead(notification)).length
 
   async function loadNotifications(){
     if(!user){
@@ -63,7 +118,7 @@ export default function Header(){
       const res = await api.get('/notifications')
       if(res.data && res.data.success){
         const list = Array.isArray(res.data.data) ? res.data.data : []
-        const count = list.filter(notification => !isNotificationRead(notification)).length
+        const count = getBadgeCount(list)
         setNotifications(list)
         setUnreadCount(count)
         return count
@@ -129,9 +184,6 @@ export default function Header(){
   async function markAllAsRead(){
     if(!user) return
 
-    setUnreadCount(0)
-    setLastSeenUnreadCount(0)
-    setNotificationsViewed(true)
     setNotifications(prev => prev.map(item => ({ ...item, read: true, is_read: true })))
 
     try {
@@ -186,13 +238,6 @@ export default function Header(){
         const id = item.id || item.notification_id
         return id === notificationId ? { ...item, read: true, is_read: true } : item
       }))
-      if(wasUnread){
-        setUnreadCount(count => {
-          const nextCount = Math.max(0, count - 1)
-          setLastSeenUnreadCount(nextCount)
-          return nextCount
-        })
-      }
       markNotificationRead(notificationId)
         .then(() => loadNotifications())
         .catch(() => loadNotifications())
@@ -207,23 +252,19 @@ export default function Header(){
     const date = rawDate ? new Date(rawDate) : null
     return date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : ''
   }
-  const hasNewAfterViewed = unreadCount > lastSeenUnreadCount
-  const showNotificationBadge = unreadCount > 0 && (!notificationsViewed || hasNewAfterViewed) && !notificationsOpen
-  const showAvatarBadge = isMobile() && unreadCount > 0 && (!notificationsViewed || hasNewAfterViewed) && !menuOpen
+  const showNotificationBadge = unreadCount > 0 && !notificationsOpen
+  const showAvatarBadge = isMobile() && unreadCount > 0 && !menuOpen
 
   async function toggleNotifications(){
     const next = !notificationsOpen
     setNotificationsOpen(next)
     if(next){
-      await loadNotifications()
-      setNotificationsViewed(true)
-      setLastSeenUnreadCount(0)
-      setUnreadCount(0)
-      setNotifications(prev => prev.map(item => ({ ...item, read: true, is_read: true })))
-      try {
-        await api.post('/notifications/mark-all-read')
-        await loadNotifications()
-      } catch (error) {}
+      const count = await loadNotifications()
+      setUnreadCount(count)
+      setNotifications(current => {
+        markNotificationsPanelOpened(current)
+        return current
+      })
     }
     setMenuOpen(false)
     setSettingsOpen(false)
@@ -233,15 +274,12 @@ export default function Header(){
     const next = !menuOpen
     setMenuOpen(next)
     if(next && isMobile()){
-      await loadNotifications()
-      setNotificationsViewed(true)
-      setLastSeenUnreadCount(0)
-      setUnreadCount(0)
-      setNotifications(prev => prev.map(item => ({ ...item, read: true, is_read: true })))
-      try {
-        await api.post('/notifications/mark-all-read')
-        await loadNotifications()
-      } catch (error) {}
+      const count = await loadNotifications()
+      setUnreadCount(count)
+      setNotifications(current => {
+        markNotificationsPanelOpened(current)
+        return current
+      })
     }
   }
 
@@ -394,18 +432,34 @@ export default function Header(){
                     type="button"
                     className="mark-all-read-btn"
                     onClick={markAllAsRead}
-                    disabled={unreadCount === 0}
+                    disabled={unreadNotificationCount === 0}
                   >
                     Mark all as read
                   </button>
                 )}
               </div>
+              {notifications.length > 0 && (
+                <div className="notification-filter-row" role="group" aria-label="Filter notifications">
+                  {notificationFilterOptions.map(option => (
+                    <button
+                      key={option.key}
+                      type="button"
+                      className={`notification-filter-chip ${notificationFilter === option.key ? 'active' : ''}`}
+                      onClick={() => setNotificationFilter(option.key)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="notification-modal-content">
                 {notifications.length === 0 ? (
                   <div className="notification-empty">No notifications.</div>
+                ) : filteredNotifications.length === 0 ? (
+                  <div className="notification-empty">No notifications for this filter.</div>
                 ) : (
                   <div className="notification-list">
-                    {notifications.map(notification => (
+                    {filteredNotifications.map(notification => (
                       <button
                         key={notification.id || notification.notification_id}
                         type="button"
@@ -458,18 +512,34 @@ export default function Header(){
                       type="button"
                       className="mark-all-read-btn"
                       onClick={markAllAsRead}
-                      disabled={unreadCount === 0}
+                      disabled={unreadNotificationCount === 0}
                     >
                       Mark all as read
                     </button>
                   )}
                 </div>
+                {notifications.length > 0 && (
+                  <div className="notification-filter-row" role="group" aria-label="Filter notifications">
+                    {notificationFilterOptions.map(option => (
+                      <button
+                        key={option.key}
+                        type="button"
+                        className={`notification-filter-chip ${notificationFilter === option.key ? 'active' : ''}`}
+                        onClick={() => setNotificationFilter(option.key)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="notification-modal-content">
                   {notifications.length === 0 ? (
                     <div className="notification-empty">No new notifications.</div>
+                  ) : filteredNotifications.length === 0 ? (
+                    <div className="notification-empty">No notifications for this filter.</div>
                   ) : (
                     <div className="notification-list">
-                      {notifications.map(notification => (
+                      {filteredNotifications.map(notification => (
                         <button
                           key={notification.id || notification.notification_id}
                           type="button"
