@@ -369,7 +369,69 @@ html.high-contrast{
 html.font-medium .login-auth-shell .login-main,
 html.font-large .login-auth-shell .login-main,
 html.font-xlarge .login-auth-shell .login-main{
-  padding-bottom:64px;
+  padding-top:24px;
+  padding-bottom:72px;
+}
+
+html.font-medium .login-auth-shell .login-info,
+html.font-large .login-auth-shell .login-info,
+html.font-xlarge .login-auth-shell .login-info{
+  min-height:auto;
+  padding:26px;
+  justify-content:flex-start;
+}
+
+html.font-medium .login-auth-shell .info-badge,
+html.font-large .login-auth-shell .info-badge,
+html.font-xlarge .login-auth-shell .info-badge{
+  margin-bottom:14px;
+}
+
+html.font-medium .login-auth-shell .info-title,
+html.font-large .login-auth-shell .info-title,
+html.font-xlarge .login-auth-shell .info-title{
+  font-size:clamp(1.9rem, 2.15vw, 2.35rem);
+  line-height:1.08;
+  max-width:15ch;
+}
+
+html.font-medium .login-auth-shell .info-text,
+html.font-large .login-auth-shell .info-text,
+html.font-xlarge .login-auth-shell .info-text{
+  margin-top:12px;
+  line-height:1.45;
+}
+
+html.font-medium .login-auth-shell .info-points,
+html.font-large .login-auth-shell .info-points,
+html.font-xlarge .login-auth-shell .info-points{
+  gap:10px;
+  margin-top:18px;
+}
+
+html.font-medium .login-auth-shell .login-card,
+html.font-large .login-auth-shell .login-card,
+html.font-xlarge .login-auth-shell .login-card{
+  padding:26px;
+}
+
+html.font-medium .login-auth-shell .login-body,
+html.font-large .login-auth-shell .login-body,
+html.font-xlarge .login-auth-shell .login-body{
+  gap:12px;
+}
+
+html.font-medium .login-auth-shell .actions,
+html.font-large .login-auth-shell .actions,
+html.font-xlarge .login-auth-shell .actions{
+  margin-top:10px;
+}
+
+html.font-medium .login-auth-shell .bottom-text,
+html.font-large .login-auth-shell .bottom-text,
+html.font-xlarge .login-auth-shell .bottom-text{
+  margin-top:12px;
+  margin-bottom:0;
 }
 
 .login-layout{
