@@ -29,6 +29,7 @@ html.high-contrast{
    Shell
 ========================= */
 .login-shell{
+  height:100vh;
   min-height:100vh;
   display:flex;
   flex-direction:column;
@@ -38,11 +39,14 @@ html.high-contrast{
     radial-gradient(900px 500px at 85% 18%, var(--login-bg-2), transparent 55%),
     linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.00));
   background-color: var(--bg);
-  overflow:auto;
+  overflow-y:auto;
+  overflow-x:hidden;
 }
 
 .register-shell{
-  overflow:auto;
+  height:100vh;
+  overflow-y:auto;
+  overflow-x:hidden;
   min-height:100vh;
 }
 
@@ -102,7 +106,8 @@ html.high-contrast{
    Login Header / Topbar
 ========================= */
 .login-topbar{
-  position:relative;
+  position:sticky;
+  top:0;
   z-index:50;
 
   flex:0 0 auto;
