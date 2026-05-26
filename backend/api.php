@@ -210,6 +210,172 @@ function ensureAccessibilitySettingsTable($pdo){
   $ready = true;
 }
 
+function ensureArchiveTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Archive_Item (
+    archive_id INT AUTO_INCREMENT PRIMARY KEY,
+    item_type VARCHAR(50) NOT NULL,
+    original_id INT NOT NULL,
+    owner_resident_id INT DEFAULT NULL,
+    deleted_by_role VARCHAR(20) NOT NULL,
+    deleted_by_id INT NOT NULL,
+    deleted_by_name VARCHAR(255) DEFAULT NULL,
+    label VARCHAR(255) DEFAULT NULL,
+    snapshot LONGTEXT NOT NULL,
+    deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    INDEX idx_archive_deleted_by (deleted_by_role, deleted_by_id),
+    INDEX idx_archive_owner (owner_resident_id),
+    INDEX idx_archive_expires (expires_at)
+  )');
+
+  $ready = true;
+}
+
+function purgeExpiredArchiveItems($pdo){
+  ensureArchiveTable($pdo);
+  $pdo->exec('DELETE FROM Archive_Item WHERE expires_at <= NOW()');
+}
+
+function getActorName($user){
+  if(($user['role'] ?? '') === 'staff'){
+    return trim($user['name'] ?? $user['full_name'] ?? 'Admin');
+  }
+  return trim($user['name'] ?? (($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''))) ?: 'Resident';
+}
+
+function createArchiveItem($pdo, $type, $originalId, $ownerResidentId, $label, $snapshot, $user){
+  ensureArchiveTable($pdo);
+  purgeExpiredArchiveItems($pdo);
+  $stmt = $pdo->prepare('INSERT INTO Archive_Item (item_type, original_id, owner_resident_id, deleted_by_role, deleted_by_id, deleted_by_name, label, snapshot, deleted_at, expires_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY))');
+  $stmt->execute([
+    $type,
+    intval($originalId),
+    $ownerResidentId ? intval($ownerResidentId) : null,
+    $user['role'],
+    intval($user['id']),
+    getActorName($user),
+    $label,
+    json_encode($snapshot)
+  ]);
+}
+
+function restoreComplaintFromArchive($pdo, $snapshot){
+  $row = $snapshot['record'] ?? [];
+  if(empty($row)) return false;
+
+  if(!empty($row['resident_id'])){
+    $stmt = $pdo->prepare('SELECT resident_id FROM Resident WHERE resident_id = ?');
+    $stmt->execute([$row['resident_id']]);
+    if(!$stmt->fetch()) $row['resident_id'] = null;
+  }
+  if(!empty($row['category_id'])){
+    $stmt = $pdo->prepare('SELECT category_id FROM Category WHERE category_id = ?');
+    $stmt->execute([$row['category_id']]);
+    if(!$stmt->fetch()) $row['category_id'] = null;
+  }
+  if(!empty($row['assigned_staff_id'])){
+    $stmt = $pdo->prepare('SELECT staff_id FROM Staff WHERE staff_id = ?');
+    $stmt->execute([$row['assigned_staff_id']]);
+    if(!$stmt->fetch()) $row['assigned_staff_id'] = null;
+  }
+
+  $stmt = $pdo->prepare('INSERT INTO Complaint (complaint_id, resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, anonymous, respondent_name, respondent_contact, status, resolution_notes, date_submitted, date_resolved)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  $stmt->execute([
+    $row['complaint_id'] ?? null,
+    $row['resident_id'] ?? null,
+    $row['category_id'] ?? null,
+    $row['assigned_staff_id'] ?? null,
+    $row['title'] ?? 'Restored Complaint',
+    $row['description'] ?? null,
+    $row['incident_location'] ?? null,
+    $row['incident_date'] ?? null,
+    !empty($row['anonymous']) ? 1 : 0,
+    $row['respondent_name'] ?? null,
+    $row['respondent_contact'] ?? null,
+    $row['status'] ?? 'Submitted',
+    $row['resolution_notes'] ?? null,
+    $row['date_submitted'] ?? date('Y-m-d H:i:s'),
+    $row['date_resolved'] ?? null
+  ]);
+
+  ensureComplaintAttachmentTable($pdo);
+  $attachmentStmt = $pdo->prepare('INSERT INTO Complaint_Attachment (complaint_id, file_path, file_name, file_type, file_size, upload_date) VALUES (?, ?, ?, ?, ?, ?)');
+  foreach(($snapshot['attachments'] ?? []) as $attachment){
+    $attachmentStmt->execute([
+      $row['complaint_id'],
+      $attachment['file_path'] ?? '',
+      $attachment['file_name'] ?? null,
+      $attachment['file_type'] ?? null,
+      $attachment['file_size'] ?? null,
+      $attachment['upload_date'] ?? date('Y-m-d H:i:s')
+    ]);
+  }
+  return true;
+}
+
+function restoreDocumentFromArchive($pdo, $snapshot){
+  $row = $snapshot['record'] ?? [];
+  if(empty($row)) return false;
+
+  if(!empty($row['resident_id'])){
+    $stmt = $pdo->prepare('SELECT resident_id FROM Resident WHERE resident_id = ?');
+    $stmt->execute([$row['resident_id']]);
+    if(!$stmt->fetch()) $row['resident_id'] = null;
+  }
+  if(!empty($row['processed_by'])){
+    $stmt = $pdo->prepare('SELECT staff_id FROM Staff WHERE staff_id = ?');
+    $stmt->execute([$row['processed_by']]);
+    if(!$stmt->fetch()) $row['processed_by'] = null;
+  }
+
+  $stmt = $pdo->prepare('INSERT INTO Document_Request (request_id, resident_id, processed_by, full_name, birth_date, address, document_type, purpose, status, reference_number, date_requested, date_approved, date_released)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  $stmt->execute([
+    $row['request_id'] ?? null,
+    $row['resident_id'] ?? null,
+    $row['processed_by'] ?? null,
+    $row['full_name'] ?? null,
+    $row['birth_date'] ?? null,
+    $row['address'] ?? null,
+    $row['document_type'] ?? null,
+    $row['purpose'] ?? null,
+    $row['status'] ?? 'Submitted',
+    $row['reference_number'] ?? null,
+    $row['date_requested'] ?? date('Y-m-d H:i:s'),
+    $row['date_approved'] ?? null,
+    $row['date_released'] ?? null
+  ]);
+  return true;
+}
+
+function restoreResidentFromArchive($pdo, $snapshot){
+  $row = $snapshot['record'] ?? [];
+  if(empty($row)) return false;
+
+  $stmt = $pdo->prepare('INSERT INTO Resident (resident_id, first_name, middle_name, last_name, birth_date, gender, address, email, password, account_status, suspension_end_date, registration_date, api_token)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)');
+  $stmt->execute([
+    $row['resident_id'] ?? null,
+    $row['first_name'] ?? '',
+    $row['middle_name'] ?? null,
+    $row['last_name'] ?? '',
+    $row['birth_date'] ?? null,
+    $row['gender'] ?? null,
+    $row['address'] ?? null,
+    $row['email'] ?? '',
+    $row['password'] ?? '',
+    $row['account_status'] ?? 'Active',
+    $row['suspension_end_date'] ?? null,
+    $row['registration_date'] ?? date('Y-m-d H:i:s')
+  ]);
+  return true;
+}
+
 function ensureComplaintExtraColumns($pdo){
   static $ready = false;
   if($ready) return;
@@ -1008,6 +1174,12 @@ function getUnreadNotificationCount($pdo, $user){
   return $row ? intval($row['c']) : 0;
 }
 
+try {
+  purgeExpiredArchiveItems($pdo);
+} catch(Throwable $e) {
+  error_log('Archive purge failed: ' . $e->getMessage());
+}
+
 // Route: /register-otp
 if($uri === '/register-otp' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
@@ -1532,7 +1704,7 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && $method === 'DELETE'){
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
 
   $id = intval($m[1]);
-  $stmt = $pdo->prepare('SELECT resident_id FROM Complaint WHERE complaint_id = ?');
+  $stmt = $pdo->prepare('SELECT * FROM Complaint WHERE complaint_id = ?');
   $stmt->execute([$id]);
   $complaint = $stmt->fetch();
   if(!$complaint) json(['success'=>false,'message'=>'Complaint not found']);
@@ -1540,6 +1712,18 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && $method === 'DELETE'){
   $isOwner = ($user['role'] !== 'staff' && intval($complaint['resident_id']) === intval($user['id']));
   if($user['role'] !== 'staff' && !$isOwner) json(['success'=>false,'message'=>'Forbidden']);
 
+  ensureComplaintAttachmentTable($pdo);
+  $attachmentsStmt = $pdo->prepare('SELECT * FROM Complaint_Attachment WHERE complaint_id = ? ORDER BY upload_date ASC');
+  $attachmentsStmt->execute([$id]);
+  createArchiveItem(
+    $pdo,
+    'complaint',
+    $id,
+    $complaint['resident_id'] ?? null,
+    trim($complaint['title'] ?? '') ?: ('Complaint #' . $id),
+    ['record' => $complaint, 'attachments' => $attachmentsStmt->fetchAll()],
+    $user
+  );
   $pdo->prepare('DELETE FROM Complaint WHERE complaint_id = ?')->execute([$id]);
   json(['success'=>true]);
 }
@@ -1603,6 +1787,18 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
 
   if($method === 'DELETE'){
     if($user['role'] !== 'staff' && !$isOwner) json(['success'=>false,'message'=>'Forbidden']);
+    $fullStmt = $pdo->prepare('SELECT * FROM Document_Request WHERE request_id = ?');
+    $fullStmt->execute([$id]);
+    $fullRequest = $fullStmt->fetch();
+    createArchiveItem(
+      $pdo,
+      'document',
+      $id,
+      $request['resident_id'] ?? null,
+      trim(($request['document_type'] ?? '') . ' ' . ($request['reference_number'] ?? '')) ?: ('Document request #' . $id),
+      ['record' => $fullRequest],
+      $user
+    );
     $pdo->prepare('DELETE FROM Document_Request WHERE request_id = ?')->execute([$id]);
     json(['success'=>true]);
   }
@@ -1763,6 +1959,66 @@ if($uri === '/residents' && $method === 'GET'){
   json(['success'=>true,'data'=>$stmt->fetchAll()]);
 }
 
+// Route: /archive - recycle bin for records deleted by the current user/admin
+if($uri === '/archive' && $method === 'GET'){
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  purgeExpiredArchiveItems($pdo);
+
+  $stmt = $pdo->prepare('SELECT archive_id, item_type, original_id, owner_resident_id, deleted_by_role, deleted_by_id, deleted_by_name, label, deleted_at, expires_at
+    FROM Archive_Item
+    WHERE deleted_by_role = ? AND deleted_by_id = ?
+    ORDER BY deleted_at DESC
+    LIMIT 200');
+  $stmt->execute([$user['role'], intval($user['id'])]);
+  json(['success'=>true,'data'=>$stmt->fetchAll()]);
+}
+
+if(preg_match('#^/archive/(\d+)/restore$#', $uri, $m) && $method === 'POST'){
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  purgeExpiredArchiveItems($pdo);
+
+  $id = intval($m[1]);
+  $stmt = $pdo->prepare('SELECT * FROM Archive_Item WHERE archive_id = ? AND deleted_by_role = ? AND deleted_by_id = ?');
+  $stmt->execute([$id, $user['role'], intval($user['id'])]);
+  $archive = $stmt->fetch();
+  if(!$archive) json(['success'=>false,'message'=>'Archive item not found'], 404);
+
+  $snapshot = json_decode($archive['snapshot'] ?? '{}', true) ?: [];
+  try {
+    $pdo->beginTransaction();
+    if($archive['item_type'] === 'complaint'){
+      restoreComplaintFromArchive($pdo, $snapshot);
+    } elseif($archive['item_type'] === 'document'){
+      restoreDocumentFromArchive($pdo, $snapshot);
+    } elseif($archive['item_type'] === 'resident'){
+      restoreResidentFromArchive($pdo, $snapshot);
+    } else {
+      throw new Exception('Unsupported archive item type');
+    }
+    $pdo->prepare('DELETE FROM Archive_Item WHERE archive_id = ?')->execute([$id]);
+    $pdo->commit();
+    json(['success'=>true]);
+  } catch(Throwable $e){
+    if($pdo->inTransaction()) $pdo->rollBack();
+    json(['success'=>false,'message'=>'Restore failed. The original ID or unique value may already exist.'], 409);
+  }
+}
+
+if(preg_match('#^/archive/(\d+)$#', $uri, $m) && $method === 'DELETE'){
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  purgeExpiredArchiveItems($pdo);
+
+  $stmt = $pdo->prepare('DELETE FROM Archive_Item WHERE archive_id = ? AND deleted_by_role = ? AND deleted_by_id = ?');
+  $stmt->execute([intval($m[1]), $user['role'], intval($user['id'])]);
+  json(['success'=>true,'deleted'=>$stmt->rowCount()]);
+}
+
 // Route: /residents/{id} - patch or delete resident (admin)
 if(preg_match('#^/residents/(\d+)$#', $uri, $m) && in_array($method, ['PATCH','PUT','DELETE'])){
   $token = getBearerToken();
@@ -1771,6 +2027,20 @@ if(preg_match('#^/residents/(\d+)$#', $uri, $m) && in_array($method, ['PATCH','P
   if($user['role'] !== 'staff') json(['success'=>false,'message'=>'Forbidden']);
   $id = intval($m[1]);
   if($method === 'DELETE'){
+    $stmt = $pdo->prepare('SELECT * FROM Resident WHERE resident_id = ?');
+    $stmt->execute([$id]);
+    $resident = $stmt->fetch();
+    if(!$resident) json(['success'=>false,'message'=>'Resident not found'], 404);
+    $residentName = trim(($resident['first_name'] ?? '') . ' ' . ($resident['middle_name'] ?? '') . ' ' . ($resident['last_name'] ?? ''));
+    createArchiveItem(
+      $pdo,
+      'resident',
+      $id,
+      $id,
+      $residentName ?: ($resident['email'] ?? ('Resident #' . $id)),
+      ['record' => $resident],
+      $user
+    );
     $pdo->prepare('DELETE FROM Resident WHERE resident_id = ?')->execute([$id]);
     json(['success'=>true]);
   }

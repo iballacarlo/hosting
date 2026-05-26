@@ -31,6 +31,21 @@
   flex-wrap:wrap;
 }
 
+.resident-filter-row{
+  flex-wrap: nowrap;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.resident-filter-row .ui-input{
+  flex: 0 0 auto;
+}
+
+.resident-filter-row input[type="search"]{
+  min-width: 220px;
+}
+
 .filter-group select,
 .filter-group input{
   height:40px;

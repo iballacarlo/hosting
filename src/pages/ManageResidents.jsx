@@ -166,7 +166,7 @@ export default function ManageResidents(){
           <h1 className="page-title">Manage Residents</h1>
 
           <div className="history-controls">
-            <div className="filter-group">
+            <div className="filter-group resident-filter-row">
               <input
                 className="ui-input"
                 type="search"
@@ -285,7 +285,7 @@ export default function ManageResidents(){
             <div className="modal-overlay" onClick={() => setSelectedForDelete(null)}>
               <div className="modal-card" onClick={e => e.stopPropagation()}>
                 <h3>Confirm Delete</h3>
-                <p>Are you sure you want to delete this resident? This action cannot be undone.</p>
+                <p>Are you sure you want to move this resident to Archive?</p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 12 }}>
                   <Button type="button" variant="secondary" onClick={() => setSelectedForDelete(null)}>Cancel</Button>
                   <Button type="button" variant="danger" onClick={() => confirmRemoveResident(selectedForDelete)}>Delete</Button>

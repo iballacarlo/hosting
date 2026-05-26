@@ -12,7 +12,8 @@ import {
   Accessibility,
   LogOut,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  Archive
 } from 'lucide-react'
 import './sidebar.css'
 import { useAuth } from '../context/AuthContext'
@@ -135,6 +136,13 @@ export default function Sidebar(){
                     <span>System Settings</span>
                   </NavLink>
                 </li>
+
+                <li>
+                  <NavLink to="/archive" title="Archive">
+                    <Archive size={18} strokeWidth={2} />
+                    <span>Archive</span>
+                  </NavLink>
+                </li>
               </>
             ) : (
               /* USER LINKS */
@@ -178,6 +186,13 @@ export default function Sidebar(){
                   <NavLink to="/accessibility" title="Accessibility Settings">
                     <Accessibility size={18} strokeWidth={2} />
                     <span>Accessibility Settings</span>
+                  </NavLink>
+                </li>
+
+                <li>
+                  <NavLink to="/archive" title="Archive">
+                    <Archive size={18} strokeWidth={2} />
+                    <span>Archive</span>
                   </NavLink>
                 </li>
               </>

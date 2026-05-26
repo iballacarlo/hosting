@@ -846,7 +846,7 @@ export default function ComplaintHistory(){
             >
               <div className="modal-card confirm-delete-modal" ref={deleteConfirmRef} onClick={(e) => e.stopPropagation()}>
                 <p className="delete-modal-message">
-                  Are you sure you want to delete this complaint? This action cannot be undone.
+                  Are you sure you want to move this complaint to Archive?
                 </p>
                 
                 <div className="modal-actions confirm-actions">

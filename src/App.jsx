@@ -17,6 +17,7 @@ import AccessibilitySettings from './pages/AccessibilitySettings'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
+import Archive from './pages/Archive'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App(){
@@ -34,6 +35,7 @@ export default function App(){
       <Route path="/manage-complaints" element={<ProtectedRoute role="staff"><ManageComplaints/></ProtectedRoute>} />
       <Route path="/manage-documents" element={<ProtectedRoute role="staff"><ManageDocuments/></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute role="staff"><AdminSettings/></ProtectedRoute>} />
+      <Route path="/archive" element={<ProtectedRoute><Archive/></ProtectedRoute>} />
 
       <Route path="/submit-complaint" element={<ProtectedRoute><ComplaintForm/></ProtectedRoute>} />
       <Route path="/document-request" element={<ProtectedRoute><DocumentRequest/></ProtectedRoute>} />

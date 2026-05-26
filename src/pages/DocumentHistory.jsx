@@ -568,7 +568,7 @@ export default function DocumentHistory(){
                 <div className="delete-modal-icon"></div>
                 <h2 className="modal-title">Delete Document Request?</h2>
                 <p className="delete-modal-message">
-                  Are you sure you want to delete this document request? This action cannot be undone.
+                  Are you sure you want to move this document request to Archive?
                 </p>
                 
                 <div className="modal-actions confirm-actions">

@@ -233,6 +233,24 @@ CREATE TABLE IF NOT EXISTS Login_Attempt (
 );
 
 
+CREATE TABLE IF NOT EXISTS Archive_Item (
+  archive_id INT AUTO_INCREMENT PRIMARY KEY,
+  item_type VARCHAR(50) NOT NULL,
+  original_id INT NOT NULL,
+  owner_resident_id INT DEFAULT NULL,
+  deleted_by_role VARCHAR(20) NOT NULL,
+  deleted_by_id INT NOT NULL,
+  deleted_by_name VARCHAR(255) DEFAULT NULL,
+  label VARCHAR(255) DEFAULT NULL,
+  snapshot LONGTEXT NOT NULL,
+  deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  INDEX idx_archive_deleted_by (deleted_by_role, deleted_by_id),
+  INDEX idx_archive_owner (owner_resident_id),
+  INDEX idx_archive_expires (expires_at)
+);
+
+
 INSERT IGNORE INTO Category (category_id, category_name, description)
 VALUES
 (1, 'Noise Complaint', 'Noise related complaints'),
