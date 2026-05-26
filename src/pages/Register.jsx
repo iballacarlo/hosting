@@ -51,6 +51,46 @@ export default function Register(){
 
   const stepLabels = ['Personal', 'Address', 'Account', 'Verify']
 
+  function getEmailError(email){
+    const value = email.trim().toLowerCase()
+    if(!value) return 'Email is required.'
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)){
+      return 'Enter a valid email address.'
+    }
+
+    const domain = value.split('@').pop()
+    const blockedTypoDomains = [
+      'gmial.com',
+      'gmai.com',
+      'gmail.co',
+      'gnail.com',
+      'gmal.com',
+      'hotmial.com',
+      'yaho.com',
+      'yahooo.com',
+      'outlook.con',
+    ]
+
+    if(blockedTypoDomains.includes(domain)){
+      return 'Please check your email domain. Did you mean gmail.com, yahoo.com, or outlook.com?'
+    }
+
+    return ''
+  }
+
+  function getPasswordError(password){
+    if(password.length < 8) return 'Password must be at least 8 characters.'
+    if(!/[a-z]/.test(password)) return 'Password must include a lowercase letter.'
+    if(!/[A-Z]/.test(password)) return 'Password must include an uppercase letter.'
+    if(!/\d/.test(password)) return 'Password must include a number.'
+    if(!/[^A-Za-z0-9]/.test(password)) return 'Password must include a special character.'
+    return ''
+  }
+
+  function isStrongPassword(password){
+    return getPasswordError(password) === ''
+  }
+
   function isStepValid(step){
     if(step === 0){
       return (
@@ -66,7 +106,7 @@ export default function Register(){
     }
 
     if(step === 2){
-      return form.email.trim() && form.password.length >= 6 && form.password === form.confirm
+      return !getEmailError(form.email) && isStrongPassword(form.password) && form.password === form.confirm
     }
 
     if(step === 3){
@@ -96,13 +136,15 @@ export default function Register(){
     }
 
     if(step === 2){
-      if(!form.email.trim()){
-        setErr('Email is required.')
+      const emailError = getEmailError(form.email)
+      if(emailError){
+        setErr(emailError)
         return false
       }
 
-      if(form.password.length < 6){
-        setErr('Password must be at least 6 characters.')
+      const passwordError = getPasswordError(form.password)
+      if(passwordError){
+        setErr(passwordError)
         return false
       }
 
@@ -146,6 +188,14 @@ export default function Register(){
     form.password.length > 0 &&
     form.confirm.length > 0 &&
     form.password !== form.confirm
+
+  const passwordChecks = [
+    { label: 'At least 8 characters', ok: form.password.length >= 8 },
+    { label: 'Uppercase letter', ok: /[A-Z]/.test(form.password) },
+    { label: 'Lowercase letter', ok: /[a-z]/.test(form.password) },
+    { label: 'Number', ok: /\d/.test(form.password) },
+    { label: 'Special character', ok: /[^A-Za-z0-9]/.test(form.password) },
+  ]
 
   const maxBirthdate = useMemo(() => new Date().toISOString().split('T')[0], [])
 
@@ -587,7 +637,17 @@ export default function Register(){
                     autoComplete="new-password"
                   />
 
-                  <div className="pw-hint">Use at least <strong>6 characters</strong>.</div>
+                  <div className="pw-hint">
+                    Use at least <strong>8 characters</strong> with uppercase, lowercase, number, and special character.
+                  </div>
+
+                  <div className="password-rules" aria-label="Password requirements">
+                    {passwordChecks.map(rule => (
+                      <span key={rule.label} className={`password-rule ${rule.ok ? 'ok' : ''}`}>
+                        {rule.label}
+                      </span>
+                    ))}
+                  </div>
 
                   <InputField
                     label="Confirm Password *"

@@ -19,6 +19,8 @@ const RESET_OTP_TTL_SECONDS = 900;
 const RESET_OTP_RESEND_SECONDS = 30;
 const REGISTRATION_OTP_TTL_SECONDS = 900;
 const REGISTRATION_OTP_RESEND_SECONDS = 30;
+const LOGIN_FAILED_ATTEMPT_LIMIT = 5;
+const LOGIN_COOLDOWN_SECONDS = 180;
 
 // REQUEST INFO
 $method = $_SERVER['REQUEST_METHOD'];
@@ -106,6 +108,73 @@ function ensureRegistrationOtpTable($pdo){
   $ready = true;
 }
 
+function ensureLoginAttemptTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Login_Attempt (
+    attempt_id INT AUTO_INCREMENT PRIMARY KEY,
+    identifier VARCHAR(255) NOT NULL,
+    failed_attempts INT NOT NULL DEFAULT 0,
+    last_failed_at DATETIME DEFAULT NULL,
+    locked_until DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_login_attempt_identifier (identifier),
+    INDEX idx_login_attempt_locked_until (locked_until)
+  )');
+
+  $ready = true;
+}
+
+function normalizeEmail($email){
+  return strtolower(trim($email ?? ''));
+}
+
+function validateRegistrationEmail($email){
+  $email = normalizeEmail($email);
+  if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+    return 'Enter a valid email address';
+  }
+
+  $domain = substr(strrchr($email, '@') ?: '', 1);
+  $blockedTypoDomains = [
+    'gmial.com',
+    'gmai.com',
+    'gmail.co',
+    'gnail.com',
+    'gmal.com',
+    'hotmial.com',
+    'yaho.com',
+    'yahooo.com',
+    'outlook.con',
+  ];
+
+  if(in_array($domain, $blockedTypoDomains, true)){
+    return 'Please check your email domain. Did you mean gmail.com, yahoo.com, or outlook.com?';
+  }
+
+  return '';
+}
+
+function validateStrongPassword($password){
+  if(strlen($password ?? '') < 8){
+    return 'Password must be at least 8 characters';
+  }
+  if(!preg_match('/[a-z]/', $password)){
+    return 'Password must include a lowercase letter';
+  }
+  if(!preg_match('/[A-Z]/', $password)){
+    return 'Password must include an uppercase letter';
+  }
+  if(!preg_match('/\d/', $password)){
+    return 'Password must include a number';
+  }
+  if(!preg_match('/[^A-Za-z0-9]/', $password)){
+    return 'Password must include a special character';
+  }
+  return '';
+}
+
 function getPasswordReset($pdo, $user){
   ensurePasswordResetTable($pdo);
   $stmt = $pdo->prepare('SELECT * FROM Password_Reset WHERE user_id = ? AND user_role = ? LIMIT 1');
@@ -164,6 +233,59 @@ function secondsUntilOtpCanResend($reset){
   if(!$lastSent) return 0;
   $elapsed = time() - $lastSent;
   return max(0, RESET_OTP_RESEND_SECONDS - $elapsed);
+}
+
+function getLoginAttempt($pdo, $identifier){
+  ensureLoginAttemptTable($pdo);
+  $stmt = $pdo->prepare('SELECT * FROM Login_Attempt WHERE identifier = ? LIMIT 1');
+  $stmt->execute([$identifier]);
+  return $stmt->fetch();
+}
+
+function secondsUntilLoginCanRetry($attempt){
+  if(!$attempt || empty($attempt['locked_until'])) return 0;
+  $lockedUntil = strtotime($attempt['locked_until']);
+  if(!$lockedUntil) return 0;
+  return max(0, $lockedUntil - time());
+}
+
+function recordFailedLogin($pdo, $identifier){
+  ensureLoginAttemptTable($pdo);
+  $attempt = getLoginAttempt($pdo, $identifier);
+  $waitSeconds = secondsUntilLoginCanRetry($attempt);
+  if($waitSeconds > 0) return $waitSeconds;
+
+  $failedAttempts = 1;
+  if($attempt){
+    $lastFailed = strtotime($attempt['last_failed_at'] ?? '');
+    $lockedUntil = strtotime($attempt['locked_until'] ?? '');
+    if($lockedUntil && $lockedUntil <= time()){
+      $failedAttempts = 1;
+    } elseif($lastFailed && (time() - $lastFailed) <= 900){
+      $failedAttempts = intval($attempt['failed_attempts']) + 1;
+    }
+  }
+
+  $lockedUntilSql = null;
+  if($failedAttempts >= LOGIN_FAILED_ATTEMPT_LIMIT){
+    $lockedUntilSql = date('Y-m-d H:i:s', time() + LOGIN_COOLDOWN_SECONDS);
+  }
+
+  if($attempt){
+    $stmt = $pdo->prepare('UPDATE Login_Attempt SET failed_attempts = ?, last_failed_at = NOW(), locked_until = ? WHERE identifier = ?');
+    $stmt->execute([$failedAttempts, $lockedUntilSql, $identifier]);
+  } else {
+    $stmt = $pdo->prepare('INSERT INTO Login_Attempt (identifier, failed_attempts, last_failed_at, locked_until) VALUES (?, ?, NOW(), ?)');
+    $stmt->execute([$identifier, $failedAttempts, $lockedUntilSql]);
+  }
+
+  return $lockedUntilSql ? LOGIN_COOLDOWN_SECONDS : 0;
+}
+
+function clearLoginAttempt($pdo, $identifier){
+  ensureLoginAttemptTable($pdo);
+  $stmt = $pdo->prepare('DELETE FROM Login_Attempt WHERE identifier = ?');
+  $stmt->execute([$identifier]);
 }
 
 function sendOtpEmail($toEmail, $code, $type = 'password_reset'){
@@ -443,8 +565,9 @@ function getUnreadNotificationCount($pdo, $user){
 if($uri === '/register-otp' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
   if(empty($data['email'])) json(['success'=>false,'message'=>'Email is required'], 400);
-  $email = strtolower(trim($data['email']));
-  if(!filter_var($email, FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address'], 400);
+  $email = normalizeEmail($data['email']);
+  $emailError = validateRegistrationEmail($email);
+  if($emailError) json(['success'=>false,'message'=>$emailError], 400);
   if(findUserByEmail($pdo, $email)) json(['success'=>false,'message'=>'Email already registered'], 409);
 
   $existingOtp = getRegistrationOtp($pdo, $email);
@@ -480,9 +603,11 @@ if($uri === '/register-otp' && $method === 'POST'){
 if($uri === '/register' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
   if(empty($data['email']) || empty($data['password']) || empty($data['otp'])) json(['success'=>false,'message'=>'Email, password, and OTP are required'], 400);
-  $email = strtolower(trim($data['email']));
-  if(!filter_var($email, FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address'], 400);
-  if(strlen($data['password']) < 6) json(['success'=>false,'message'=>'Password must be at least 6 characters'], 400);
+  $email = normalizeEmail($data['email']);
+  $emailError = validateRegistrationEmail($email);
+  if($emailError) json(['success'=>false,'message'=>$emailError], 400);
+  $passwordError = validateStrongPassword($data['password']);
+  if($passwordError) json(['success'=>false,'message'=>$passwordError], 400);
   // check unique
   if(findUserByEmail($pdo, $email)) json(['success'=>false,'message'=>'Email already registered'], 409);
 
@@ -508,13 +633,22 @@ if($uri === '/register' && $method === 'POST'){
 if($uri === '/login' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
   if(empty($data['email']) || empty($data['password'])) json(['success'=>false,'message'=>'Email and password required']);
-  if(in_array(strtolower(trim($data['email'])), ['admin@gmail.com', 'carlo@gmail.com'], true)){
+  $loginIdentifier = normalizeEmail($data['email']);
+  $loginWaitSeconds = secondsUntilLoginCanRetry(getLoginAttempt($pdo, $loginIdentifier));
+  if($loginWaitSeconds > 0){
+    json([
+      'success'=>false,
+      'message'=>'Too many failed login attempts. Please wait 3 minutes before trying again.',
+      'retry_after'=>$loginWaitSeconds
+    ], 429);
+  }
+  if(in_array($loginIdentifier, ['admin@gmail.com', 'carlo@gmail.com'], true)){
     restoreTestAccounts($pdo);
   }
   // try staff
   if(tableExists($pdo, 'Staff')){
     $stmt = $pdo->prepare('SELECT staff_id, full_name, email, password, account_status, suspension_end_date FROM Staff WHERE email = ?');
-    $stmt->execute([$data['email']]);
+    $stmt->execute([$loginIdentifier]);
     $s = $stmt->fetch();
     if($s && password_verify($data['password'], $s['password'])){
       $now = new DateTime('now');
@@ -538,13 +672,14 @@ if($uri === '/login' && $method === 'POST'){
       }
       $token = bin2hex(random_bytes(16));
       $pdo->prepare('UPDATE Staff SET api_token = ? WHERE staff_id = ?')->execute([$token, $s['staff_id']]);
+      clearLoginAttempt($pdo, $loginIdentifier);
       json(['success'=>true,'token'=>$token,'user'=>['id'=>$s['staff_id'],'name'=>$s['full_name'],'role'=>'staff']]);
     }
   }
   // try resident
   if(tableExists($pdo, 'Resident')){
     $stmt = $pdo->prepare('SELECT resident_id, first_name, last_name, email, password, account_status, suspension_end_date FROM Resident WHERE email = ?');
-    $stmt->execute([$data['email']]);
+    $stmt->execute([$loginIdentifier]);
     $r = $stmt->fetch();
     if($r && password_verify($data['password'], $r['password'])){
       $now = new DateTime('now');
@@ -571,8 +706,17 @@ if($uri === '/login' && $method === 'POST'){
       }
       $token = bin2hex(random_bytes(16));
       $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $r['resident_id']]);
+      clearLoginAttempt($pdo, $loginIdentifier);
       json(['success'=>true,'token'=>$token,'user'=>['id'=>$r['resident_id'],'name'=>($r['first_name'].' '.$r['last_name']),'role'=>'resident','account_status'=>$r['account_status'],'suspension_end_date'=>$r['suspension_end_date']]]);
     }
+  }
+  $retryAfter = recordFailedLogin($pdo, $loginIdentifier);
+  if($retryAfter > 0){
+    json([
+      'success'=>false,
+      'message'=>'Too many failed login attempts. Please wait 3 minutes before trying again.',
+      'retry_after'=>$retryAfter
+    ], 429);
   }
   json(['success'=>false,'message'=>'Invalid credentials']);
 }

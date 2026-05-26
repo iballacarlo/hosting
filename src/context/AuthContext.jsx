@@ -58,13 +58,13 @@ export function AuthProvider({ children }){
         setUser(loggedUser)
         return { ok:true, role: loggedUser?.role, status: loggedUser?.account_status, suspensionEnd: loggedUser?.suspension_end_date }
       }
-      return { ok:false, message: res.data.message || 'Login failed', status: res.data.status, suspensionEnd: res.data.suspension_end_date }
+      return { ok:false, message: res.data.message || 'Login failed', status: res.data.status, suspensionEnd: res.data.suspension_end_date, retryAfter: res.data.retry_after }
     }catch(err){
       // Axios "Network Error" means the request never reached the backend
       if(err.message === 'Network Error'){
         return { ok:false, message: 'Unable to contact backend API. Make sure the PHP server is running and the URL is correct.' }
       }
-      return { ok:false, message: err?.response?.data?.message || err.message }
+      return { ok:false, message: err?.response?.data?.message || err.message, retryAfter: err?.response?.data?.retry_after }
     }
   }
 

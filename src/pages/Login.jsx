@@ -24,6 +24,7 @@ export default function Login(){
   const [rememberMe, setRememberMe] = useState(() => Boolean(localStorage.getItem('remember_email') || localStorage.getItem('remember_password')))
   const [errors, setErrors] = useState({})
   const [blockedLogin, setBlockedLogin] = useState(null)
+  const [loginCooldown, setLoginCooldown] = useState(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const panelRef = useRef(null)
@@ -44,6 +45,7 @@ export default function Login(){
 
   async function handleLogin(e){
     e.preventDefault()
+    if(loginCooldown > 0) return
     if(!validate()) return
 
     const res = await login(email, password, rememberMe)
@@ -67,10 +69,20 @@ export default function Login(){
         setBlockedLogin({ status: fallbackStatus, message: res.message, suspensionEnd: res.suspensionEnd })
         setErrors({})
       } else {
+        if(res.retryAfter) setLoginCooldown(res.retryAfter)
         setErrors({ form: res.message || 'Login failed.' })
       }
     }
   }
+
+  useEffect(() => {
+    if(loginCooldown <= 0) return undefined
+    const timer = window.setInterval(() => {
+      setLoginCooldown(seconds => Math.max(0, seconds - 1))
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [loginCooldown])
 
   useEffect(() => {
     function onDown(e){
@@ -315,7 +327,9 @@ export default function Login(){
               {errors.form && <div className="error">{errors.form}</div>}
 
               <div className="actions">
-                <Button type="submit">Login</Button>
+                <Button type="submit" disabled={loginCooldown > 0}>
+                  {loginCooldown > 0 ? `Wait ${loginCooldown}s` : 'Login'}
+                </Button>
               </div>
 
               <p className="muted bottom-text">

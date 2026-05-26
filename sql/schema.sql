@@ -227,6 +227,20 @@ CREATE TABLE IF NOT EXISTS Registration_Otp (
 );
 
 
+CREATE TABLE IF NOT EXISTS Login_Attempt (
+  attempt_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  identifier VARCHAR(255) NOT NULL,
+  failed_attempts INT NOT NULL DEFAULT 0,
+  last_failed_at DATETIME DEFAULT NULL,
+  locked_until DATETIME DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uq_login_attempt_identifier (identifier),
+  INDEX idx_login_attempt_locked_until (locked_until)
+);
+
+
 CREATE TABLE IF NOT EXISTS Report_Log (
   report_id INT AUTO_INCREMENT PRIMARY KEY,
 

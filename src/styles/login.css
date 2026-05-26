@@ -979,6 +979,29 @@ html.dark .slider{
   font-size:0.92rem;
 }
 
+.password-rules{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:-6px;
+}
+
+.password-rule{
+  border:1px solid var(--border-color);
+  border-radius:999px;
+  padding:6px 10px;
+  color: var(--muted-color);
+  background: color-mix(in srgb, var(--card-bg) 88%, transparent);
+  font-size:0.84rem;
+  font-weight:800;
+}
+
+.password-rule.ok{
+  color: var(--success-color, #16a34a);
+  border-color: color-mix(in srgb, var(--success-color, #16a34a) 36%, transparent);
+  background: color-mix(in srgb, var(--success-color, #16a34a) 12%, transparent);
+}
+
 .pw-ok{
   margin-top:8px;
   padding:10px 12px;
