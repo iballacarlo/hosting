@@ -145,6 +145,7 @@ export default function Profile(){
   }, [])
 
   const [msg,setMsg] = useState('')
+  const [msgType,setMsgType] = useState('error')
   const [saving,setSaving] = useState(false)
 
   const { updateProfile } = useAuth()
@@ -168,6 +169,7 @@ export default function Profile(){
 
   async function save(){
     setMsg('')
+    setMsgType('error')
 
     if(!first.trim() || !last.trim()){
       setMsg('First name and last name are required.')
@@ -216,6 +218,7 @@ export default function Profile(){
       setChangePassword(false)
       setNewPassword('')
       setConfirmPassword('')
+      setMsgType('success')
       setMsg('Saved successfully.')
     }catch(err){
       setMsg('Network error.')
@@ -344,7 +347,7 @@ export default function Profile(){
                 )}
 
                 {msg && (
-                  <div className="error">
+                  <div className={msgType === 'success' ? 'profile-success' : 'error'}>
                     {msg}
                   </div>
                 )}

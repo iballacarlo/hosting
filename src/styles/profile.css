@@ -92,6 +92,15 @@
   background: color-mix(in srgb, var(--success-color, #16a34a) 12%, transparent);
 }
 
+.profile-success{
+  padding:10px 12px;
+  border-radius:12px;
+  color: var(--success-color, #16a34a);
+  background: color-mix(in srgb, var(--success-color, #16a34a) 12%, transparent);
+  border:1px solid color-mix(in srgb, var(--success-color, #16a34a) 32%, transparent);
+  font-weight:800;
+}
+
 @media (max-width: 900px){
   .profile-page .register-grid{
     grid-template-columns:1fr;
