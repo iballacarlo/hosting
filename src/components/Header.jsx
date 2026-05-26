@@ -15,7 +15,7 @@ export default function Header(){
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
-  const [notificationFilter, setNotificationFilter] = useState('all')
+  const [notificationFilters, setNotificationFilters] = useState(['all'])
   const menuRef = useRef(null)
   const settingsRef = useRef(null)
   const notificationsRef = useRef(null)
@@ -97,18 +97,34 @@ export default function Header(){
     return 'other'
   }
 
+  const isAdminUser = user?.role === 'admin' || user?.role === 'staff'
   const notificationFilterOptions = [
     { key: 'all', label: 'All' },
     { key: 'unread', label: 'Unread' },
     { key: 'complaint', label: 'Complaints' },
     { key: 'document', label: 'Documents' },
-    { key: 'registration', label: 'Registration' }
+    ...(isAdminUser ? [{ key: 'registration', label: 'Registration' }] : [])
   ]
 
+  const isNotificationFilterActive = (key) => notificationFilters.includes(key)
+
+  const toggleNotificationFilter = (key) => {
+    setNotificationFilters(prev => {
+      if(key === 'all') return ['all']
+      const withoutAll = prev.filter(item => item !== 'all')
+      const next = withoutAll.includes(key)
+        ? withoutAll.filter(item => item !== key)
+        : [...withoutAll, key]
+      return next.length === 0 ? ['all'] : next
+    })
+  }
+
   const filteredNotifications = notifications.filter(notification => {
-    if(notificationFilter === 'all') return true
-    if(notificationFilter === 'unread') return !isNotificationRead(notification)
-    return getNotificationKind(notification) === notificationFilter
+    if(notificationFilters.includes('all')) return true
+    const kindFilters = notificationFilters.filter(filter => filter !== 'unread')
+    const matchesUnread = !notificationFilters.includes('unread') || !isNotificationRead(notification)
+    const matchesKind = kindFilters.length === 0 || kindFilters.includes(getNotificationKind(notification))
+    return matchesUnread && matchesKind
   })
   const unreadNotificationCount = notifications.filter(notification => !isNotificationRead(notification)).length
 
@@ -454,8 +470,9 @@ export default function Header(){
                       <button
                         key={option.key}
                         type="button"
-                        className={`notification-filter-chip ${notificationFilter === option.key ? 'active' : ''}`}
-                        onClick={() => setNotificationFilter(option.key)}
+                        className={`notification-filter-chip ${isNotificationFilterActive(option.key) ? 'active' : ''}`}
+                        aria-pressed={isNotificationFilterActive(option.key)}
+                        onClick={() => toggleNotificationFilter(option.key)}
                       >
                         {option.label}
                       </button>
@@ -544,8 +561,9 @@ export default function Header(){
                         <button
                           key={option.key}
                           type="button"
-                          className={`notification-filter-chip ${notificationFilter === option.key ? 'active' : ''}`}
-                          onClick={() => setNotificationFilter(option.key)}
+                          className={`notification-filter-chip ${isNotificationFilterActive(option.key) ? 'active' : ''}`}
+                          aria-pressed={isNotificationFilterActive(option.key)}
+                          onClick={() => toggleNotificationFilter(option.key)}
                         >
                           {option.label}
                         </button>

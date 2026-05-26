@@ -39,6 +39,7 @@ const REGISTRATION_OTP_TTL_SECONDS = 900;
 const REGISTRATION_OTP_RESEND_SECONDS = 30;
 const LOGIN_FAILED_ATTEMPT_LIMIT = 5;
 const LOGIN_COOLDOWN_SECONDS = 180;
+const BARANGAY_CONTACT_EMAIL = 'brgy.mambog.ii@gmail.com';
 
 // REQUEST INFO
 $method = $_SERVER['REQUEST_METHOD'];
@@ -861,7 +862,7 @@ function findUserByEmail($pdo, $email){
 function getAccountRestriction($pdo, $table, $keyColumn, $id, $status, $suspensionEndDate){
   $accountStatus = trim($status ?? '');
   if(strcasecmp($accountStatus, 'Banned') === 0){
-    return ['status'=>'Banned','message'=>'Your account has been banned. Please contact the barangay for assistance.'];
+    return ['status'=>'Banned','message'=>'Your account has been banned. Please contact the barangay at '.BARANGAY_CONTACT_EMAIL.' for assistance.','contact_email'=>BARANGAY_CONTACT_EMAIL];
   }
   if(strcasecmp($accountStatus, 'Suspended') === 0){
     $now = new DateTime('now');
@@ -871,12 +872,12 @@ function getAccountRestriction($pdo, $table, $keyColumn, $id, $status, $suspensi
         $end->setTime(23, 59, 59);
       }
       if($end && $end >= $now){
-        return ['status'=>'Suspended','message'=>'Your account is suspended until '.$end->format('F j, Y').'.','suspension_end_date'=>$suspensionEndDate];
+        return ['status'=>'Suspended','message'=>'Your account is suspended until '.$end->format('F j, Y').'. Please contact the barangay at '.BARANGAY_CONTACT_EMAIL.' for assistance.','suspension_end_date'=>$suspensionEndDate,'contact_email'=>BARANGAY_CONTACT_EMAIL];
       }
       $pdo->prepare("UPDATE {$table} SET account_status = ?, suspension_end_date = NULL WHERE {$keyColumn} = ?")->execute(['Active', $id]);
       return null;
     }
-    return ['status'=>'Suspended','message'=>'Your account is suspended. Please contact the barangay for assistance.'];
+    return ['status'=>'Suspended','message'=>'Your account is suspended. Please contact the barangay at '.BARANGAY_CONTACT_EMAIL.' for assistance.','contact_email'=>BARANGAY_CONTACT_EMAIL];
   }
   return null;
 }
