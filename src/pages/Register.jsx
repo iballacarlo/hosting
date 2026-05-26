@@ -59,23 +59,56 @@ export default function Register(){
     }
 
     const domain = value.split('@').pop()
-    const blockedTypoDomains = [
-      'gmial.com',
-      'gmai.com',
-      'gmail.co',
-      'gnail.com',
-      'gmal.com',
-      'hotmial.com',
-      'yaho.com',
-      'yahooo.com',
-      'outlook.con',
+    const commonDomains = [
+      'gmail.com',
+      'yahoo.com',
+      'ymail.com',
+      'outlook.com',
+      'hotmail.com',
+      'live.com',
+      'icloud.com',
+      'aol.com',
+      'proton.me',
+      'protonmail.com',
+      'mail.com',
     ]
 
-    if(blockedTypoDomains.includes(domain)){
-      return 'Please check your email domain. Did you mean gmail.com, yahoo.com, or outlook.com?'
+    if(!commonDomains.includes(domain)){
+      let suggestion = ''
+      let bestDistance = Number.POSITIVE_INFINITY
+
+      commonDomains.forEach(commonDomain => {
+        const distance = levenshtein(domain, commonDomain)
+        if(distance < bestDistance){
+          bestDistance = distance
+          suggestion = commonDomain
+        }
+      })
+
+      if(bestDistance <= 2){
+        return 'Enter a valid email domain.'
+      }
     }
 
     return ''
+  }
+
+  function levenshtein(a, b){
+    const matrix = Array.from({ length: a.length + 1 }, (_, row) => [row])
+    for(let col = 1; col <= b.length; col++) matrix[0][col] = col
+
+    for(let row = 1; row <= a.length; row++){
+      for(let col = 1; col <= b.length; col++){
+        const cost = a[row - 1] === b[col - 1] ? 0 : 1
+        matrix[row][col] = Math.min(
+          matrix[row - 1][col] + 1,
+          matrix[row][col - 1] + 1,
+          matrix[row - 1][col - 1] + cost
+        )
+      }
+    }
+
+    return matrix[a.length][b.length]
   }
 
   function getPasswordError(password){

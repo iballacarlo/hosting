@@ -130,6 +130,47 @@ function normalizeEmail($email){
   return strtolower(trim($email ?? ''));
 }
 
+function getCommonEmailDomains(){
+  return [
+    'gmail.com',
+    'yahoo.com',
+    'ymail.com',
+    'outlook.com',
+    'hotmail.com',
+    'live.com',
+    'icloud.com',
+    'aol.com',
+    'proton.me',
+    'protonmail.com',
+    'mail.com',
+  ];
+}
+
+function suggestEmailDomain($domain){
+  $commonDomains = getCommonEmailDomains();
+  if(in_array($domain, $commonDomains, true)) return '';
+
+  $bestDomain = '';
+  $bestDistance = 99;
+  foreach($commonDomains as $commonDomain){
+    $distance = levenshtein($domain, $commonDomain);
+    if($distance < $bestDistance){
+      $bestDistance = $distance;
+      $bestDomain = $commonDomain;
+    }
+  }
+
+  return $bestDistance <= 2 ? $bestDomain : '';
+}
+
+function emailDomainExists($domain){
+  if(!preg_match('/^[a-z0-9.-]+\.[a-z]{2,}$/i', $domain)) return false;
+  if(function_exists('checkdnsrr')){
+    return checkdnsrr($domain, 'MX') || checkdnsrr($domain, 'A');
+  }
+  return true;
+}
+
 function validateRegistrationEmail($email){
   $email = normalizeEmail($email);
   if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
@@ -137,20 +178,13 @@ function validateRegistrationEmail($email){
   }
 
   $domain = substr(strrchr($email, '@') ?: '', 1);
-  $blockedTypoDomains = [
-    'gmial.com',
-    'gmai.com',
-    'gmail.co',
-    'gnail.com',
-    'gmal.com',
-    'hotmial.com',
-    'yaho.com',
-    'yahooo.com',
-    'outlook.con',
-  ];
+  $suggestedDomain = suggestEmailDomain($domain);
+  if($suggestedDomain){
+    return 'Enter a valid email domain.';
+  }
 
-  if(in_array($domain, $blockedTypoDomains, true)){
-    return 'Please check your email domain. Did you mean gmail.com, yahoo.com, or outlook.com?';
+  if(!emailDomainExists($domain)){
+    return 'Enter a valid email domain.';
   }
 
   return '';
