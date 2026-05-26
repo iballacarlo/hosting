@@ -7,6 +7,7 @@ import '../styles/history.css'
 import api from '../api/axios'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
+import { formatResidentId } from '../utils/idFormat'
 import { addressData } from '../data/addressData'
 
 export default function ManageResidents(){
@@ -95,6 +96,7 @@ export default function ManageResidents(){
     const fullName = getResidentName(item).toLowerCase()
     return [
       String(item.resident_id || ''),
+      formatResidentId(item.resident_id),
       item.email || '',
       item.address || '',
       fullName,
@@ -247,7 +249,7 @@ export default function ManageResidents(){
                     <tbody>
                       {filteredItems.map(it=>(
                     <tr key={it.resident_id}>
-                      <td>{it.resident_id}</td>
+                      <td>{formatResidentId(it.resident_id)}</td>
                       <td>{getResidentName(it)}</td>
                       <td>{it.email}</td>
                       <td>
@@ -316,7 +318,7 @@ export default function ManageResidents(){
                     <>
                       <div className="complaint-detail-row">
                         <span className="detail-label">Resident ID:</span>
-                        <span className="detail-value">{selectedResident.resident_id}</span>
+                        <span className="detail-value">{formatResidentId(selectedResident.resident_id)}</span>
                       </div>
                       <div className="complaint-detail-row">
                         <span className="detail-label">Full Name:</span>

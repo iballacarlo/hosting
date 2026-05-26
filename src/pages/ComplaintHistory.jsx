@@ -7,6 +7,7 @@ import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortCategories, withAllFirst } from '../utils/sortOptions'
+import { formatResidentId, getComplaintReference } from '../utils/idFormat'
 
 export default function ComplaintHistory(){
 
@@ -263,7 +264,7 @@ export default function ComplaintHistory(){
         description: selectedComplaint.description || '',
         location: selectedComplaint.location || selectedComplaint.incident_location || '',
         notes: selectedComplaint.notes || '',
-        resident_name: selectedComplaint.resident_name || selectedComplaint.name || selectedComplaint.resident_id || '',
+        resident_name: selectedComplaint.resident_name || selectedComplaint.name || formatResidentId(selectedComplaint.resident_id) || '',
         respondent_name: selectedComplaint.respondent_name || '',
         date: selectedComplaint.date || selectedComplaint.incident_date || '',
         images: normalizedMedia
@@ -362,7 +363,7 @@ export default function ComplaintHistory(){
   }
 
   const summaryItems = data.slice(0, 3).map(item => ({
-    complaint: item.title || item.category || `C-${item.complaint_id}`,
+    complaint: item.title || item.category || getComplaintReference(item),
     statusText: `${item.status || 'Pending'} ${getStatusEmoji(item.status)}`
   }))
 
@@ -371,6 +372,7 @@ export default function ComplaintHistory(){
     const lowerQuery = query.toLowerCase()
     const fieldsToSearch = [
       complaint.ref,
+      getComplaintReference(complaint),
       complaint.complaint_id?.toString(),
       complaint.title,
       complaint.category,
@@ -409,28 +411,28 @@ export default function ComplaintHistory(){
         <main>
           <h1 className="page-title">Complaint History</h1>
 
-          <div className="history-card">
+          <div className="history-controls">
+            <div className="filter-group">
+              <select
+                className="ui-input"
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+              >
+                {withAllFirst(['Submitted', 'Pending', 'Resolved', 'Closed']).map(option => (
+                  <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
+                ))}
+              </select>
 
-            <div className="history-controls">
-              <div className="filter-group">
-                <select
-                  className="ui-input"
-                  value={filter}
-                  onChange={e => setFilter(e.target.value)}
-                >
-                  {withAllFirst(['Resolved', 'Pending']).map(option => (
-                    <option key={option}>{option}</option>
-                  ))}
-                </select>
-
-                <input
-                  className="ui-input"
-                  placeholder="Search by Ref or Title"
-                  value={q}
-                  onChange={e => setQ(e.target.value)}
-                />
-              </div>
+              <input
+                className="ui-input"
+                placeholder="Search by ID, Title, or Resident"
+                value={q}
+                onChange={e => setQ(e.target.value)}
+              />
             </div>
+          </div>
+
+          <div className="history-card">
 
             {loading ? (
               <div className="empty-state">Loading complaints...</div>
@@ -452,8 +454,8 @@ export default function ComplaintHistory(){
                   <tbody>
                     {list.map(r => (
                       <tr key={complaintIdToString(getComplaintId(r)) || r.ref || r.id}>
-                        <td>{r.ref || `C-${r.complaint_id}`}</td>
-                        <td>{r.resident_name || r.name || r.resident_id || '—'}</td>
+                        <td>{getComplaintReference(r)}</td>
+                        <td>{r.resident_name || r.name || formatResidentId(r.resident_id) || '—'}</td>
                         <td>{r.category || r.category_name || r.category_id || '—'}</td>
                         <td>{r.date_submitted ? parseServerDate(r.date_submitted).toLocaleDateString('en-US') : '—'}</td>
                         <td><StatusBadge status={r.status} /></td>
@@ -506,12 +508,12 @@ export default function ComplaintHistory(){
                   <>
                     <div className="complaint-detail-row">
                       <span className="detail-label">Reference:</span>
-                      <span className="detail-value">{selectedComplaint.ref || `C-${selectedComplaint.complaint_id}`}</span>
+                      <span className="detail-value">{getComplaintReference(selectedComplaint)}</span>
                     </div>
 
                     <div className="complaint-detail-row">
                       <span className="detail-label">Resident:</span>
-                      <span className="detail-value">{selectedComplaint.resident_name || selectedComplaint.name || selectedComplaint.resident_id || '—'}</span>
+                      <span className="detail-value">{selectedComplaint.resident_name || selectedComplaint.name || formatResidentId(selectedComplaint.resident_id) || '—'}</span>
                     </div>
 
                     <div className="complaint-detail-row">

@@ -348,6 +348,7 @@ function categoryOrderSql(){
 
 function getComplaintSelectSql($where = ''){
   return 'SELECT c.*, 
+      CONCAT("CMP-", LPAD(c.complaint_id, 4, "0")) AS ref,
       cat.category_name AS category,
       cat.category_name,
       c.incident_location AS location,
@@ -1574,15 +1575,17 @@ if($uri === '/docs'){
     if($documentTypeRow && strtolower($documentTypeRow['status'] ?? '') === 'disabled'){
       json(['success'=>false,'message'=>'This document type is currently frozen by the administrator.'], 403);
     }
-    $ref = 'REQ-'.time();
     $fullName = trim($data['name'] ?? '');
     if($fullName === ''){
       $fullName = trim(($user['first_name'] ?? '') . ' ' . ($user['middle_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
     }
-    $stmt = $pdo->prepare('INSERT INTO Document_Request (resident_id, processed_by, full_name, birth_date, address, document_type, purpose, status, reference_number, date_requested) VALUES (?, NULL, ?, ?, ?, ?, ?, "Submitted", ?, NOW())');
-    $stmt->execute([$user['id'], $fullName, $data['birthdate'] ?? null, $data['address'] ?? '', $requestedType, $data['purpose'] ?? '', $ref]);
+    $stmt = $pdo->prepare('INSERT INTO Document_Request (resident_id, processed_by, full_name, birth_date, address, document_type, purpose, status, reference_number, date_requested) VALUES (?, NULL, ?, ?, ?, ?, ?, "Submitted", NULL, NOW())');
+    $stmt->execute([$user['id'], $fullName, $data['birthdate'] ?? null, $data['address'] ?? '', $requestedType, $data['purpose'] ?? '']);
+    $requestId = $pdo->lastInsertId();
+    $ref = 'DOC-' . date('Y') . '-' . str_pad($requestId, 4, '0', STR_PAD_LEFT);
+    $pdo->prepare('UPDATE Document_Request SET reference_number = ? WHERE request_id = ?')->execute([$ref, $requestId]);
     createNotification($pdo, null, 'New document request submitted by ' . trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) . ': ' . trim($requestedType ?: $ref), 'document_request');
-    json(['success'=>true,'id'=>$pdo->lastInsertId(),'reference'=>$ref]);
+    json(['success'=>true,'id'=>$requestId,'reference'=>$ref]);
   }
 }
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import api from '../api/axios'
+import { getComplaintReference, getDocumentReference } from '../utils/idFormat'
 import StatusBadge from '../components/StatusBadge'
 import '../styles/dashboard.css'
 
@@ -115,7 +116,7 @@ export default function AdminDashboard(){
     .map(item => ({
       ...item,
       type: item.request_id ? 'Document' : 'Complaint',
-      ref: item.reference_number || item.ref || item.complaint_id || item.request_id || item.id,
+      ref: item.request_id ? getDocumentReference(item) : getComplaintReference(item),
       category: item.document_type || item.category || item.title || item.type || 'Request',
       date: item.date_requested || item.date_submitted || item.date || item.created_at
     }))

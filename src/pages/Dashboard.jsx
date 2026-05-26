@@ -5,6 +5,7 @@ import Header from '../components/Header'
 import StatusBadge from '../components/StatusBadge'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import { getComplaintReference, getDocumentReference } from '../utils/idFormat'
 import '../styles/dashboard.css'
 
 export default function Dashboard(){
@@ -78,7 +79,7 @@ export default function Dashboard(){
   const recentActivity = useMemo(() => {
     const complaintActivity = complaints.map(item => ({
       id: item.complaint_id || item.id,
-      ref: item.ref || item.id || `C-${item.complaint_id}`,
+      ref: getComplaintReference(item),
       category: item.category || item.category_id || item.title || 'Complaint',
       type: 'Complaint',
       date: item.date_submitted || item.date || item.created_at || item.date_requested,
@@ -87,7 +88,7 @@ export default function Dashboard(){
 
     const docActivity = docs.map(item => ({
       id: item.request_id || item.id,
-      ref: item.reference_number || item.ref || item.id || `DOC-${item.request_id}`,
+      ref: getDocumentReference(item),
       category: item.document_type || item.type || 'Document Request',
       type: 'Document',
       date: item.date_requested || item.date || item.created_at || item.date_submitted,

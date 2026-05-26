@@ -11,6 +11,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import BacoorLogo from '../assets/Bacoor.png'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { withAllFirst } from '../utils/sortOptions'
+import { formatResidentId, getDocumentReference } from '../utils/idFormat'
 
 const REQUEST_DOC_TYPES = [
   'Barangay Clearance',
@@ -326,7 +327,7 @@ export default function ManageDocuments(){
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    const name = (processingRequest.reference_number || processingRequest.request_id || 'document').toString().replace(/[^a-zA-Z0-9-_]/g, '_')
+    const name = (getDocumentReference(processingRequest) || 'document').toString().replace(/[^a-zA-Z0-9-_]/g, '_')
     const template = getTemplateForType(processingRequest.document_type || processingRequest.type)
     link.download = `${name}_${template.replace(/\s+/g, '_')}.pdf`
     document.body.appendChild(link)
@@ -419,8 +420,9 @@ export default function ManageDocuments(){
                       const matchesStatus = filterStatus === 'All' || item.status === filterStatus
                       const matchesSearch = searchQuery === '' ||
                         (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
+                        getDocumentReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (item.name || item.full_name || item.resident_id || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
+                        (item.name || item.full_name || formatResidentId(item.resident_id) || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
                       return matchesStatus && matchesSearch
                     })
                     .map(it=>(
@@ -429,9 +431,9 @@ export default function ManageDocuments(){
                       id={`document-row-${it.request_id}`}
                       className={highlightedRequestId === it.request_id ? 'table-row-highlighted' : ''}
                     >
-                      <td>{it.reference_number || it.request_id}</td>
+                      <td>{getDocumentReference(it)}</td>
                       <td>{it.document_type || it.document}</td>
-                      <td>{it.name || it.full_name || it.resident_id || '—'}</td>
+                      <td>{it.name || it.full_name || formatResidentId(it.resident_id) || '—'}</td>
                       <td>{new Date(it.date_requested || Date.now()).toLocaleDateString('en-US')}</td>
                       <td><StatusBadge status={it.status}/></td>
                       <td>
@@ -456,8 +458,9 @@ export default function ManageDocuments(){
                 const matchesStatus = filterStatus === 'All' || item.status === filterStatus
                 const matchesSearch = searchQuery === '' ||
                   (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
+                  getDocumentReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
                   (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (item.name || item.full_name || item.resident_id || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
+                  (item.name || item.full_name || formatResidentId(item.resident_id) || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
                 return matchesStatus && matchesSearch
               }).length === 0 && (
               <div className="empty-state">No document requests match your search criteria.</div>

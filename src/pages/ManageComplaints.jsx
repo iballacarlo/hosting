@@ -9,6 +9,7 @@ import api from '../api/axios'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
+import { formatResidentId, getComplaintReference } from '../utils/idFormat'
 
 export default function ManageComplaints(){
   const location = useLocation()
@@ -293,7 +294,7 @@ export default function ManageComplaints(){
       : 'N/A'
 
     const details = [
-      `Reference Number: ${record.ref || `C-${record.complaint_id}`}`,
+      `Reference Number: ${getComplaintReference(record)}`,
       `Complainant: ${record.anonymous ? 'Anonymous' : (record.resident_name || 'Unknown')}`,
       `Category: ${getCategoryName(record)}`,
       `Incident Location: ${getIncidentLocation(record)}`,
@@ -497,7 +498,7 @@ export default function ManageComplaints(){
     y -= 18
 
     const details = [
-      `Reference Number: ${record.ref || `C-${record.complaint_id}`}`,
+      `Reference Number: ${getComplaintReference(record)}`,
       `Category: ${getCategoryName(record)}`,
       `Location: ${getIncidentLocation(record)}`,
       `Date Reported: ${formatDate(record.date_submitted)}`
@@ -677,7 +678,7 @@ export default function ManageComplaints(){
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      const fileNameText = (record.ref || `C-${record.complaint_id}`).replace(/[^a-zA-Z0-9-_]/g, '_')
+      const fileNameText = getComplaintReference(record).replace(/[^a-zA-Z0-9-_]/g, '_')
       link.download = `${fileNameText}_${fileType}.pdf`
       document.body.appendChild(link)
       link.click()
@@ -745,6 +746,7 @@ export default function ManageComplaints(){
                       const matchesStatus = filterStatus === 'All' || item.status === filterStatus
                       const matchesSearch = searchQuery === '' ||
                         String(item.complaint_id).includes(searchQuery) ||
+                        getComplaintReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (item.resident_name || item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
                       return matchesStatus && matchesSearch
@@ -755,9 +757,9 @@ export default function ManageComplaints(){
                       id={`complaint-row-${it.complaint_id}`}
                       className={highlightedComplaintId === it.complaint_id ? 'table-row-highlighted' : ''}
                     >
-                      <td>{it.complaint_id}</td>
+                      <td>{getComplaintReference(it)}</td>
                       <td>{it.title || it.description?.slice(0,60) || '—'}</td>
-                      <td>{it.resident_name || it.name || it.resident_id || '—'}</td>
+                      <td>{it.resident_name || it.name || formatResidentId(it.resident_id) || '—'}</td>
                       <td>{formatDate(it.date_submitted)}</td>
                       <td>
                         <StatusBadge status={it.status} />
@@ -806,6 +808,7 @@ export default function ManageComplaints(){
                 const matchesStatus = filterStatus === 'All' || item.status === filterStatus
                 const matchesSearch = searchQuery === '' ||
                   String(item.complaint_id).includes(searchQuery) ||
+                  getComplaintReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
                   (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                   (item.resident_name || item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
                 return matchesStatus && matchesSearch
@@ -824,12 +827,12 @@ export default function ManageComplaints(){
 
                   <div className="complaint-detail-row">
                     <span className="detail-label">Reference:</span>
-                    <span className="detail-value">{selectedComplaint.ref || `C-${selectedComplaint.complaint_id}`}</span>
+                    <span className="detail-value">{getComplaintReference(selectedComplaint)}</span>
                   </div>
 
                   <div className="complaint-detail-row">
                     <span className="detail-label">Resident:</span>
-                    <span className="detail-value">{selectedComplaint.resident_name || selectedComplaint.name || selectedComplaint.resident_id || '—'}</span>
+                    <span className="detail-value">{selectedComplaint.resident_name || selectedComplaint.name || formatResidentId(selectedComplaint.resident_id) || '—'}</span>
                   </div>
 
                   <div className="complaint-detail-row">

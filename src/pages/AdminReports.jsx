@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import Button from '../components/Button'
 import '../styles/dashboard.css'
 import api from '../api/axios'
+import { getComplaintReference, getDocumentReference } from '../utils/idFormat'
 import {
   BarChart3,
   Download,
@@ -353,31 +354,35 @@ export default function AdminReports(){
     lines.push(escapeRow(['Monthly Summary']))
     lines.push(escapeRow(['Month','Total Complaints','Resolved Complaints','Total Document Requests','Released Documents']))
     monthlySummary.forEach(r => lines.push(escapeRow([r.month, r.totalComplaints, r.resolved, r.totalRequests, r.released])))
-    lines.push('')
-    lines.push(escapeRow(['Complaint Records']))
-    lines.push(escapeRow(['Complaint ID','Date Submitted','Category','Title','Status','Anonymous','Incident Location','Incident Date']))
-    complaints.forEach(item => lines.push(escapeRow([
-      item.complaint_id,
-      item.date_submitted,
-      item.category || item.category_name,
-      item.title,
-      item.status,
-      item.anonymous ? 'Yes' : 'No',
-      item.incident_location || item.location,
-      item.incident_date
-    ])))
-    lines.push('')
-    lines.push(escapeRow(['Document Request Records']))
-    lines.push(escapeRow(['Request ID','Reference Number','Date Requested','Document Type','Resident','Status','Purpose']))
-    docs.forEach(item => lines.push(escapeRow([
-      item.request_id,
-      item.reference_number,
-      item.date_requested,
-      item.document_type,
-      item.name || item.full_name,
-      item.status,
-      item.purpose
-    ])))
+    if(complaints.length > 0){
+      lines.push('')
+      lines.push(escapeRow(['Complaint Records']))
+      lines.push(escapeRow(['Complaint ID','Date Submitted','Category','Title','Status','Anonymous','Incident Location','Incident Date']))
+      complaints.forEach(item => lines.push(escapeRow([
+        getComplaintReference(item),
+        item.date_submitted,
+        item.category || item.category_name,
+        item.title,
+        item.status,
+        item.anonymous ? 'Yes' : 'No',
+        item.incident_location || item.location,
+        item.incident_date
+      ])))
+    }
+    if(docs.length > 0){
+      lines.push('')
+      lines.push(escapeRow(['Document Request Records']))
+      lines.push(escapeRow(['Request ID','Reference Number','Date Requested','Document Type','Resident','Status','Purpose']))
+      docs.forEach(item => lines.push(escapeRow([
+        getDocumentReference(item),
+        item.reference_number || getDocumentReference(item),
+        item.date_requested,
+        item.document_type,
+        item.name || item.full_name,
+        item.status,
+        item.purpose
+      ])))
+    }
     const csv = lines.join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)

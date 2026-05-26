@@ -7,6 +7,7 @@ import StatusBadge from '../components/StatusBadge'
 import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
+import { formatResidentId, getDocumentReference } from '../utils/idFormat'
 
 const EDIT_DOCUMENT_TYPES = sortTextAsc([
   'Barangay Clearance',
@@ -41,9 +42,9 @@ export default function DocumentHistory(){
     if(!matchesFilter) return false
     if(searchQuery === '') return true
 
-    const reference = String(item.reference_number || item.request_id || item.id || item.numericId || item.ref || '')
+    const reference = String(getDocumentReference(item) || item.reference_number || item.request_id || item.id || item.numericId || item.ref || '')
     const type = String(item.document_type || item.type || '')
-    const name = String(item.name || item.full_name || item.resident_name || item.resident_id || item.user?.name || item.user?.full_name || '')
+    const name = String(item.name || item.full_name || item.resident_name || formatResidentId(item.resident_id) || item.user?.name || item.user?.full_name || '')
     const purpose = String(item.purpose || '')
     const status = String(item.status || '')
     const address = String(item.address || '')
@@ -269,28 +270,28 @@ export default function DocumentHistory(){
         <main>
           <h1 className="page-title">Document History</h1>
 
-          <div className="history-card">
+          <div className="history-controls">
+            <div className="filter-group">
+              <select
+                className="ui-input"
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+              >
+                {withAllFirst(['Submitted', 'Requested', 'Processing', 'Ready', 'Released', 'Received']).map(option => (
+                  <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
+                ))}
+              </select>
 
-            <div className="history-controls">
-              <div className="filter-group">
-                <select
-                  className="ui-input"
-                  value={filter}
-                  onChange={e => setFilter(e.target.value)}
-                >
-                  {withAllFirst(['Submitted', 'Released', 'Received']).map(option => (
-                    <option key={option}>{option}</option>
-                  ))}
-                </select>
-
-                <input
-                  className="ui-input"
-                  placeholder="Search by reference, type, or name"
-                  value={q}
-                  onChange={e => setQ(e.target.value)}
-                />
-              </div>
+              <input
+                className="ui-input"
+                placeholder="Search by reference, type, or name"
+                value={q}
+                onChange={e => setQ(e.target.value)}
+              />
             </div>
+          </div>
+
+          <div className="history-card">
 
             {loading ? (
               <div className="empty-state">Loading documents...</div>
@@ -312,8 +313,8 @@ export default function DocumentHistory(){
                   <tbody>
                     {list.map(d => (
                       <tr key={documentIdToString(getDocumentId(d)) || d.reference_number || d.id}>
-                        <td>{d.reference_number}</td>
-                        <td>{d.name || d.full_name || d.resident_id || '—'}</td>
+                        <td>{getDocumentReference(d)}</td>
+                        <td>{d.name || d.full_name || formatResidentId(d.resident_id) || '—'}</td>
                         <td>{d.document_type}</td>
                         <td>{new Date(d.date_requested).toLocaleDateString('en-US')}</td>
                         <td><StatusBadge status={d.status} /></td>
@@ -366,12 +367,12 @@ export default function DocumentHistory(){
                   <>
                     <div className="complaint-detail-row">
                       <span className="detail-label">Reference:</span>
-                      <span className="detail-value">{selectedDocument.reference_number || `DOC-${selectedDocument.request_id}`}</span>
+                      <span className="detail-value">{getDocumentReference(selectedDocument)}</span>
                     </div>
 
                     <div className="complaint-detail-row">
                       <span className="detail-label">Resident:</span>
-                      <span className="detail-value">{selectedDocument.name || selectedDocument.full_name || selectedDocument.resident_id || '—'}</span>
+                      <span className="detail-value">{selectedDocument.name || selectedDocument.full_name || formatResidentId(selectedDocument.resident_id) || '—'}</span>
                     </div>
 
                     <div className="complaint-detail-row">

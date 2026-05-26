@@ -42,14 +42,13 @@ function getNextNumericId(list, field = 'numericId'){
 }
 
 function generateComplaintRef(list){
-  const year = new Date().getFullYear()
-  const next = String(getNextNumericId(list, 'numericId')).padStart(3, '0')
-  return `BRG-${year}-${next}`
+  const next = String(getNextNumericId(list, 'numericId')).padStart(4, '0')
+  return `CMP-${next}`
 }
 
 function generateDocRef(list){
   const year = new Date().getFullYear()
-  const next = String(getNextNumericId(list, 'numericId')).padStart(3, '0')
+  const next = String(getNextNumericId(list, 'numericId')).padStart(4, '0')
   return `DOC-${year}-${next}`
 }
 
