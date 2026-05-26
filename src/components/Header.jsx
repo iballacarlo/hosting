@@ -19,6 +19,8 @@ export default function Header(){
   const menuRef = useRef(null)
   const settingsRef = useRef(null)
   const notificationsRef = useRef(null)
+  const notificationFilterRef = useRef(null)
+  const mobileNotificationFilterRef = useRef(null)
 
   // Close dropdowns on outside click + Esc
   useEffect(() => {
@@ -97,15 +99,22 @@ export default function Header(){
 
   const notificationFilterOptions = [
     { key: 'all', label: 'All' },
+    { key: 'unread', label: 'Unread' },
     { key: 'complaint', label: 'Complaints' },
     { key: 'document', label: 'Documents' },
     { key: 'registration', label: 'Registration' }
   ]
 
-  const filteredNotifications = notifications.filter(notification =>
-    notificationFilter === 'all' || getNotificationKind(notification) === notificationFilter
-  )
+  const filteredNotifications = notifications.filter(notification => {
+    if(notificationFilter === 'all') return true
+    if(notificationFilter === 'unread') return !isNotificationRead(notification)
+    return getNotificationKind(notification) === notificationFilter
+  })
   const unreadNotificationCount = notifications.filter(notification => !isNotificationRead(notification)).length
+
+  const scrollNotificationFilters = (targetRef) => {
+    targetRef.current?.scrollBy({ left: 120, behavior: 'smooth' })
+  }
 
   async function loadNotifications(){
     if(!user){
@@ -439,17 +448,27 @@ export default function Header(){
                 )}
               </div>
               {notifications.length > 0 && (
-                <div className="notification-filter-row" role="group" aria-label="Filter notifications">
-                  {notificationFilterOptions.map(option => (
-                    <button
-                      key={option.key}
-                      type="button"
-                      className={`notification-filter-chip ${notificationFilter === option.key ? 'active' : ''}`}
-                      onClick={() => setNotificationFilter(option.key)}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+                <div className="notification-filter-shell">
+                  <div className="notification-filter-row" ref={notificationFilterRef} role="group" aria-label="Filter notifications">
+                    {notificationFilterOptions.map(option => (
+                      <button
+                        key={option.key}
+                        type="button"
+                        className={`notification-filter-chip ${notificationFilter === option.key ? 'active' : ''}`}
+                        onClick={() => setNotificationFilter(option.key)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="notification-filter-next"
+                    onClick={() => scrollNotificationFilters(notificationFilterRef)}
+                    aria-label="Show more notification filters"
+                  >
+                    &gt;
+                  </button>
                 </div>
               )}
               <div className="notification-modal-content">
@@ -519,17 +538,27 @@ export default function Header(){
                   )}
                 </div>
                 {notifications.length > 0 && (
-                  <div className="notification-filter-row" role="group" aria-label="Filter notifications">
-                    {notificationFilterOptions.map(option => (
-                      <button
-                        key={option.key}
-                        type="button"
-                        className={`notification-filter-chip ${notificationFilter === option.key ? 'active' : ''}`}
-                        onClick={() => setNotificationFilter(option.key)}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
+                  <div className="notification-filter-shell">
+                    <div className="notification-filter-row" ref={mobileNotificationFilterRef} role="group" aria-label="Filter notifications">
+                      {notificationFilterOptions.map(option => (
+                        <button
+                          key={option.key}
+                          type="button"
+                          className={`notification-filter-chip ${notificationFilter === option.key ? 'active' : ''}`}
+                          onClick={() => setNotificationFilter(option.key)}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="notification-filter-next"
+                      onClick={() => scrollNotificationFilters(mobileNotificationFilterRef)}
+                      aria-label="Show more notification filters"
+                    >
+                      &gt;
+                    </button>
                   </div>
                 )}
                 <div className="notification-modal-content">

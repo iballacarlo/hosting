@@ -226,12 +226,26 @@ html.dark .mark-all-read-btn{
   min-width: fit-content;
 }
 
-.notification-filter-row{
+.notification-filter-shell{
   display:flex;
-  gap:6px;
+  align-items:center;
+  gap:8px;
   padding:10px 12px 0;
   border-bottom:0;
+}
+
+.notification-filter-row{
+  min-width:0;
+  flex:1;
+  display:flex;
+  gap:6px;
   overflow-x:auto;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+
+.notification-filter-row::-webkit-scrollbar{
+  display:none;
 }
 
 .notification-filter-chip{
@@ -253,6 +267,24 @@ html.dark .mark-all-read-btn{
 }
 
 .notification-filter-chip:hover{
+  background: var(--surface-2);
+}
+
+.notification-filter-next{
+  flex:0 0 auto;
+  width:30px;
+  height:30px;
+  border-radius:999px;
+  border:1px solid var(--border-color);
+  background: color-mix(in srgb, var(--card-bg) 88%, transparent);
+  color: var(--text-color);
+  font-size:1rem;
+  font-weight:900;
+  line-height:1;
+  cursor:pointer;
+}
+
+.notification-filter-next:hover{
   background: var(--surface-2);
 }
 

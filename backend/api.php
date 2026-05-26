@@ -272,6 +272,73 @@ function ensureDefaultCategories($pdo){
       $stmt->execute($item);
     }
   }
+
+  consolidateDuplicateCategories($pdo);
+}
+
+function normalizeCategoryAliasKey($name){
+  $key = strtolower(trim($name ?? ''));
+  $key = str_replace('&', 'and', $key);
+  $key = preg_replace('/[^a-z0-9]+/', ' ', $key);
+  return trim(preg_replace('/\s+/', ' ', $key));
+}
+
+function canonicalCategoryName($name){
+  $trimmed = trim($name ?? '');
+  $aliases = [
+    'garbage' => 'Garbage Collection',
+    'garbage concern' => 'Garbage Collection',
+    'garbage collection' => 'Garbage Collection',
+    'trash' => 'Garbage Collection',
+    'trash collection' => 'Garbage Collection',
+    'noise' => 'Noise Complaint',
+    'noise complaint' => 'Noise Complaint',
+    'road drainage' => 'Road/Drainage Issue',
+    'road drainage issue' => 'Road/Drainage Issue',
+    'road and drainage' => 'Road/Drainage Issue',
+    'road and drainage issue' => 'Road/Drainage Issue',
+    'road issue' => 'Road/Drainage Issue',
+    'drainage issue' => 'Road/Drainage Issue',
+    'peace order' => 'Peace and Order',
+    'peace and order' => 'Peace and Order',
+    'peace order concern' => 'Peace and Order',
+    'peace and order concern' => 'Peace and Order',
+    'other' => 'Other',
+    'others' => 'Other',
+  ];
+
+  $key = normalizeCategoryAliasKey($trimmed);
+  return $aliases[$key] ?? $trimmed;
+}
+
+function consolidateDuplicateCategories($pdo){
+  $rows = $pdo->query('SELECT category_id, category_name FROM Category ORDER BY category_id ASC')->fetchAll();
+  $canonicalRows = [];
+
+  foreach($rows as $row){
+    $sourceId = intval($row['category_id']);
+    $canonical = canonicalCategoryName($row['category_name']);
+    if($canonical === '') continue;
+    $key = strtolower($canonical);
+
+    if(!isset($canonicalRows[$key])){
+      if($row['category_name'] !== $canonical){
+        $stmt = $pdo->prepare('UPDATE Category SET category_name = ? WHERE category_id = ?');
+        $stmt->execute([$canonical, $sourceId]);
+      }
+      $canonicalRows[$key] = $sourceId;
+      continue;
+    }
+
+    $targetId = intval($canonicalRows[$key]);
+    if($targetId === $sourceId) continue;
+
+    $updateComplaints = $pdo->prepare('UPDATE Complaint SET category_id = ? WHERE category_id = ?');
+    $updateComplaints->execute([$targetId, $sourceId]);
+
+    $deleteCategory = $pdo->prepare('DELETE FROM Category WHERE category_id = ?');
+    $deleteCategory->execute([$sourceId]);
+  }
 }
 
 function categoryOrderSql(){
@@ -1232,9 +1299,14 @@ if($uri === '/categories'){
     $names = [];
     foreach($categories as $category){
       $name = is_array($category) ? trim($category['category_name'] ?? $category['name'] ?? '') : trim($category);
-      if($name !== '') $names[] = $name;
+      if($name !== '') $names[] = canonicalCategoryName($name);
     }
-    $names = array_values(array_unique($names));
+    $dedupedNames = [];
+    foreach($names as $name){
+      $key = strtolower($name);
+      if(!isset($dedupedNames[$key])) $dedupedNames[$key] = $name;
+    }
+    $names = array_values($dedupedNames);
     $lowerNames = array_map('strtolower', $names);
     if(!in_array('other', $lowerNames, true) && !in_array('others', $lowerNames, true)){
       $names[] = 'Other';
@@ -1245,7 +1317,7 @@ if($uri === '/categories'){
       $existingStmt = $pdo->query('SELECT category_id, category_name FROM Category');
       $existing = [];
       foreach($existingStmt->fetchAll() as $row){
-        $existing[strtolower($row['category_name'])] = $row;
+        $existing[strtolower(canonicalCategoryName($row['category_name']))] = $row;
       }
 
       $insertStmt = $pdo->prepare('INSERT INTO Category (category_name, description) VALUES (?, ?)');
@@ -1264,6 +1336,7 @@ if($uri === '/categories'){
         $pdo->prepare($deleteSql)->execute($names);
       }
 
+      consolidateDuplicateCategories($pdo);
       $pdo->commit();
     } catch(Exception $e){
       $pdo->rollBack();

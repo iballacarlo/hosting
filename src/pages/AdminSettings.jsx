@@ -8,7 +8,7 @@ import { useSettings } from '../context/SettingsContext'
 import api from '../api/axios'
 import { sortCategories, sortTextAsc } from '../utils/sortOptions'
 
-const DEFAULT_CATEGORIES = sortCategories(['Noise', 'Garbage', 'Traffic', 'Water Supply', 'Electricity', 'Public Safety', 'Other'])
+const DEFAULT_CATEGORIES = sortCategories(['Noise Complaint', 'Garbage Collection', 'Traffic', 'Water Supply', 'Electricity', 'Public Safety', 'Other'])
 const DEFAULT_SYSTEM_NAME = 'Barangay Service & Complaint Management System'
 const DEFAULT_CONTACT_EMAIL = 'brgy.mambog.ii@gmail.com'
 const DEFAULT_DOCUMENT_TYPES = [
