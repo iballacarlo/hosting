@@ -176,6 +176,14 @@
   flex: 0 0 auto;
 }
 
+.notification-header-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
 .notification-modal-content{
   padding:12px 14px;
   color: var(--text-color);
@@ -213,6 +221,10 @@ html.dark .mark-all-read-btn{
 
 .mark-all-read-btn:hover{
   background: var(--surface-2);
+}
+
+.mark-all-read-btn.danger{
+  color: var(--danger-color);
 }
 
 .mark-all-read-btn:disabled{
@@ -294,17 +306,6 @@ html.dark .mark-all-read-btn{
   min-height:120px;
 }
 
-button.notification-item,
-.notification-item.clickable{
-  width: 100%;
-  display: block;
-  text-align: left;
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  color: var(--text-color);
-}
-
 .notification-item.clickable:hover{
   background: color-mix(in srgb, var(--surface-2) 92%, transparent);
 }
@@ -327,6 +328,9 @@ button.notification-item,
   background: color-mix(in srgb, var(--surface-2) 90%, transparent);
   border:1px solid var(--border-color);
   color: var(--text-color);
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
 }
 
 .notification-item.unread{
@@ -362,6 +366,35 @@ html.dark .notification-item.clickable:hover{
 .notification-meta{
   font-size:0.8rem;
   color: var(--muted-color);
+}
+
+.notification-item-main{
+  min-width:0;
+  flex:1;
+  border:0;
+  padding:0;
+  background:transparent;
+  color:var(--text-color);
+  text-align:left;
+  cursor:pointer;
+}
+
+.notification-delete-btn{
+  flex:0 0 auto;
+  width:28px;
+  height:28px;
+  border-radius:999px;
+  border:1px solid var(--border-color);
+  background: color-mix(in srgb, var(--card-bg) 88%, transparent);
+  color: var(--danger-color);
+  font-size:1rem;
+  font-weight:900;
+  line-height:1;
+  cursor:pointer;
+}
+
+.notification-delete-btn:hover{
+  background: var(--danger-soft);
 }
 
 /* =========================

@@ -970,13 +970,37 @@ function markNotificationRead($pdo, $user, $notificationId){
   return $stmt->rowCount();
 }
 
+function deleteNotificationForUser($pdo, $user, $notificationId){
+  if(!$user) return 0;
+  if($user['role'] === 'staff'){
+    $stmt = $pdo->prepare('DELETE FROM Notification WHERE notification_id = ? AND resident_id IS NULL');
+    $stmt->execute([$notificationId]);
+    return $stmt->rowCount();
+  }
+  $stmt = $pdo->prepare('DELETE FROM Notification WHERE notification_id = ? AND resident_id = ?');
+  $stmt->execute([$notificationId, $user['id']]);
+  return $stmt->rowCount();
+}
+
+function deleteAllNotificationsForUser($pdo, $user){
+  if(!$user) return 0;
+  if($user['role'] === 'staff'){
+    $stmt = $pdo->prepare('DELETE FROM Notification WHERE resident_id IS NULL');
+    $stmt->execute([]);
+    return $stmt->rowCount();
+  }
+  $stmt = $pdo->prepare('DELETE FROM Notification WHERE resident_id = ?');
+  $stmt->execute([$user['id']]);
+  return $stmt->rowCount();
+}
+
 function getUnreadNotificationCount($pdo, $user){
   if(!$user) return 0;
   if($user['role'] === 'staff'){
     $stmt = $pdo->prepare('SELECT COUNT(*) AS c FROM Notification WHERE resident_id IS NULL AND is_read = FALSE');
     $stmt->execute([]);
   } else {
-    $stmt = $pdo->prepare('SELECT COUNT(*) AS c FROM Notification WHERE resident_id = ? AND is_rezad = FALSE');
+    $stmt = $pdo->prepare('SELECT COUNT(*) AS c FROM Notification WHERE resident_id = ? AND is_read = FALSE');
     $stmt->execute([$user['id']]);
   }
   $row = $stmt->fetch();
@@ -1708,13 +1732,31 @@ if($uri === '/notifications/mark-read' && $method === 'POST'){
   json(['success'=>true]);
 }
 
+// Route: /notifications delete all
+if(($uri === '/notifications' && $method === 'DELETE') || ($uri === '/notifications/delete-all' && $method === 'POST')){
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  $deleted = deleteAllNotificationsForUser($pdo, $user);
+  json(['success'=>true,'deleted'=>$deleted]);
+}
+
+// Route: /notifications/{id} delete specific notification
+if((preg_match('#^/notifications/(\d+)$#', $uri, $m) && $method === 'DELETE') || (preg_match('#^/notifications/(\d+)/delete$#', $uri, $m) && $method === 'POST')){
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  $deleted = deleteNotificationForUser($pdo, $user, intval($m[1]));
+  json(['success'=>true,'deleted'=>$deleted]);
+}
+
 // Route: /residents GET - list residents (admin)
 if($uri === '/residents' && $method === 'GET'){
   $token = getBearerToken();
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
   if($user['role'] !== 'staff') json(['success'=>false,'message'=>'Forbidden']);
-  $stmt = $pdo->query('SELECT resident_id, first_name, middle_name, last_name, email, account_status, suspension_end_date, registration_date FROM Resident ORDER BY registration_date DESC');
+  $stmt = $pdo->query('SELECT resident_id, first_name, middle_name, last_name, birth_date, gender, address, email, account_status, suspension_end_date, registration_date FROM Resident ORDER BY registration_date DESC');
   json(['success'=>true,'data'=>$stmt->fetchAll()]);
 }
 

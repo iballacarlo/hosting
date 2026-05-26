@@ -379,27 +379,25 @@ export default function ManageDocuments(){
             <div className="empty-state">Loading documents...</div>
           ) : (
             <>
-            <div className="history-card">
-              <div className="history-controls">
-                <div className="filter-group">
-                  <select
-                    className="ui-input"
-                    value={filterStatus}
-                    onChange={e => setFilterStatus(e.target.value)}
-                  >
-                    {withAllFirst(['Requested', 'Processing', 'Ready', 'Released', 'Received']).map(option => (
-                      <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
-                    ))}
-                  </select>
+            <div className="history-controls">
+              <div className="filter-group">
+                <select
+                  className="ui-input"
+                  value={filterStatus}
+                  onChange={e => setFilterStatus(e.target.value)}
+                >
+                  {withAllFirst(['Requested', 'Processing', 'Ready', 'Released', 'Received']).map(option => (
+                    <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
+                  ))}
+                </select>
 
-                  <input
-                    className="ui-input"
-                    type="text"
-                    placeholder="Search by Ref, Type, or Resident"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                  />
-                </div>
+                <input
+                  className="ui-input"
+                  type="text"
+                  placeholder="Search by Ref, Type, or Resident"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
               </div>
             </div>
             <div className="table-wrap">

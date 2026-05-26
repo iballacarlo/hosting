@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import Button from '../components/Button'
@@ -7,6 +7,7 @@ import '../styles/history.css'
 import api from '../api/axios'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
+import { addressData } from '../data/addressData'
 
 export default function ManageResidents(){
 
@@ -16,6 +17,9 @@ export default function ManageResidents(){
   const [searchTerm, setSearchTerm] = useState('')
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [addressFilterType, setAddressFilterType] = useState('All')
+  const [addressFilterValue, setAddressFilterValue] = useState('')
+  const [selectedResident, setSelectedResident] = useState(null)
   const [selectedForDelete, setSelectedForDelete] = useState(null)
   const [selectedForStatus, setSelectedForStatus] = useState(null)
 
@@ -36,24 +40,66 @@ export default function ManageResidents(){
   useEffect(()=>{ load() }, [])
 
   const statusOptions = sortTextAsc(['Active', 'Suspended', 'Banned'])
+  const addressFilterTypes = ['All', 'Phase', 'Street', 'Block']
+  const phaseOptions = sortTextAsc(Object.keys(addressData))
+  const streetOptions = useMemo(() => {
+    const streets = Object.values(addressData).flat()
+    return sortTextAsc([...new Set(streets)])
+  }, [])
+
+  const parseResidentAddress = (address = '') => {
+    const parts = String(address || '').split(',').map(part => part.trim()).filter(Boolean)
+    const blockMatch = String(address || '').match(/\bBlock\s+([^,]+)/i)
+    const lotMatch = String(address || '').match(/\bLot\s+([^,]+)/i)
+
+    return {
+      phase: parts[0] || '',
+      street: parts[1] || '',
+      block: blockMatch ? blockMatch[1].trim() : '',
+      lot: lotMatch ? lotMatch[1].trim() : ''
+    }
+  }
+
+  const formatDate = (value) => {
+    if(!value) return 'N/A'
+    const date = new Date(value)
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-US')
+  }
+
+  const getResidentName = (item) => [item.first_name, item.middle_name, item.last_name].filter(Boolean).join(' ')
 
   const handleSearch = () => {
     setQuery(searchTerm.trim())
+  }
+
+  const handleAddressFilterTypeChange = (value) => {
+    setAddressFilterType(value)
+    setAddressFilterValue('')
   }
 
   const filteredItems = items.filter(item => {
     const statusMatch = statusFilter === 'All' || String(item.account_status || 'Unknown') === statusFilter
     if(!statusMatch) return false
 
+    if(addressFilterType !== 'All' && addressFilterValue){
+      const parsedAddress = parseResidentAddress(item.address)
+      const field = addressFilterType.toLowerCase()
+      if(String(parsedAddress[field] || '').toLowerCase() !== String(addressFilterValue).toLowerCase()){
+        return false
+      }
+    }
+
     if(!query) return true
 
     const normalizedQuery = query.toLowerCase()
-    const fullName = `${item.first_name || ''} ${item.last_name || ''}`.toLowerCase()
+    const fullName = getResidentName(item).toLowerCase()
     return [
       String(item.resident_id || ''),
       item.email || '',
+      item.address || '',
       fullName,
       (item.first_name || ''),
+      (item.middle_name || ''),
       (item.last_name || '')
     ].some(value => String(value).toLowerCase().includes(normalizedQuery))
   })
@@ -102,6 +148,7 @@ export default function ManageResidents(){
 
   useCloseOnEscape(Boolean(selectedForDelete), () => setSelectedForDelete(null))
   useCloseOnEscape(Boolean(selectedForStatus), () => setSelectedForStatus(null))
+  useCloseOnEscape(Boolean(selectedResident), () => setSelectedResident(null))
 
   return(
     <div className="app-shell manage-residents-page">
@@ -133,6 +180,46 @@ export default function ManageResidents(){
                   <option key={opt} value={opt}>{opt === 'All' ? 'All Statuses' : opt}</option>
                 ))}
               </select>
+              <select
+                className="ui-input"
+                value={addressFilterType}
+                onChange={(e) => handleAddressFilterTypeChange(e.target.value)}
+              >
+                {addressFilterTypes.map(opt => (
+                  <option key={opt} value={opt}>{opt === 'All' ? 'All Addresses' : `By ${opt}`}</option>
+                ))}
+              </select>
+              {addressFilterType === 'Phase' && (
+                <select
+                  className="ui-input"
+                  value={addressFilterValue}
+                  onChange={(e) => setAddressFilterValue(e.target.value)}
+                >
+                  <option value="">All Phases</option>
+                  {phaseOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              )}
+              {addressFilterType === 'Street' && (
+                <select
+                  className="ui-input"
+                  value={addressFilterValue}
+                  onChange={(e) => setAddressFilterValue(e.target.value)}
+                >
+                  <option value="">All Streets</option>
+                  {streetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              )}
+              {addressFilterType === 'Block' && (
+                <input
+                  className="ui-input"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Block"
+                  value={addressFilterValue}
+                  onChange={(e) => setAddressFilterValue(e.target.value)}
+                  style={{ maxWidth: 140 }}
+                />
+              )}
             </div>
           </div>
 
@@ -161,7 +248,7 @@ export default function ManageResidents(){
                       {filteredItems.map(it=>(
                     <tr key={it.resident_id}>
                       <td>{it.resident_id}</td>
-                      <td>{it.first_name} {it.last_name}</td>
+                      <td>{getResidentName(it)}</td>
                       <td>{it.email}</td>
                       <td>
                         <StatusBadge status={it.account_status}/>
@@ -172,6 +259,12 @@ export default function ManageResidents(){
                         )}
                       </td>
                       <td style={{display:'flex',gap:8, alignItems:'center'}}>
+                        <Button
+                          variant="secondary"
+                          onClick={() => setSelectedResident(it)}
+                        >
+                          View
+                        </Button>
                         <Button
                           variant="secondary"
                           onClick={() => changeStatus(it.resident_id, it.account_status)}
@@ -206,6 +299,79 @@ export default function ManageResidents(){
                   <Button type="button" variant="secondary" onClick={() => setSelectedForDelete(null)}>Cancel</Button>
                   <Button type="button" variant="danger" onClick={() => confirmRemoveResident(selectedForDelete)}>Delete</Button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {selectedResident && (
+            <div className="modal-overlay" onClick={() => setSelectedResident(null)}>
+              <div className="modal-card complaint-details-modal" onClick={e => e.stopPropagation()}>
+                <button className="modal-close-btn" type="button" onClick={() => setSelectedResident(null)}>
+                  &times;
+                </button>
+                <h2 className="modal-title">Resident Details</h2>
+                {(() => {
+                  const parsedAddress = parseResidentAddress(selectedResident.address)
+                  return (
+                    <>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Resident ID:</span>
+                        <span className="detail-value">{selectedResident.resident_id}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Full Name:</span>
+                        <span className="detail-value">{getResidentName(selectedResident) || 'N/A'}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Email:</span>
+                        <span className="detail-value">{selectedResident.email || 'N/A'}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Birthdate:</span>
+                        <span className="detail-value">{formatDate(selectedResident.birth_date)}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Gender:</span>
+                        <span className="detail-value">{selectedResident.gender || 'N/A'}</span>
+                      </div>
+                      <div className="complaint-detail-row full-width">
+                        <span className="detail-label">Address:</span>
+                        <span className="detail-value">{selectedResident.address || 'N/A'}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Phase:</span>
+                        <span className="detail-value">{parsedAddress.phase || 'N/A'}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Street:</span>
+                        <span className="detail-value">{parsedAddress.street || 'N/A'}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Block:</span>
+                        <span className="detail-value">{parsedAddress.block || 'N/A'}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Lot:</span>
+                        <span className="detail-value">{parsedAddress.lot || 'N/A'}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Status:</span>
+                        <span className="detail-value"><StatusBadge status={selectedResident.account_status}/></span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Suspended Until:</span>
+                        <span className="detail-value">{formatDate(selectedResident.suspension_end_date)}</span>
+                      </div>
+                      <div className="complaint-detail-row">
+                        <span className="detail-label">Registered:</span>
+                        <span className="detail-value">{formatDate(selectedResident.registration_date)}</span>
+                      </div>
+                    </>
+                  )
+                })()}
+                <button className="modal-action-btn" type="button" onClick={() => setSelectedResident(null)}>
+                  Close
+                </button>
               </div>
             </div>
           )}

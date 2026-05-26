@@ -226,6 +226,37 @@ export default function Header(){
     } catch (error) {}
   }
 
+  async function deleteNotification(notificationId){
+    if(!user || !notificationId) return
+
+    const previous = notifications
+    const next = previous.filter(item => (item.id || item.notification_id) !== notificationId)
+    setNotifications(next)
+    setUnreadCount(getBadgeCount(next))
+
+    try {
+      await api.delete(`/notifications/${notificationId}`)
+    } catch (error) {
+      setNotifications(previous)
+      setUnreadCount(getBadgeCount(previous))
+    }
+  }
+
+  async function deleteAllNotifications(){
+    if(!user || notifications.length === 0) return
+
+    const previous = notifications
+    setNotifications([])
+    setUnreadCount(0)
+
+    try {
+      await api.delete('/notifications')
+    } catch (error) {
+      setNotifications(previous)
+      setUnreadCount(getBadgeCount(previous))
+    }
+  }
+
   async function handleNotificationClick(notification){
     const notificationId = notification.id || notification.notification_id
     const currentUser = user
@@ -276,6 +307,35 @@ export default function Header(){
     const rawDate = notification.created_at || notification.date_created || notification.createdAt
     const date = rawDate ? new Date(rawDate) : null
     return date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : ''
+  }
+  const renderNotificationItem = (notification) => {
+    const notificationId = notification.id || notification.notification_id
+    return (
+      <div
+        key={notificationId}
+        className={`notification-item ${isNotificationRead(notification) ? 'read' : 'unread'} clickable`}
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="notification-item-main"
+          onClick={(e) => { e.stopPropagation(); handleNotificationClick(notification) }}
+        >
+          <div className="notification-message">{notification.message}</div>
+          <div className="notification-meta">{formatNotificationDate(notification)}</div>
+        </button>
+        <button
+          type="button"
+          className="notification-delete-btn"
+          onClick={(e) => { e.stopPropagation(); deleteNotification(notificationId) }}
+          aria-label="Delete notification"
+          title="Delete notification"
+        >
+          &times;
+        </button>
+      </div>
+    )
   }
   const showNotificationBadge = unreadCount > 0 && !notificationsOpen
   const showAvatarBadge = isMobile() && unreadCount > 0 && !menuOpen
@@ -453,14 +513,23 @@ export default function Header(){
               <div className="notification-modal-header">
                 <span>Notifications</span>
                 {notifications.length > 0 && (
-                  <button
-                    type="button"
-                    className="mark-all-read-btn"
-                    onClick={markAllAsRead}
-                    disabled={unreadNotificationCount === 0}
-                  >
-                    Mark all as read
-                  </button>
+                  <div className="notification-header-actions">
+                    <button
+                      type="button"
+                      className="mark-all-read-btn"
+                      onClick={markAllAsRead}
+                      disabled={unreadNotificationCount === 0}
+                    >
+                      Mark all as read
+                    </button>
+                    <button
+                      type="button"
+                      className="mark-all-read-btn danger"
+                      onClick={deleteAllNotifications}
+                    >
+                      Delete all
+                    </button>
+                  </div>
                 )}
               </div>
               {notifications.length > 0 && (
@@ -495,19 +564,7 @@ export default function Header(){
                   <div className="notification-empty">No notifications for this filter.</div>
                 ) : (
                   <div className="notification-list">
-                    {filteredNotifications.map(notification => (
-                      <button
-                        key={notification.id || notification.notification_id}
-                        type="button"
-                        className={`notification-item ${isNotificationRead(notification) ? 'read' : 'unread'} clickable`}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => { e.stopPropagation(); handleNotificationClick(notification) }}
-                      >
-                        <div className="notification-message">{notification.message}</div>
-                        <div className="notification-meta">{formatNotificationDate(notification)}</div>
-                      </button>
-                    ))}
+                    {filteredNotifications.map(renderNotificationItem)}
                   </div>
                 )}
               </div>
@@ -544,14 +601,23 @@ export default function Header(){
                 <div className="notification-modal-header">
                   <span>Notifications</span>
                   {notifications.length > 0 && (
-                    <button
-                      type="button"
-                      className="mark-all-read-btn"
-                      onClick={markAllAsRead}
-                      disabled={unreadNotificationCount === 0}
-                    >
-                      Mark all as read
-                    </button>
+                    <div className="notification-header-actions">
+                      <button
+                        type="button"
+                        className="mark-all-read-btn"
+                        onClick={markAllAsRead}
+                        disabled={unreadNotificationCount === 0}
+                      >
+                        Mark all as read
+                      </button>
+                      <button
+                        type="button"
+                        className="mark-all-read-btn danger"
+                        onClick={deleteAllNotifications}
+                      >
+                        Delete all
+                      </button>
+                    </div>
                   )}
                 </div>
                 {notifications.length > 0 && (
@@ -586,19 +652,7 @@ export default function Header(){
                     <div className="notification-empty">No notifications for this filter.</div>
                   ) : (
                     <div className="notification-list">
-                      {filteredNotifications.map(notification => (
-                        <button
-                          key={notification.id || notification.notification_id}
-                          type="button"
-                          className={`notification-item ${isNotificationRead(notification) ? 'read' : 'unread'} clickable`}
-                          onPointerDown={(e) => e.stopPropagation()}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => { e.stopPropagation(); handleNotificationClick(notification) }}
-                        >
-                          <div className="notification-message">{notification.message}</div>
-                          <div className="notification-meta">{formatNotificationDate(notification)}</div>
-                        </button>
-                      ))}
+                      {filteredNotifications.map(renderNotificationItem)}
                     </div>
                   )}
                 </div>

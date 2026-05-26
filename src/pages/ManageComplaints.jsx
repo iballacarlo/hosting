@@ -704,27 +704,25 @@ export default function ManageComplaints(){
             <div className="empty-state">Loading complaints...</div>
           ) : (
             <>
-            <div className="history-card">
-              <div className="history-controls">
-                <div className="filter-group">
-                  <select
-                    className="ui-input"
-                    value={filterStatus}
-                    onChange={e => setFilterStatus(e.target.value)}
-                  >
-                    {withAllFirst(['Submitted', 'Pending', 'Resolved', 'Closed']).map(option => (
-                      <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
-                    ))}
-                  </select>
+            <div className="history-controls">
+              <div className="filter-group">
+                <select
+                  className="ui-input"
+                  value={filterStatus}
+                  onChange={e => setFilterStatus(e.target.value)}
+                >
+                  {withAllFirst(['Submitted', 'Pending', 'Resolved', 'Closed']).map(option => (
+                    <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
+                  ))}
+                </select>
 
-                  <input
-                    className="ui-input"
-                    type="text"
-                    placeholder="Search by ID, Title, or Resident"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                  />
-                </div>
+                <input
+                  className="ui-input"
+                  type="text"
+                  placeholder="Search by ID, Title, or Resident"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
               </div>
             </div>
             <div className="table-wrap">
