@@ -3,7 +3,25 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 // CORS
-header("Access-Control-Allow-Origin: https://brgymambogdos.vercel.app");
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowedOrigins = [
+  'https://brgymambogdos.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
+
+$allowOrigin = in_array($origin, $allowedOrigins, true);
+if(!$allowOrigin && preg_match('/^https:\/\/brgymambogdos(?:-[a-z0-9-]+)?\.vercel\.app$/i', $origin)){
+  $allowOrigin = true;
+}
+if(!$allowOrigin && preg_match('/^https:\/\/brgymambogdos-[a-z0-9-]+-caaarlooo-s-projects4\.vercel\.app$/i', $origin)){
+  $allowOrigin = true;
+}
+
+if($allowOrigin){
+  header("Access-Control-Allow-Origin: {$origin}");
+  header("Vary: Origin");
+}
 header("Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Credentials: true");
