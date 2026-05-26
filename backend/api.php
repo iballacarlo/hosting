@@ -391,6 +391,36 @@ function saveComplaintUploads($pdo, $complaintId){
   }
 }
 
+function deleteComplaintAttachments($pdo, $complaintId, $attachmentIds){
+  ensureComplaintAttachmentTable($pdo);
+  $ids = array_values(array_unique(array_filter(array_map('intval', $attachmentIds))));
+  if(count($ids) === 0) return;
+
+  $placeholders = implode(',', array_fill(0, count($ids), '?'));
+  $stmt = $pdo->prepare('SELECT attachment_id, file_path FROM Complaint_Attachment WHERE complaint_id = ? AND attachment_id IN (' . $placeholders . ')');
+  $stmt->execute(array_merge([intval($complaintId)], $ids));
+  $rows = $stmt->fetchAll();
+
+  $deleteIds = [];
+  foreach($rows as $row){
+    $deleteIds[] = intval($row['attachment_id']);
+    $filePath = $row['file_path'] ?? '';
+    if(strpos($filePath, '/uploads/complaints/') === 0){
+      $absolutePath = realpath(__DIR__ . $filePath);
+      $uploadRoot = realpath(__DIR__ . '/uploads/complaints');
+      if($absolutePath && $uploadRoot && strpos($absolutePath, $uploadRoot) === 0 && is_file($absolutePath)){
+        @unlink($absolutePath);
+      }
+    }
+  }
+
+  if(count($deleteIds) > 0){
+    $deletePlaceholders = implode(',', array_fill(0, count($deleteIds), '?'));
+    $deleteStmt = $pdo->prepare('DELETE FROM Complaint_Attachment WHERE complaint_id = ? AND attachment_id IN (' . $deletePlaceholders . ')');
+    $deleteStmt->execute(array_merge([intval($complaintId)], $deleteIds));
+  }
+}
+
 function normalizeEmail($email){
   return strtolower(trim($email ?? ''));
 }
@@ -1355,7 +1385,12 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
     }
   }
 
-  $data = json_decode(file_get_contents('php://input'), true);
+  $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+  if(stripos($contentType, 'multipart/form-data') !== false){
+    $data = $_POST;
+  } else {
+    $data = json_decode(file_get_contents('php://input'), true) ?: [];
+  }
   $fields = [];
   $vals = [];
   $statusUpdate = false;
@@ -1372,7 +1407,14 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
   if(isset($data['category_id'])){ $fields[] = 'category_id = ?'; $vals[] = $data['category_id']; }
   if(isset($data['anonymous'])){ $fields[] = 'anonymous = ?'; $vals[] = !empty($data['anonymous']) ? 1 : 0; }
   if(isset($data['respondent_name'])){ $fields[] = 'respondent_name = ?'; $vals[] = $data['respondent_name']; }
-  if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update']);
+  $removedAttachmentIds = [];
+  if(isset($data['removed_attachment_ids'])){
+    $decodedIds = is_array($data['removed_attachment_ids']) ? $data['removed_attachment_ids'] : json_decode($data['removed_attachment_ids'], true);
+    if(is_array($decodedIds)) $removedAttachmentIds = $decodedIds;
+  }
+
+  $hasUploads = !empty($_FILES['attachments']);
+  if(count($fields) === 0 && count($removedAttachmentIds) === 0 && !$hasUploads) json(['success'=>false,'message'=>'Nothing to update']);
 
   if($statusUpdate){
     $complaint = $existingComplaint;
@@ -1382,10 +1424,19 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
     }
   }
 
-  $vals[] = $id;
-  $sql = 'UPDATE Complaint SET '.implode(', ', $fields).' WHERE complaint_id = ?';
-  $pdo->prepare($sql)->execute($vals);
-  json(['success'=>true]);
+  if(count($fields) > 0){
+    $vals[] = $id;
+    $sql = 'UPDATE Complaint SET '.implode(', ', $fields).' WHERE complaint_id = ?';
+    $pdo->prepare($sql)->execute($vals);
+  }
+
+  deleteComplaintAttachments($pdo, $id, $removedAttachmentIds);
+  saveComplaintUploads($pdo, $id);
+
+  $stmt = $pdo->prepare(getComplaintSelectSql('WHERE c.complaint_id = ?'));
+  $stmt->execute([$id]);
+  $rows = attachComplaintMedia($pdo, maskAnonymousComplaints($stmt->fetchAll(), $user['role'] === 'staff'));
+  json(['success'=>true,'data'=>$rows[0] ?? null]);
 }
 
 // Route: /complaints/{id} - delete complaint

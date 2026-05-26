@@ -75,8 +75,6 @@ export default function ManageComplaints(){
 
   useEffect(() => {
     load()
-    const interval = window.setInterval(load, 5000)
-    return () => window.clearInterval(interval)
   }, [load])
 
   useEffect(() => {

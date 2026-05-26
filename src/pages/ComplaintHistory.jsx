@@ -20,7 +20,7 @@ export default function ComplaintHistory(){
   const [isEditingComplaint, setIsEditingComplaint] = useState(false)
   const [editFormData, setEditFormData] = useState({})
   const [editMediaPreviews, setEditMediaPreviews] = useState([])
-  const [editTimeExceeded, setEditTimeExceeded] = useState(false)
+  const [editRemovedAttachmentIds, setEditRemovedAttachmentIds] = useState([])
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({show: false, complaintId: null, complaint: null})
   const [categories, setCategories] = useState([])
   const selectedComplaintRef = useRef(null)
@@ -130,6 +130,9 @@ export default function ComplaintHistory(){
       }
       if(media.url && typeof media.url === 'string') {
         return {
+          attachment_id: media.attachment_id || media.id || null,
+          complaint_id: media.complaint_id || null,
+          file_path: media.file_path || media.url,
           url: resolveMediaUrl(media.url),
           type: media.type || 'image/*',
           name: media.name || 'Media file'
@@ -158,7 +161,9 @@ export default function ComplaintHistory(){
     return {
       name: file.name || 'Media file',
       type: file.type || 'image/*',
-      url: URL.createObjectURL(file)
+      url: URL.createObjectURL(file),
+      file,
+      isNew: true
     }
   }
 
@@ -178,6 +183,13 @@ export default function ComplaintHistory(){
   }
 
   const removeEditMedia = (index) => {
+    const removed = editMediaPreviews[index]
+    if(removed?.attachment_id){
+      setEditRemovedAttachmentIds(prev => [...prev, removed.attachment_id])
+    }
+    if(removed?.isNew && removed?.url){
+      URL.revokeObjectURL(removed.url)
+    }
     setEditMediaPreviews(prev => prev.filter((_, i) => i !== index))
     setEditFormData(prev => ({
       ...prev,
@@ -191,32 +203,23 @@ export default function ComplaintHistory(){
 
   const handleViewComplaint = (complaint) => {
     setSelectedComplaint(complaint)
-    setSelectedComplaintMedia(normalizeComplaintMedia(complaint.images))
+    setSelectedComplaintMedia(normalizeComplaintMedia(complaint.images || complaint.attachments))
     setExpandedMediaPreview(null)
     setIsEditingComplaint(false)
     setEditFormData({})
     setEditMediaPreviews([])
-    setEditTimeExceeded(false)
-    checkIfCanEdit(complaint)
+    setEditRemovedAttachmentIds([])
   }
 
-  const checkIfCanEdit = (complaint) => {
-    const submittedDate = parseServerDate(complaint.date_submitted)
-    if(!submittedDate || Number.isNaN(submittedDate.getTime())){
-      setEditTimeExceeded(false)
-      return
-    }
-    const submittedTime = submittedDate.getTime()
-    const currentTime = new Date().getTime()
-    const minutesElapsed = (currentTime - submittedTime) / (1000 * 60)
-    setEditTimeExceeded(minutesElapsed > 15)
+  const isEditableStatus = (st) => String(st || '').trim().toLowerCase() === 'submitted'
+
+  const isWithinEditWindow = (complaint) => {
+    const submittedDate = parseServerDate(complaint?.date_submitted)
+    if(!submittedDate || Number.isNaN(submittedDate.getTime())) return true
+    return new Date().getTime() - submittedDate.getTime() <= 15 * 60 * 1000
   }
 
-  const isProcessStatus = (st) => {
-    if(!st) return false
-    const s = String(st).toLowerCase()
-    return ['pending', 'in process', 'inprocess', 'resolved', 'closed', 'released', 'received'].some(p => s.includes(p))
-  }
+  const canEditComplaint = (complaint) => isEditableStatus(complaint?.status) && isWithinEditWindow(complaint)
 
   const handleDeleteComplaint = (complaint) => {
     const complaintId = getComplaintId(complaint)
@@ -252,8 +255,8 @@ export default function ComplaintHistory(){
   }
 
   const handleEditClick = () => {
-    if(!editTimeExceeded && !isProcessStatus(selectedComplaint?.status)){
-      const normalizedMedia = normalizeComplaintMedia(selectedComplaint.images)
+    if(canEditComplaint(selectedComplaint)){
+      const normalizedMedia = normalizeComplaintMedia(selectedComplaint.images || selectedComplaint.attachments)
       setEditFormData({
         title: selectedComplaint.title || '',
         category: selectedComplaint.category_id || '',
@@ -266,6 +269,7 @@ export default function ComplaintHistory(){
         images: normalizedMedia
       })
       setEditMediaPreviews(normalizedMedia)
+      setEditRemovedAttachmentIds([])
       setIsEditingComplaint(true)
     }
   }
@@ -281,21 +285,32 @@ export default function ComplaintHistory(){
       return
     }
     const status = selectedComplaint?.status || ''
-    if(isProcessStatus(status)){
-      alert('Cannot edit a complaint that is already in process or completed.')
+    if(!isEditableStatus(status)){
+      alert('Cannot edit this complaint because only Submitted complaints can be edited.')
+      return
+    }
+    if(!isWithinEditWindow(selectedComplaint)){
+      alert('Cannot edit - 15 minutes have passed since submission.')
       return
     }
 
     try {
-      await api.patch(`/complaints/${selectedComplaint.complaint_id}`, {
-        title: editFormData.title,
-        description: editFormData.description,
-        location: editFormData.location,
-        incident_date: editFormData.date,
-        category_id: editFormData.category || null
+      const payload = new FormData()
+      payload.append('title', editFormData.title || '')
+      payload.append('description', editFormData.description || '')
+      payload.append('location', editFormData.location || '')
+      payload.append('incident_date', editFormData.date || '')
+      if(editFormData.category) payload.append('category_id', editFormData.category)
+      payload.append('removed_attachment_ids', JSON.stringify(editRemovedAttachmentIds))
+      editMediaPreviews
+        .filter(media => media?.isNew && media?.file)
+        .forEach(media => payload.append('attachments[]', media.file))
+
+      const res = await api.post(`/complaints/${selectedComplaint.complaint_id}`, payload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
       const selectedCategory = categories.find(category => String(category.category_id || category.id) === String(editFormData.category))
-      const saved = {
+      const saved = res.data?.data ? res.data.data : {
         ...selectedComplaint,
         ...editFormData,
         category_id: editFormData.category,
@@ -309,8 +324,9 @@ export default function ComplaintHistory(){
       )
       setData(updatedData)
       setSelectedComplaint(saved)
-      setSelectedComplaintMedia(normalizeComplaintMedia(saved.images))
-      setEditMediaPreviews(normalizeComplaintMedia(saved.images))
+      setSelectedComplaintMedia(normalizeComplaintMedia(saved.images || saved.attachments))
+      setEditMediaPreviews(normalizeComplaintMedia(saved.images || saved.attachments))
+      setEditRemovedAttachmentIds([])
       setIsEditingComplaint(false)
     } catch(err){
       alert(err?.response?.data?.message || 'Failed to update complaint')
@@ -321,12 +337,14 @@ export default function ComplaintHistory(){
     setIsEditingComplaint(false)
     setEditFormData({})
     setEditMediaPreviews([])
+    setEditRemovedAttachmentIds([])
   }
 
   const closeModal = () => {
     setSelectedComplaint(null)
     setSelectedComplaintMedia([])
     setEditMediaPreviews([])
+    setEditRemovedAttachmentIds([])
     setExpandedMediaPreview(null)
     setIsEditingComplaint(false)
   }
@@ -577,9 +595,15 @@ export default function ComplaintHistory(){
                       </div>
                     )}
 
-                    {editTimeExceeded && (
+                    {!isEditableStatus(selectedComplaint.status) && (
                       <div className="edit-time-warning">
-                        Cannot edit - 15 minutes have passed since submission
+                        Cannot edit - only Submitted complaints can be edited.
+                      </div>
+                    )}
+
+                    {isEditableStatus(selectedComplaint.status) && !isWithinEditWindow(selectedComplaint) && (
+                      <div className="edit-time-warning">
+                        Cannot edit - 15 minutes have passed since submission.
                       </div>
                     )}
 
@@ -587,7 +611,7 @@ export default function ComplaintHistory(){
                       <button 
                         className="modal-action-btn modal-action-edit"
                         onClick={handleEditClick}
-                        disabled={editTimeExceeded || isProcessStatus(selectedComplaint?.status)}
+                        disabled={!canEditComplaint(selectedComplaint)}
                         type="button"
                       >
                         Edit

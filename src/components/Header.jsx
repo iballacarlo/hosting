@@ -129,6 +129,11 @@ export default function Header(){
   async function markAllAsRead(){
     if(!user) return
 
+    setUnreadCount(0)
+    setLastSeenUnreadCount(0)
+    setNotificationsViewed(true)
+    setNotifications(prev => prev.map(item => ({ ...item, read: true, is_read: true })))
+
     try {
       await api.post('/notifications/mark-all-read')
     } catch (error) {}
@@ -197,6 +202,11 @@ export default function Header(){
   }
 
   const isMobile = () => typeof window !== 'undefined' && window.innerWidth <= 700
+  const formatNotificationDate = (notification) => {
+    const rawDate = notification.created_at || notification.date_created || notification.createdAt
+    const date = rawDate ? new Date(rawDate) : null
+    return date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : ''
+  }
   const hasNewAfterViewed = unreadCount > lastSeenUnreadCount
   const showNotificationBadge = unreadCount > 0 && (!notificationsViewed || hasNewAfterViewed) && !notificationsOpen
   const showAvatarBadge = isMobile() && unreadCount > 0 && (!notificationsViewed || hasNewAfterViewed) && !menuOpen
@@ -205,9 +215,15 @@ export default function Header(){
     const next = !notificationsOpen
     setNotificationsOpen(next)
     if(next){
-      const count = await loadNotifications()
+      await loadNotifications()
       setNotificationsViewed(true)
-      setLastSeenUnreadCount(count)
+      setLastSeenUnreadCount(0)
+      setUnreadCount(0)
+      setNotifications(prev => prev.map(item => ({ ...item, read: true, is_read: true })))
+      try {
+        await api.post('/notifications/mark-all-read')
+        await loadNotifications()
+      } catch (error) {}
     }
     setMenuOpen(false)
     setSettingsOpen(false)
@@ -217,9 +233,15 @@ export default function Header(){
     const next = !menuOpen
     setMenuOpen(next)
     if(next && isMobile()){
-      const count = await loadNotifications()
+      await loadNotifications()
       setNotificationsViewed(true)
-      setLastSeenUnreadCount(count)
+      setLastSeenUnreadCount(0)
+      setUnreadCount(0)
+      setNotifications(prev => prev.map(item => ({ ...item, read: true, is_read: true })))
+      try {
+        await api.post('/notifications/mark-all-read')
+        await loadNotifications()
+      } catch (error) {}
     }
   }
 
@@ -385,7 +407,7 @@ export default function Header(){
                   <div className="notification-list">
                     {notifications.map(notification => (
                       <button
-                        key={notification.id}
+                        key={notification.id || notification.notification_id}
                         type="button"
                         className={`notification-item ${isNotificationRead(notification) ? 'read' : 'unread'} clickable`}
                         onPointerDown={(e) => e.stopPropagation()}
@@ -393,7 +415,7 @@ export default function Header(){
                         onClick={(e) => { e.stopPropagation(); handleNotificationClick(notification) }}
                       >
                         <div className="notification-message">{notification.message}</div>
-                        <div className="notification-meta">{new Date(notification.created_at).toLocaleString()}</div>
+                        <div className="notification-meta">{formatNotificationDate(notification)}</div>
                       </button>
                     ))}
                   </div>
@@ -449,7 +471,7 @@ export default function Header(){
                     <div className="notification-list">
                       {notifications.map(notification => (
                         <button
-                          key={notification.id}
+                          key={notification.id || notification.notification_id}
                           type="button"
                           className={`notification-item ${isNotificationRead(notification) ? 'read' : 'unread'} clickable`}
                           onPointerDown={(e) => e.stopPropagation()}
@@ -457,7 +479,7 @@ export default function Header(){
                           onClick={(e) => { e.stopPropagation(); handleNotificationClick(notification) }}
                         >
                           <div className="notification-message">{notification.message}</div>
-                          <div className="notification-meta">{new Date(notification.created_at).toLocaleString()}</div>
+                          <div className="notification-meta">{formatNotificationDate(notification)}</div>
                         </button>
                       ))}
                     </div>
