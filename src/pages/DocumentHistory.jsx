@@ -568,7 +568,7 @@ export default function DocumentHistory(){
                 <div className="delete-modal-icon"></div>
                 <h2 className="modal-title">Delete Document Request?</h2>
                 <p className="delete-modal-message">
-                  Are you sure you want to move this document request to Archive?
+                  Do you want to delete this document request? It will be moved to Archive.
                 </p>
                 
                 <div className="modal-actions confirm-actions">
@@ -584,7 +584,7 @@ export default function DocumentHistory(){
                     onClick={confirmDeleteDocument}
                     type="button"
                   >
-                    Delete Permanently
+                    Delete
                   </button>
                 </div>
               </div>

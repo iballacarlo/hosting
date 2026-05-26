@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import Button from '../components/Button'
 import api from '../api/axios'
 import { formatComplaintId, formatDocumentId, formatResidentId } from '../utils/idFormat'
+import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import '../styles/history.css'
 
 const TYPE_LABELS = {
@@ -19,6 +20,13 @@ export default function Archive(){
   const [typeFilter, setTypeFilter] = useState('All')
   const [query, setQuery] = useState('')
   const [busyId, setBusyId] = useState(null)
+  const [confirmModal, setConfirmModal] = useState({ show: false, action: '', item: null })
+  const [messageModal, setMessageModal] = useState({ show: false, title: '', message: '' })
+  const confirmRef = useRef(null)
+  const messageRef = useRef(null)
+
+  useCloseOnEscape(confirmModal.show, () => setConfirmModal({ show: false, action: '', item: null }), confirmRef)
+  useCloseOnEscape(messageModal.show, () => setMessageModal({ show: false, title: '', message: '' }), messageRef)
 
   async function loadArchive(){
     setLoading(true)
@@ -69,29 +77,52 @@ export default function Archive(){
     return item.original_id
   }
 
+  const openRestoreConfirm = (item) => {
+    setConfirmModal({ show: true, action: 'restore', item })
+  }
+
+  const openDeleteConfirm = (item) => {
+    setConfirmModal({ show: true, action: 'delete', item })
+  }
+
+  const showMessage = (title, message) => {
+    setMessageModal({ show: true, title, message })
+  }
+
   const handleRestore = async (item) => {
-    if(!window.confirm(`Restore "${item.label || TYPE_LABELS[item.item_type] || 'item'}"?`)) return
     setBusyId(item.archive_id)
     try{
-      await api.post(`/archive/${item.archive_id}/restore`)
+      const res = await api.post(`/archive/${item.archive_id}/restore`)
       setItems(current => current.filter(entry => entry.archive_id !== item.archive_id))
+      showMessage('Restored', res.data?.message || 'The archived item has been restored.')
     }catch(err){
-      alert(err?.response?.data?.message || 'Failed to restore item')
+      showMessage('Restore Failed', err?.response?.data?.message || 'Failed to restore item.')
     }
     setBusyId(null)
   }
 
   const handlePermanentDelete = async (item) => {
-    if(!window.confirm(`Permanently delete "${item.label || TYPE_LABELS[item.item_type] || 'item'}"? This cannot be undone.`)) return
     setBusyId(item.archive_id)
     try{
       await api.delete(`/archive/${item.archive_id}`)
       setItems(current => current.filter(entry => entry.archive_id !== item.archive_id))
+      showMessage('Deleted', 'The archived item has been permanently deleted.')
     }catch(err){
-      alert(err?.response?.data?.message || 'Failed to permanently delete item')
+      showMessage('Delete Failed', err?.response?.data?.message || 'Failed to permanently delete item.')
     }
     setBusyId(null)
   }
+
+  const confirmAction = () => {
+    const { action, item } = confirmModal
+    setConfirmModal({ show: false, action: '', item: null })
+    if(!item) return
+    if(action === 'restore') handleRestore(item)
+    if(action === 'delete') handlePermanentDelete(item)
+  }
+
+  const modalItem = confirmModal.item
+  const modalItemName = modalItem?.label || TYPE_LABELS[modalItem?.item_type] || 'item'
 
   return (
     <div className="app-shell">
@@ -156,7 +187,7 @@ export default function Archive(){
                           <Button
                             variant="secondary"
                             disabled={busyId === item.archive_id}
-                            onClick={() => handleRestore(item)}
+                            onClick={() => openRestoreConfirm(item)}
                           >
                             Restore
                           </Button>
@@ -164,7 +195,7 @@ export default function Archive(){
                             type="button"
                             className="table-action table-action-danger"
                             disabled={busyId === item.archive_id}
-                            onClick={() => handlePermanentDelete(item)}
+                            onClick={() => openDeleteConfirm(item)}
                           >
                             Delete Permanently
                           </button>
@@ -174,6 +205,67 @@ export default function Archive(){
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {confirmModal.show && (
+            <div
+              className="modal-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-label={confirmModal.action === 'restore' ? 'Confirm restore' : 'Confirm permanent delete'}
+              onClick={() => setConfirmModal({ show: false, action: '', item: null })}
+            >
+              <div className="modal-card confirm-delete-modal" ref={confirmRef} onClick={e => e.stopPropagation()}>
+                <h2 className="modal-title">
+                  {confirmModal.action === 'restore' ? 'Restore Item?' : 'Delete Permanently?'}
+                </h2>
+                <p className="delete-modal-message">
+                  {confirmModal.action === 'restore'
+                    ? `Do you want to restore "${modalItemName}"?`
+                    : `Do you want to permanently delete "${modalItemName}"? This cannot be undone.`}
+                </p>
+                <div className="modal-actions confirm-actions">
+                  <button
+                    type="button"
+                    className="modal-action-btn modal-action-cancel"
+                    onClick={() => setConfirmModal({ show: false, action: '', item: null })}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={confirmModal.action === 'restore' ? 'modal-action-btn modal-action-save' : 'modal-action-btn modal-action-delete'}
+                    onClick={confirmAction}
+                  >
+                    {confirmModal.action === 'restore' ? 'Restore' : 'Delete Permanently'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {messageModal.show && (
+            <div
+              className="modal-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-label={messageModal.title}
+              onClick={() => setMessageModal({ show: false, title: '', message: '' })}
+            >
+              <div className="modal-card confirm-delete-modal" ref={messageRef} onClick={e => e.stopPropagation()}>
+                <h2 className="modal-title">{messageModal.title}</h2>
+                <p className="delete-modal-message">{messageModal.message}</p>
+                <div className="modal-actions confirm-actions">
+                  <button
+                    type="button"
+                    className="modal-action-btn"
+                    onClick={() => setMessageModal({ show: false, title: '', message: '' })}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </main>

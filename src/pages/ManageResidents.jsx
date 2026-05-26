@@ -174,7 +174,6 @@ export default function ManageResidents(){
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => { if(e.key === 'Enter') handleSearch() }}
-                style={{ minWidth: 220, flex: '1 1 220px' }}
               />
               <select
                 className="ui-input"
@@ -209,7 +208,6 @@ export default function ManageResidents(){
                 placeholder="Block"
                 value={addressBlock}
                 onChange={(e) => setAddressBlock(e.target.value.replace(/\D/g, ''))}
-                style={{ maxWidth: 140 }}
               />
             </div>
           </div>
@@ -285,7 +283,7 @@ export default function ManageResidents(){
             <div className="modal-overlay" onClick={() => setSelectedForDelete(null)}>
               <div className="modal-card" onClick={e => e.stopPropagation()}>
                 <h3>Confirm Delete</h3>
-                <p>Are you sure you want to move this resident to Archive?</p>
+                <p>Do you want to delete this resident? It will be moved to Archive.</p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 12 }}>
                   <Button type="button" variant="secondary" onClick={() => setSelectedForDelete(null)}>Cancel</Button>
                   <Button type="button" variant="danger" onClick={() => confirmRemoveResident(selectedForDelete)}>Delete</Button>

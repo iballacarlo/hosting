@@ -376,6 +376,25 @@ function restoreResidentFromArchive($pdo, $snapshot){
   return true;
 }
 
+function archiveOriginalRecordExists($pdo, $archive){
+  $type = $archive['item_type'] ?? '';
+  $id = intval($archive['original_id'] ?? 0);
+  if($id <= 0) return false;
+
+  if($type === 'complaint'){
+    $stmt = $pdo->prepare('SELECT complaint_id FROM Complaint WHERE complaint_id = ?');
+  } elseif($type === 'document'){
+    $stmt = $pdo->prepare('SELECT request_id FROM Document_Request WHERE request_id = ?');
+  } elseif($type === 'resident'){
+    $stmt = $pdo->prepare('SELECT resident_id FROM Resident WHERE resident_id = ?');
+  } else {
+    return false;
+  }
+
+  $stmt->execute([$id]);
+  return (bool)$stmt->fetch();
+}
+
 function ensureComplaintExtraColumns($pdo){
   static $ready = false;
   if($ready) return;
@@ -2004,6 +2023,11 @@ if(preg_match('#^/archive/(\d+)/restore$#', $uri, $m) && $method === 'POST'){
     json(['success'=>true]);
   } catch(Throwable $e){
     if($pdo->inTransaction()) $pdo->rollBack();
+    if(archiveOriginalRecordExists($pdo, $archive)){
+      $pdo->prepare('DELETE FROM Archive_Item WHERE archive_id = ?')->execute([$id]);
+      json(['success'=>true,'restored'=>true,'message'=>'Item restored']);
+    }
+    error_log('Archive restore failed: ' . $e->getMessage());
     json(['success'=>false,'message'=>'Restore failed. The original ID or unique value may already exist.'], 409);
   }
 }
