@@ -364,7 +364,7 @@ function restoreTestAccounts($pdo){
       $pdo->prepare('UPDATE Staff SET full_name = ?, role = ?, password = ?, account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')
         ->execute(['Admin', 'Admin', $adminHash, 'Active', $admin['staff_id']]);
     } else {
-      $pdo->prepare('INSERT INTO Staff (full_name, role, email, password, account_status) VALUES (?, ?, ?, ?, ?, ?)')
+      $pdo->prepare('INSERT INTO Staff (full_name, role, email, password, account_status) VALUES (?, ?, ?, ?, ?)')
         ->execute(['Admin', 'Admin', $adminEmail, $adminHash, 'Active']);
     }
   }
@@ -495,7 +495,7 @@ if($uri === '/register' && $method === 'POST'){
   if(!password_verify(trim($data['otp']), $registrationOtp['otp_hash'])) json(['success'=>false,'message'=>'Invalid registration code'], 400);
 
   $hash = password_hash($data['password'], PASSWORD_BCRYPT);
-  $stmt = $pdo->prepare('INSERT INTO Resident (first_name, middle_name, last_name, birth_date, gender, address, email, password, account_status, registration_date) VALUES (?,?,?,?,?,?,?,?,?,"Active",NOW())');
+  $stmt = $pdo->prepare('INSERT INTO Resident (first_name, middle_name, last_name, birth_date, gender, address, email, password, account_status, registration_date) VALUES (?,?,?,?,?,?,?,?,"Active",NOW())');
   $stmt->execute([$data['first_name'] ?? '', $data['middle_name'] ?? '', $data['last_name'] ?? '', $data['birth_date'] ?? null, $data['gender'] ?? null, $data['address'] ?? null, $email, $hash]);
   $id = $pdo->lastInsertId();
   $token = bin2hex(random_bytes(16));
