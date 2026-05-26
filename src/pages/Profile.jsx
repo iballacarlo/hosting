@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import InputField from '../components/InputField'
 import Button from '../components/Button'
+import '../styles/profile.css'
 
 function splitName(fullName){
   const clean = (fullName || '').trim().replace(/\s+/g,' ')
@@ -232,7 +233,7 @@ export default function Profile(){
 
         <Header />
 
-        <main className="dash-main">
+        <main className="dash-main profile-page">
 
           <h1 className="page-title">Profile</h1>
 
@@ -288,21 +289,30 @@ export default function Profile(){
                   onChange={e => setAddress(e.target.value)}
                 />
 
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={changePassword}
-                    onChange={e => {
-                      setChangePassword(e.target.checked)
-                      setNewPassword('')
-                      setConfirmPassword('')
-                    }}
-                  />
-                  <span>Change password</span>
-                </label>
+                <div className={`profile-password-card ${changePassword ? 'is-open' : ''}`}>
+                  <div className="profile-password-head">
+                    <div>
+                      <div className="profile-password-title">Password</div>
+                      <p>Update your login password using a strong password.</p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="profile-password-toggle"
+                      onClick={() => {
+                        setChangePassword(open => !open)
+                        setNewPassword('')
+                        setConfirmPassword('')
+                      }}
+                    >
+                      {changePassword ? 'Cancel' : 'Change password'}
+                    </Button>
+                  </div>
+                </div>
 
                 {changePassword && (
-                  <>
+                  <div className="profile-password-fields">
                     <InputField
                       label="New Password"
                       type="password"
@@ -330,7 +340,7 @@ export default function Profile(){
                       placeholder="Re-type new password"
                       autoComplete="new-password"
                     />
-                  </>
+                  </div>
                 )}
 
                 {msg && (

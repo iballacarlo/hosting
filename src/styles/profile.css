@@ -1,0 +1,114 @@
+.profile-page .register-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:22px;
+  margin-top:18px;
+}
+
+.profile-page .register-col{
+  border:1px solid var(--border-color);
+  border-radius:18px;
+  padding:20px;
+  background: color-mix(in srgb, var(--card-bg) 88%, transparent);
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  min-width:0;
+}
+
+.profile-page .register-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:1rem;
+  font-weight:900;
+  margin:0 0 8px;
+  color: var(--text-color);
+}
+
+.profile-password-card{
+  border:1px solid var(--border-color);
+  border-radius:14px;
+  padding:14px;
+  background: var(--surface-2);
+}
+
+.profile-password-card.is-open{
+  border-color: color-mix(in srgb, var(--primary-color) 42%, var(--border-color));
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--card-bg));
+}
+
+.profile-password-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.profile-password-title{
+  color: var(--text-color);
+  font-weight:900;
+  margin-bottom:4px;
+}
+
+.profile-password-head p{
+  margin:0;
+  color: var(--muted-color);
+  font-size:0.92rem;
+  line-height:1.45;
+}
+
+.profile-password-toggle{
+  flex:0 0 auto;
+}
+
+.profile-password-fields{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  padding:2px 0 0;
+}
+
+.profile-page .password-rules{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:-6px;
+}
+
+.profile-page .password-rule{
+  border:1px solid var(--border-color);
+  border-radius:999px;
+  padding:6px 10px;
+  color: var(--muted-color);
+  background: color-mix(in srgb, var(--card-bg) 88%, transparent);
+  font-size:0.84rem;
+  font-weight:800;
+}
+
+.profile-page .password-rule.ok{
+  color: var(--success-color, #16a34a);
+  border-color: color-mix(in srgb, var(--success-color, #16a34a) 36%, transparent);
+  background: color-mix(in srgb, var(--success-color, #16a34a) 12%, transparent);
+}
+
+@media (max-width: 900px){
+  .profile-page .register-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 560px){
+  .profile-page .register-col{
+    padding:16px;
+  }
+
+  .profile-password-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .profile-password-toggle{
+    width:100%;
+  }
+}
