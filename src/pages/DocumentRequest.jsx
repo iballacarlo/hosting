@@ -29,6 +29,28 @@ const getUserFullName = (user) => {
   return parts.join(' ')
 }
 
+const parseResidentAddress = (rawAddress = '') => {
+  const parts = String(rawAddress || '').split(/\s*,\s*/).map(part => part.trim()).filter(Boolean)
+  const parsed = { phase: '', street: '', block: '', lot: '' }
+
+  parts.forEach(part => {
+    const blockMatch = part.match(/^block\s+(.+)$/i) || part.match(/^blk\.?\s+(.+)$/i)
+    const lotMatch = part.match(/^lot\s+(.+)$/i)
+
+    if(addressData[part]){
+      parsed.phase = part
+    } else if(blockMatch){
+      parsed.block = blockMatch[1].trim()
+    } else if(lotMatch){
+      parsed.lot = lotMatch[1].trim()
+    } else if(!parsed.street){
+      parsed.street = part
+    }
+  })
+
+  return parsed
+}
+
 export default function DocumentRequest(){
   const [type, setType] = useState('Barangay Clearance')
   const [purpose, setPurpose] = useState('')
@@ -66,41 +88,37 @@ export default function DocumentRequest(){
   }, [])
 
   useEffect(() => {
-    if (!user) return
+    function applyResidentDetails(details){
+      if(!details) return
+      const parsedAddress = parseResidentAddress(details.address)
 
-    setName((prev) => prev || getUserFullName(user))
+      setName(prev => prev || getUserFullName(details))
+      setBirthdate(prev => prev || details.birthdate || details.birth_date || '')
+      setPhase(prev => prev || details.phase || parsedAddress.phase || '')
+      setStreet(prev => prev || details.street || parsedAddress.street || '')
+      setBlock(prev => prev || details.block || parsedAddress.block || '')
+      setLot(prev => prev || details.lot || parsedAddress.lot || '')
+    }
 
-  setBirthdate(prev =>
-    prev ||
-    user.birthdate ||
-    user.birth_date ||
-    ''
-  )
+    applyResidentDetails(user)
 
-  setPhase(prev =>
-    prev ||
-    user.phase ||
-    ''
-  )
+    let cancelled = false
+    async function fetchResidentDetails(){
+      try {
+        const res = await api.get('/me')
+        if(!cancelled && res.data?.success){
+          applyResidentDetails(res.data.user)
+        }
+      } catch(err){
+        console.error('Failed to fetch resident details:', err)
+      }
+    }
 
-  setStreet(prev =>
-    prev ||
-    user.street ||
-    ''
-  )
+    fetchResidentDetails()
 
-  setBlock(prev =>
-    prev ||
-    user.block ||
-    ''
-  )
-
-  setLot(prev =>
-    prev ||
-    user.lot ||
-    ''
-  )
-
+    return () => {
+      cancelled = true
+    }
   }, [user])
 
   useCloseOnEscape(confirmOpen, () => setConfirmOpen(false), confirmModalRef)

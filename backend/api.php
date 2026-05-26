@@ -457,7 +457,7 @@ function findUserByToken($pdo, $token){
   if(!$token) return null;
   // check residents
   if(tableExists($pdo, 'Resident')){
-    $stmt = $pdo->prepare('SELECT resident_id as id, first_name, last_name, email, "resident" as role FROM Resident WHERE api_token = ?');
+    $stmt = $pdo->prepare('SELECT resident_id as id, first_name, middle_name, last_name, birth_date, address, email, "resident" as role FROM Resident WHERE api_token = ?');
     $stmt->execute([$token]);
     $r = $stmt->fetch();
     if($r) return $r;
@@ -969,10 +969,10 @@ if($uri === '/docs'){
     if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
 
     if($user['role'] === 'staff'){
-      $stmt = $pdo->query('SELECT * FROM Document_Request ORDER BY date_requested DESC LIMIT 200');
+      $stmt = $pdo->query('SELECT *, full_name AS name, birth_date AS birthdate FROM Document_Request ORDER BY date_requested DESC LIMIT 200');
       $rows = $stmt->fetchAll();
     } else {
-      $stmt = $pdo->prepare('SELECT * FROM Document_Request WHERE resident_id = ? ORDER BY date_requested DESC LIMIT 200');
+      $stmt = $pdo->prepare('SELECT *, full_name AS name, birth_date AS birthdate FROM Document_Request WHERE resident_id = ? ORDER BY date_requested DESC LIMIT 200');
       $stmt->execute([$user['id']]);
       $rows = $stmt->fetchAll();
     }
@@ -985,8 +985,12 @@ if($uri === '/docs'){
     if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
     $data = json_decode(file_get_contents('php://input'), true);
     $ref = 'REQ-'.time();
-    $stmt = $pdo->prepare('INSERT INTO Document_Request (resident_id, processed_by, document_type, purpose, business_name, status, reference_number, date_requested) VALUES (?, NULL, ?, ?, ?, "Submitted", ?, NOW())');
-    $stmt->execute([$user['id'], $data['document_type'] ?? '', $data['purpose'] ?? '', $data['business_name'] ?? '', $ref]);
+    $fullName = trim($data['name'] ?? '');
+    if($fullName === ''){
+      $fullName = trim(($user['first_name'] ?? '') . ' ' . ($user['middle_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
+    }
+    $stmt = $pdo->prepare('INSERT INTO Document_Request (resident_id, processed_by, full_name, birth_date, address, document_type, purpose, status, reference_number, date_requested) VALUES (?, NULL, ?, ?, ?, ?, ?, "Submitted", ?, NOW())');
+    $stmt->execute([$user['id'], $fullName, $data['birthdate'] ?? null, $data['address'] ?? '', $data['document_type'] ?? '', $data['purpose'] ?? '', $ref]);
     createNotification($pdo, null, 'New document request submitted by ' . trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) . ': ' . trim($data['document_type'] ?? $ref), 'document_request');
     json(['success'=>true,'id'=>$pdo->lastInsertId(),'reference'=>$ref]);
   }
