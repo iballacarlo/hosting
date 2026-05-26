@@ -103,8 +103,9 @@ export default function Profile(){
   const [suffix,setSuffix] = useState(initial.suffix)
   const [address,setAddress] = useState(initial.address)
   const [email,setEmail] = useState(profileUser?.email || user?.email || user?.username || '')
-  const [password,setPassword] = useState('********')
-  const [passwordDirty,setPasswordDirty] = useState(false)
+  const [newPassword,setNewPassword] = useState('')
+  const [confirmPassword,setConfirmPassword] = useState('')
+  const [changePassword,setChangePassword] = useState(false)
 
   // keep fields in sync when user/context updates
   React.useEffect(() => {
@@ -113,8 +114,7 @@ export default function Profile(){
     setLast(initial.last)
     setSuffix(initial.suffix)
     setAddress(initial.address)
-    if(!passwordDirty) setPassword('********')
-  }, [initial.first, initial.middle, initial.last, initial.suffix, initial.address, passwordDirty])
+  }, [initial.first, initial.middle, initial.last, initial.suffix, initial.address])
 
   React.useEffect(() => {
     setEmail(profileUser?.email || user?.email || user?.username || '')
@@ -148,6 +148,23 @@ export default function Profile(){
 
   const { updateProfile } = useAuth()
 
+  function getPasswordError(password){
+    if(password.length < 8) return 'Password must be at least 8 characters.'
+    if(!/[a-z]/.test(password)) return 'Password must include a lowercase letter.'
+    if(!/[A-Z]/.test(password)) return 'Password must include an uppercase letter.'
+    if(!/\d/.test(password)) return 'Password must include a number.'
+    if(!/[^A-Za-z0-9]/.test(password)) return 'Password must include a special character.'
+    return ''
+  }
+
+  const passwordChecks = [
+    { label: 'At least 8 characters', ok: newPassword.length >= 8 },
+    { label: 'Uppercase letter', ok: /[A-Z]/.test(newPassword) },
+    { label: 'Lowercase letter', ok: /[a-z]/.test(newPassword) },
+    { label: 'Number', ok: /\d/.test(newPassword) },
+    { label: 'Special character', ok: /[^A-Za-z0-9]/.test(newPassword) },
+  ]
+
   async function save(){
     setMsg('')
 
@@ -170,16 +187,21 @@ export default function Profile(){
         address: address.trim()
       }
 
-      if(passwordDirty){
-        if(!password.trim()){
-          setMsg('Password cannot be blank.')
+      if(changePassword){
+        const passwordError = getPasswordError(newPassword)
+        if(passwordError){
+          setMsg(passwordError)
           setSaving(false)
           return
         }
 
-        if(password !== '********'){
-          payload.password = password
+        if(newPassword !== confirmPassword){
+          setMsg('Passwords do not match.')
+          setSaving(false)
+          return
         }
+
+        payload.password = newPassword
       }
 
       const res = await updateProfile(payload)
@@ -190,8 +212,9 @@ export default function Profile(){
         return
       }
 
-      setPasswordDirty(false)
-      setPassword('********')
+      setChangePassword(false)
+      setNewPassword('')
+      setConfirmPassword('')
       setMsg('Saved successfully.')
     }catch(err){
       setMsg('Network error.')
@@ -265,26 +288,50 @@ export default function Profile(){
                   onChange={e => setAddress(e.target.value)}
                 />
 
-                <InputField
-                  label="Password"
-                  type="password"
-                  allowToggle
-                  value={password}
-                  onFocus={() => {
-                    if(!passwordDirty && password === '********') setPassword('')
-                  }}
-                  onBlur={() => {
-                    if(!passwordDirty && password === '') setPassword('********')
-                  }}
-                  onChange={e => {
-                    setPassword(e.target.value)
-                    setPasswordDirty(true)
-                  }}
-                />
+                <label className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={changePassword}
+                    onChange={e => {
+                      setChangePassword(e.target.checked)
+                      setNewPassword('')
+                      setConfirmPassword('')
+                    }}
+                  />
+                  <span>Change password</span>
+                </label>
 
-                <p className="muted">
-                  Password is hidden for security. Leave it as is to keep your current password.
-                </p>
+                {changePassword && (
+                  <>
+                    <InputField
+                      label="New Password"
+                      type="password"
+                      allowToggle
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      autoComplete="new-password"
+                    />
+
+                    <div className="password-rules" aria-label="Password requirements">
+                      {passwordChecks.map(rule => (
+                        <span key={rule.label} className={`password-rule ${rule.ok ? 'ok' : ''}`}>
+                          {rule.label}
+                        </span>
+                      ))}
+                    </div>
+
+                    <InputField
+                      label="Confirm New Password"
+                      type="password"
+                      allowToggle
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      placeholder="Re-type new password"
+                      autoComplete="new-password"
+                    />
+                  </>
+                )}
 
                 {msg && (
                   <div className="error">

@@ -235,7 +235,12 @@ export default function ComplaintForm(){
                   <option value="">Select Category</option>
                   {categories.length > 0 ? (
                     categories.map((category) => (
-                      <option key={category} value={category}>{category}</option>
+                      <option
+                        key={category.category_id || category.id || category.category_name || category.name}
+                        value={category.category_id || category.id || category.category_name || category.name}
+                      >
+                        {category.category_name || category.name}
+                      </option>
                     ))
                   ) : (
                     <option value="">No categories available</option>
