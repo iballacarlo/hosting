@@ -29,6 +29,14 @@ export default function ManageComplaints(){
     return new URL(url, api.defaults.baseURL).toString()
   }
 
+  const inferMediaType = (media = {}) => {
+    const explicitType = media.type || media.file_type || ''
+    if(explicitType) return explicitType
+    const path = String(media.url || media.file_path || media.name || media || '').split('?')[0].toLowerCase()
+    if(/\.(mp4|webm|mov|m4v|avi)$/.test(path)) return 'video/*'
+    return 'image/*'
+  }
+
   const parseServerDate = (value) => {
     if(!value) return null
     const text = String(value)
@@ -128,13 +136,20 @@ export default function ManageComplaints(){
     return images.map((media) => {
       if(!media) return null
       if(typeof media === 'string') {
-        return { url: resolveMediaUrl(media), type: media.startsWith('data:video') ? 'video/*' : 'image/*', name: 'Media file' }
+        return { url: resolveMediaUrl(media), type: inferMediaType(media), name: 'Media file' }
       }
       if(media.url && typeof media.url === 'string') {
         return {
-          url: resolveMediaUrl(media.url),
-          type: media.type || 'image/*',
+          url: resolveMediaUrl(media.url || media.file_path),
+          type: inferMediaType(media),
           name: media.name || 'Media file'
+        }
+      }
+      if(media.file_path && typeof media.file_path === 'string') {
+        return {
+          url: resolveMediaUrl(media.file_path),
+          type: inferMediaType(media),
+          name: media.name || media.file_name || 'Media file'
         }
       }
       if(media instanceof File) {

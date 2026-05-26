@@ -559,6 +559,15 @@ function maskAnonymousComplaints($rows, $maskResidentId = false){
   return $rows;
 }
 
+function inferMediaTypeFromPath($path){
+  $extension = strtolower(pathinfo(parse_url($path ?? '', PHP_URL_PATH) ?: '', PATHINFO_EXTENSION));
+  $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+  $videoExtensions = ['mp4', 'webm', 'mov', 'm4v', 'avi'];
+  if(in_array($extension, $imageExtensions, true)) return 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
+  if(in_array($extension, $videoExtensions, true)) return 'video/' . ($extension === 'mov' ? 'quicktime' : $extension);
+  return '';
+}
+
 function getComplaintAttachments($pdo, $complaintIds){
   ensureComplaintAttachmentTable($pdo);
   $ids = array_values(array_filter(array_map('intval', $complaintIds)));
@@ -572,13 +581,14 @@ function getComplaintAttachments($pdo, $complaintIds){
   foreach($stmt->fetchAll() as $row){
     $complaintId = intval($row['complaint_id']);
     if(!isset($grouped[$complaintId])) $grouped[$complaintId] = [];
+    $fileType = $row['file_type'] ?: inferMediaTypeFromPath($row['file_path'] ?? '');
     $grouped[$complaintId][] = [
       'attachment_id' => intval($row['attachment_id']),
       'complaint_id' => $complaintId,
       'file_path' => $row['file_path'],
       'url' => $row['file_path'],
       'name' => $row['file_name'] ?? basename($row['file_path']),
-      'type' => $row['file_type'] ?? '',
+      'type' => $fileType,
       'size' => isset($row['file_size']) ? intval($row['file_size']) : null,
       'upload_date' => $row['upload_date'],
     ];

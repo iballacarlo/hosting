@@ -44,6 +44,14 @@ export default function ComplaintHistory(){
     return new URL(url, api.defaults.baseURL).toString()
   }
 
+  const inferMediaType = (media = {}) => {
+    const explicitType = media.type || media.file_type || ''
+    if(explicitType) return explicitType
+    const path = String(media.url || media.file_path || media.name || media || '').split('?')[0].toLowerCase()
+    if(/\.(mp4|webm|mov|m4v|avi)$/.test(path)) return 'video/*'
+    return 'image/*'
+  }
+
   const getOwnerId = (item) => {
     if(!item) return null
     const direct = Number(item.userId ?? item.resident_id ?? item.user_id ?? item.residentId ?? item.ownerId ?? item.owner_id)
@@ -127,16 +135,27 @@ export default function ComplaintHistory(){
     return images.map((media) => {
       if(!media) return null
       if(typeof media === 'string') {
-        return { url: resolveMediaUrl(media), type: media.startsWith('data:video') ? 'video/*' : 'image/*', name: 'Media file' }
+        return { url: resolveMediaUrl(media), type: inferMediaType(media), name: 'Media file' }
       }
       if(media.url && typeof media.url === 'string') {
+        const mediaUrl = media.url || media.file_path
         return {
           attachment_id: media.attachment_id || media.id || null,
           complaint_id: media.complaint_id || null,
           file_path: media.file_path || media.url,
-          url: resolveMediaUrl(media.url),
-          type: media.type || 'image/*',
+          url: resolveMediaUrl(mediaUrl),
+          type: inferMediaType(media),
           name: media.name || 'Media file'
+        }
+      }
+      if(media.file_path && typeof media.file_path === 'string') {
+        return {
+          attachment_id: media.attachment_id || media.id || null,
+          complaint_id: media.complaint_id || null,
+          file_path: media.file_path,
+          url: resolveMediaUrl(media.file_path),
+          type: inferMediaType(media),
+          name: media.name || media.file_name || 'Media file'
         }
       }
       if(media instanceof File) {
