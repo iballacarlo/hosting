@@ -172,17 +172,24 @@ export default function ComplaintForm(){
 
   async function submitToApi(){
     const residentName = form.resident_name || ''
-    const payload = {
-      category_id: form.category,
-      title: form.title,
-      description: form.description,
-      incident_location: form.location,
-      incident_date: form.date || '',
-      anonymous: form.anonymous,
-      respondent_name: form.respondent_name,
-      resident_name: residentName
-    }
-    return api.post('/complaints', payload)
+    const payload = new FormData()
+
+    payload.append('category_id', form.category)
+    payload.append('title', form.title)
+    payload.append('description', form.description)
+    payload.append('incident_location', form.location)
+    payload.append('incident_date', form.date || '')
+    payload.append('anonymous', form.anonymous ? '1' : '0')
+    payload.append('respondent_name', form.respondent_name)
+    payload.append('resident_name', residentName)
+
+    form.images.forEach(file => {
+      payload.append('attachments[]', file)
+    })
+
+    return api.post('/complaints', payload, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
   }
 
   async function handleSubmit(e){

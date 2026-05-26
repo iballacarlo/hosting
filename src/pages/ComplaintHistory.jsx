@@ -27,6 +27,12 @@ export default function ComplaintHistory(){
   const { user: authUser, loading: authLoading } = useAuth()
   const currentUser = authUser
 
+  const resolveMediaUrl = (url) => {
+    if(!url) return ''
+    if(/^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) return url
+    return new URL(url, api.defaults.baseURL).toString()
+  }
+
   const getOwnerId = (item) => {
     if(!item) return null
     const direct = Number(item.userId ?? item.resident_id ?? item.user_id ?? item.residentId ?? item.ownerId ?? item.owner_id)
@@ -92,11 +98,11 @@ export default function ComplaintHistory(){
     return images.map((media) => {
       if(!media) return null
       if(typeof media === 'string') {
-        return { url: media, type: media.startsWith('data:video') ? 'video/*' : 'image/*', name: 'Media file' }
+        return { url: resolveMediaUrl(media), type: media.startsWith('data:video') ? 'video/*' : 'image/*', name: 'Media file' }
       }
       if(media.url && typeof media.url === 'string') {
         return {
-          url: media.url,
+          url: resolveMediaUrl(media.url),
           type: media.type || 'image/*',
           name: media.name || 'Media file'
         }

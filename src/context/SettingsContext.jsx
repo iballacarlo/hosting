@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useAuth } from './AuthContext'
+import api from '../api/axios'
 
 const SettingsContext = createContext()
 
@@ -19,6 +20,7 @@ export function SettingsProvider({ children }){
 
   useEffect(() => {
     setLoaded(false)
+    let cancelled = false
 
     let saved = {}
     try {
@@ -32,6 +34,34 @@ export function SettingsProvider({ children }){
     setFontSize(saved.fontSize !== undefined ? saved.fontSize : 'small')
     setScreenReader(saved.screenReader !== undefined ? saved.screenReader : false)
     setLoaded(true)
+
+    async function loadBackendSettings(){
+      if(!user || user.role !== 'resident') return
+
+      try {
+        const res = await api.get('/accessibility-settings')
+        const settings = res.data?.data
+        if(cancelled || !res.data?.success || !settings) return
+
+        setDark(Boolean(settings.dark))
+        setContrast(Boolean(settings.contrast))
+        setFontSize(settings.fontSize || 'small')
+        setScreenReader(Boolean(settings.screenReader))
+        localStorage.setItem(storageKey, JSON.stringify({
+          dark: Boolean(settings.dark),
+          contrast: Boolean(settings.contrast),
+          fontSize: settings.fontSize || 'small',
+          screenReader: Boolean(settings.screenReader)
+        }))
+      } catch {
+        // Keep local accessibility settings if backend settings cannot be loaded.
+      }
+    }
+
+    loadBackendSettings()
+    return () => {
+      cancelled = true
+    }
   }, [storageKey])
 
   useEffect(() => {
@@ -176,28 +206,32 @@ export function SettingsProvider({ children }){
     }
   }, [screenReader])
 
-  const saveSettings = () => {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({ dark, contrast, fontSize, screenReader })
-    )
+  const saveSettings = async () => {
+    const settings = { dark, contrast, fontSize, screenReader }
+    localStorage.setItem(storageKey, JSON.stringify(settings))
+
+    if(user?.role === 'resident'){
+      await api.put('/accessibility-settings', settings)
+    }
   }
 
-  const resetSettings = () => {
+  const resetSettings = async () => {
+    const defaults = {
+      dark: false,
+      contrast: false,
+      fontSize: 'small',
+      screenReader: false
+    }
+
     setDark(false)
     setContrast(false)
     setFontSize('small')
     setScreenReader(false)
-    // Save reset state to localStorage
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        dark: false,
-        contrast: false,
-        fontSize: 'small',
-        screenReader: false
-      })
-    )
+    localStorage.setItem(storageKey, JSON.stringify(defaults))
+
+    if(user?.role === 'resident'){
+      await api.put('/accessibility-settings', defaults)
+    }
   }
 
   return (

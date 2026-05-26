@@ -45,13 +45,17 @@ export default function AccessibilitySettings(){
     setConfirmOpen(true)
   }
 
-  function handleConfirm(){
-    if(confirmAction === 'save'){
-      saveSettings()
-      setNotice('Accessibility settings saved.')
-    } else if(confirmAction === 'reset'){
-      resetSettings()
-      setNotice('Accessibility settings reset to default.')
+  async function handleConfirm(){
+    try {
+      if(confirmAction === 'save'){
+        await saveSettings()
+        setNotice('Accessibility settings saved.')
+      } else if(confirmAction === 'reset'){
+        await resetSettings()
+        setNotice('Accessibility settings reset to default.')
+      }
+    } catch {
+      setNotice('Settings were saved on this device, but could not be saved to the server.')
     }
     setConfirmOpen(false)
     setConfirmAction(null)

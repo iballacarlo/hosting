@@ -21,6 +21,12 @@ export default function ManageComplaints(){
   const [selectedForStatus, setSelectedForStatus] = useState(null)
   const [highlightedComplaintId, setHighlightedComplaintId] = useState(null)
 
+  const resolveMediaUrl = (url) => {
+    if(!url) return ''
+    if(/^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) return url
+    return new URL(url, api.defaults.baseURL).toString()
+  }
+
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -99,11 +105,11 @@ export default function ManageComplaints(){
     return images.map((media) => {
       if(!media) return null
       if(typeof media === 'string') {
-        return { url: media, type: media.startsWith('data:video') ? 'video/*' : 'image/*', name: 'Media file' }
+        return { url: resolveMediaUrl(media), type: media.startsWith('data:video') ? 'video/*' : 'image/*', name: 'Media file' }
       }
       if(media.url && typeof media.url === 'string') {
         return {
-          url: media.url,
+          url: resolveMediaUrl(media.url),
           type: media.type || 'image/*',
           name: media.name || 'Media file'
         }

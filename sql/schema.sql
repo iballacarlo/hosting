@@ -98,6 +98,9 @@ CREATE TABLE IF NOT EXISTS Complaint_Attachment (
   complaint_id INT NOT NULL,
 
   file_path VARCHAR(1000) NOT NULL,
+  file_name VARCHAR(255) DEFAULT NULL,
+  file_type VARCHAR(100) DEFAULT NULL,
+  file_size INT DEFAULT NULL,
 
   upload_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 
@@ -132,28 +135,6 @@ CREATE TABLE IF NOT EXISTS Document_Request (
 );
 
 
-CREATE TABLE IF NOT EXISTS Digital_ID (
-  digital_id INT AUTO_INCREMENT PRIMARY KEY,
-
-  resident_id INT UNIQUE,
-
-  id_number VARCHAR(255) UNIQUE,
-
-  qr_token VARCHAR(255) UNIQUE,
-
-  issue_date DATE DEFAULT NULL,
-
-  expiration_date DATE DEFAULT NULL,
-
-  status VARCHAR(50) DEFAULT 'Active',
-
-  CONSTRAINT fk_digital_resident
-    FOREIGN KEY (resident_id)
-    REFERENCES Resident(resident_id)
-    ON DELETE CASCADE
-);
-
-
 CREATE TABLE IF NOT EXISTS Accessibility_Settings (
   accessibility_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -165,7 +146,7 @@ CREATE TABLE IF NOT EXISTS Accessibility_Settings (
 
   dark_mode BOOLEAN DEFAULT FALSE,
 
-  font_size VARCHAR(50) DEFAULT 'medium',
+  font_size VARCHAR(50) DEFAULT 'small',
 
   CONSTRAINT fk_accessibility_resident
     FOREIGN KEY (resident_id)
@@ -238,22 +219,6 @@ CREATE TABLE IF NOT EXISTS Login_Attempt (
 
   UNIQUE KEY uq_login_attempt_identifier (identifier),
   INDEX idx_login_attempt_locked_until (locked_until)
-);
-
-
-CREATE TABLE IF NOT EXISTS Report_Log (
-  report_id INT AUTO_INCREMENT PRIMARY KEY,
-
-  generated_by INT DEFAULT NULL,
-
-  report_type VARCHAR(255),
-
-  date_generated DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-  CONSTRAINT fk_report_staff
-    FOREIGN KEY (generated_by)
-    REFERENCES Staff(staff_id)
-    ON DELETE SET NULL
 );
 
 

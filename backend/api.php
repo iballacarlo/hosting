@@ -140,6 +140,143 @@ function ensureLoginAttemptTable($pdo){
   $ready = true;
 }
 
+function ensureComplaintAttachmentTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Complaint_Attachment (
+    attachment_id INT AUTO_INCREMENT PRIMARY KEY,
+    complaint_id INT NOT NULL,
+    file_path VARCHAR(1000) NOT NULL,
+    file_name VARCHAR(255) DEFAULT NULL,
+    file_type VARCHAR(100) DEFAULT NULL,
+    file_size INT DEFAULT NULL,
+    upload_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_attachment_complaint
+      FOREIGN KEY (complaint_id)
+      REFERENCES Complaint(complaint_id)
+      ON DELETE CASCADE
+  )');
+
+  foreach([
+    'file_name' => 'VARCHAR(255) DEFAULT NULL',
+    'file_type' => 'VARCHAR(100) DEFAULT NULL',
+    'file_size' => 'INT DEFAULT NULL',
+  ] as $column => $definition){
+    if(!tableColumnExists($pdo, 'Complaint_Attachment', $column)){
+      $pdo->exec('ALTER TABLE Complaint_Attachment ADD COLUMN ' . $column . ' ' . $definition);
+    }
+  }
+
+  $ready = true;
+}
+
+function ensureAccessibilitySettingsTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Accessibility_Settings (
+    accessibility_id INT AUTO_INCREMENT PRIMARY KEY,
+    resident_id INT UNIQUE,
+    text_to_speech_enabled BOOLEAN DEFAULT FALSE,
+    high_contrast_mode BOOLEAN DEFAULT FALSE,
+    dark_mode BOOLEAN DEFAULT FALSE,
+    font_size VARCHAR(50) DEFAULT "small",
+    CONSTRAINT fk_accessibility_resident
+      FOREIGN KEY (resident_id)
+      REFERENCES Resident(resident_id)
+      ON DELETE CASCADE
+  )');
+
+  $ready = true;
+}
+
+function getComplaintAttachments($pdo, $complaintIds){
+  ensureComplaintAttachmentTable($pdo);
+  $ids = array_values(array_filter(array_map('intval', $complaintIds)));
+  if(count($ids) === 0) return [];
+
+  $placeholders = implode(',', array_fill(0, count($ids), '?'));
+  $stmt = $pdo->prepare('SELECT * FROM Complaint_Attachment WHERE complaint_id IN (' . $placeholders . ') ORDER BY upload_date ASC');
+  $stmt->execute($ids);
+
+  $grouped = [];
+  foreach($stmt->fetchAll() as $row){
+    $complaintId = intval($row['complaint_id']);
+    if(!isset($grouped[$complaintId])) $grouped[$complaintId] = [];
+    $grouped[$complaintId][] = [
+      'attachment_id' => intval($row['attachment_id']),
+      'complaint_id' => $complaintId,
+      'file_path' => $row['file_path'],
+      'url' => $row['file_path'],
+      'name' => $row['file_name'] ?? basename($row['file_path']),
+      'type' => $row['file_type'] ?? '',
+      'size' => isset($row['file_size']) ? intval($row['file_size']) : null,
+      'upload_date' => $row['upload_date'],
+    ];
+  }
+
+  return $grouped;
+}
+
+function attachComplaintMedia($pdo, $rows){
+  $attachments = getComplaintAttachments($pdo, array_column($rows, 'complaint_id'));
+  foreach($rows as &$row){
+    $id = intval($row['complaint_id']);
+    $row['attachments'] = $attachments[$id] ?? [];
+    $row['images'] = $row['attachments'];
+  }
+  unset($row);
+  return $rows;
+}
+
+function saveComplaintUploads($pdo, $complaintId){
+  ensureComplaintAttachmentTable($pdo);
+  if(empty($_FILES['attachments'])) return;
+
+  $files = $_FILES['attachments'];
+  $names = is_array($files['name']) ? $files['name'] : [$files['name']];
+  $types = is_array($files['type']) ? $files['type'] : [$files['type']];
+  $tmpNames = is_array($files['tmp_name']) ? $files['tmp_name'] : [$files['tmp_name']];
+  $errors = is_array($files['error']) ? $files['error'] : [$files['error']];
+  $sizes = is_array($files['size']) ? $files['size'] : [$files['size']];
+
+  $uploadDir = __DIR__ . '/uploads/complaints';
+  if(!is_dir($uploadDir)){
+    mkdir($uploadDir, 0775, true);
+  }
+
+  $allowedPrefixes = ['image/', 'video/'];
+  $maxSize = 10 * 1024 * 1024;
+  $stmt = $pdo->prepare('INSERT INTO Complaint_Attachment (complaint_id, file_path, file_name, file_type, file_size, upload_date) VALUES (?, ?, ?, ?, ?, NOW())');
+
+  foreach($names as $index => $originalName){
+    if(($errors[$index] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
+    $tmpName = $tmpNames[$index] ?? '';
+    if(!is_uploaded_file($tmpName)) continue;
+
+    $fileType = $types[$index] ?? mime_content_type($tmpName);
+    $allowed = false;
+    foreach($allowedPrefixes as $prefix){
+      if(strpos($fileType, $prefix) === 0){
+        $allowed = true;
+        break;
+      }
+    }
+    if(!$allowed || intval($sizes[$index] ?? 0) > $maxSize) continue;
+
+    $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    $safeExtension = preg_match('/^[a-z0-9]{1,8}$/', $extension) ? $extension : 'bin';
+    $fileName = 'complaint_' . intval($complaintId) . '_' . bin2hex(random_bytes(8)) . '.' . $safeExtension;
+    $targetPath = $uploadDir . '/' . $fileName;
+
+    if(move_uploaded_file($tmpName, $targetPath)){
+      $publicPath = '/uploads/complaints/' . $fileName;
+      $stmt->execute([$complaintId, $publicPath, $originalName, $fileType, intval($sizes[$index] ?? 0)]);
+    }
+  }
+}
+
 function normalizeEmail($email){
   return strtolower(trim($email ?? ''));
 }
@@ -945,16 +1082,23 @@ if($uri === '/complaints'){
       $rows = $stmt->fetchAll();
     }
 
+    $rows = attachComplaintMedia($pdo, $rows);
     json(['success'=>true,'data'=>$rows]);
   }
   if($method === 'POST'){
     $token = getBearerToken();
     $user = findUserByToken($pdo, $token);
     if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
-    $data = json_decode(file_get_contents('php://input'), true);
+    $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+    if(stripos($contentType, 'multipart/form-data') !== false){
+      $data = $_POST;
+    } else {
+      $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    }
     $stmt = $pdo->prepare('INSERT INTO Complaint (resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, status, date_submitted) VALUES (?, ?, NULL, ?, ?, ?, ?, "Submitted", NOW())');
     $stmt->execute([$user['id'], $data['category_id'] ?? null, $data['title'] ?? '', $data['description'] ?? '', $data['incident_location'] ?? '', $data['incident_date'] ?? null]);
     $complaintId = $pdo->lastInsertId();
+    saveComplaintUploads($pdo, $complaintId);
 
     $authorName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: ($user['email'] ?? 'Resident');
     $message = 'New complaint submitted by ' . $authorName . ': ' . trim($data['title'] ?? $data['description'] ?? 'Complaint');
@@ -1122,6 +1266,51 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   $vals[] = $id;
   $sql = 'UPDATE Document_Request SET '.implode(', ', $fields).' WHERE request_id = ?';
   $pdo->prepare($sql)->execute($vals);
+  json(['success'=>true]);
+}
+
+// Route: /accessibility-settings GET/PUT - resident accessibility preferences
+if($uri === '/accessibility-settings' && in_array($method, ['GET', 'PUT', 'PATCH', 'POST'])){
+  ensureAccessibilitySettingsTable($pdo);
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  if($user['role'] !== 'resident') json(['success'=>false,'message'=>'Accessibility settings are stored per resident only'], 403);
+
+  if($method === 'GET'){
+    $stmt = $pdo->prepare('SELECT * FROM Accessibility_Settings WHERE resident_id = ? LIMIT 1');
+    $stmt->execute([$user['id']]);
+    $settings = $stmt->fetch();
+
+    json([
+      'success' => true,
+      'data' => [
+        'dark' => $settings ? (bool)$settings['dark_mode'] : false,
+        'contrast' => $settings ? (bool)$settings['high_contrast_mode'] : false,
+        'screenReader' => $settings ? (bool)$settings['text_to_speech_enabled'] : false,
+        'fontSize' => $settings['font_size'] ?? 'small',
+      ]
+    ]);
+  }
+
+  $data = json_decode(file_get_contents('php://input'), true) ?: [];
+  $dark = !empty($data['dark']) ? 1 : 0;
+  $contrast = !empty($data['contrast']) ? 1 : 0;
+  $screenReader = !empty($data['screenReader']) ? 1 : 0;
+  $fontSize = $data['fontSize'] ?? 'small';
+  if(!in_array($fontSize, ['small', 'medium', 'large', 'xlarge'], true)){
+    $fontSize = 'small';
+  }
+
+  $stmt = $pdo->prepare('INSERT INTO Accessibility_Settings (resident_id, text_to_speech_enabled, high_contrast_mode, dark_mode, font_size)
+    VALUES (?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      text_to_speech_enabled = VALUES(text_to_speech_enabled),
+      high_contrast_mode = VALUES(high_contrast_mode),
+      dark_mode = VALUES(dark_mode),
+      font_size = VALUES(font_size)');
+  $stmt->execute([$user['id'], $screenReader, $contrast, $dark, $fontSize]);
+
   json(['success'=>true]);
 }
 
