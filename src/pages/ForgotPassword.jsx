@@ -31,10 +31,40 @@ export default function ForgotPassword(){
   
   const panelRef = useRef(null)
 
-  function getApiErrorMessage(err, fallback){
-    const data = err?.response?.data
+  function normalizeApiData(data){
+    if(typeof data !== 'string') return data || {}
+
+    const trimmed = data.trim()
+    if(!trimmed) return {}
+
+    try {
+      return JSON.parse(trimmed)
+    } catch {
+      const firstJson = trimmed.match(/\{[\s\S]*\}/)
+      if(firstJson){
+        try {
+          return JSON.parse(firstJson[0])
+        } catch {
+          // Keep the readable text below when the response is not clean JSON.
+        }
+      }
+    }
+
+    return {
+      success: false,
+      message: trimmed.slice(0, 300)
+    }
+  }
+
+  function getResponseErrorMessage(res, fallback){
+    const data = normalizeApiData(res?.data)
     if(data?.message) return data.message
-    if(typeof data === 'string' && data.trim()) return data.trim()
+    return `${fallback}${res?.status ? ` (HTTP ${res.status})` : ''}`
+  }
+
+  function getApiErrorMessage(err, fallback){
+    const data = normalizeApiData(err?.response?.data)
+    if(data?.message) return data.message
     if(err?.response?.status) return `${fallback} (HTTP ${err.response.status})`
     return err?.message || fallback
   }
@@ -93,7 +123,7 @@ export default function ForgotPassword(){
     setLoading(true)
     try{
       const res = await api.post('/forgot-password', { email }, { timeout: 45000 })
-      const data = res.data
+      const data = normalizeApiData(res.data)
       
       if(data.success){
         setToken('')
@@ -104,10 +134,10 @@ export default function ForgotPassword(){
         setStep(2)
       } else {
         if(data.retry_after) setResendSeconds(data.retry_after)
-        setErrors({ form: data.message || `Failed to request reset${res.status ? ` (HTTP ${res.status})` : ''}` })
+        setErrors({ form: getResponseErrorMessage(res, 'Failed to request reset') })
       }
     } catch(err){
-      const data = err?.response?.data
+      const data = normalizeApiData(err?.response?.data)
       if(data?.retry_after) setResendSeconds(data.retry_after)
       setErrors({ form: getApiErrorMessage(err, 'Failed to request reset') })
     } finally {
@@ -132,7 +162,7 @@ export default function ForgotPassword(){
     setLoading(true)
     try{
       const res = await api.post('/reset-password', { email, token, password }, { timeout: 30000 })
-      const data = res.data
+      const data = normalizeApiData(res.data)
 
       if(data.success){
         setSuccessMessage('Password reset successfully! Redirecting to login...')
@@ -141,7 +171,7 @@ export default function ForgotPassword(){
         setExpiresAt(null)
         setTimeout(() => navigate('/login'), 2000)
       } else {
-        setErrors({ form: data.message || `Failed to reset password${res.status ? ` (HTTP ${res.status})` : ''}` })
+        setErrors({ form: getResponseErrorMessage(res, 'Failed to reset password') })
       }
     } catch(err){
       setErrors({ form: getApiErrorMessage(err, 'Failed to reset password') })

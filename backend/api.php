@@ -1,5 +1,5 @@
 <?php
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 // CORS
@@ -477,10 +477,10 @@ if($uri === '/me' && $method === 'GET'){
 // Route: /forgot-password
 if($uri === '/forgot-password' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
-  if(empty($data['email'])) json(['success'=>false,'message'=>'Email is required']);
-  if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address']);
+  if(empty($data['email'])) json(['success'=>false,'message'=>'Email is required'], 400);
+  if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address'], 400);
   $user = findUserByEmail($pdo, $data['email']);
-  if(!$user) json(['success'=>false,'message'=>'Email not found']);
+  if(!$user) json(['success'=>false,'message'=>'Email not found'], 404);
 
   $existingReset = getPasswordReset($pdo, $user);
   $waitSeconds = secondsUntilOtpCanResend($existingReset);
@@ -489,7 +489,7 @@ if($uri === '/forgot-password' && $method === 'POST'){
       'success'=>false,
       'message'=>'Please wait before requesting another OTP.',
       'retry_after'=>$waitSeconds
-    ]);
+    ], 429);
   }
 
   $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -500,7 +500,7 @@ if($uri === '/forgot-password' && $method === 'POST'){
   } catch (Exception $e) {
     deletePasswordResetOtp($pdo, $user);
     error_log('Password reset OTP email failed: ' . $e->getMessage());
-    json(['success'=>false,'message'=>'Unable to send OTP email. Please try again later.']);
+    json(['success'=>false,'message'=>'Unable to send OTP email. Please check Railway SMTP settings and try again.'], 502);
   }
 
   json([
@@ -514,19 +514,19 @@ if($uri === '/forgot-password' && $method === 'POST'){
 // Route: /reset-password
 if($uri === '/reset-password' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
-  if(empty($data['email']) || empty($data['token']) || empty($data['password'])) json(['success'=>false,'message'=>'Email, reset code, and password are required']);
-  if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address']);
+  if(empty($data['email']) || empty($data['token']) || empty($data['password'])) json(['success'=>false,'message'=>'Email, reset code, and password are required'], 400);
+  if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address'], 400);
   $user = findUserByEmail($pdo, $data['email']);
-  if(!$user) json(['success'=>false,'message'=>'Email not found']);
+  if(!$user) json(['success'=>false,'message'=>'Email not found'], 404);
 
   $reset = getPasswordReset($pdo, $user);
-  if(!$reset || !empty($reset['used_at'])) json(['success'=>false,'message'=>'Invalid or expired reset code']);
+  if(!$reset || !empty($reset['used_at'])) json(['success'=>false,'message'=>'Invalid or expired reset code'], 400);
   if(strtotime($reset['expires_at']) < time()){
     deletePasswordResetOtp($pdo, $user);
-    json(['success'=>false,'message'=>'Reset code expired. Please request a new OTP.']);
+    json(['success'=>false,'message'=>'Reset code expired. Please request a new OTP.'], 400);
   }
-  if(!password_verify(trim($data['token']), $reset['otp_hash'])) json(['success'=>false,'message'=>'Invalid reset code']);
-  if(strlen($data['password']) < 6) json(['success'=>false,'message'=>'Password must be at least 6 characters']);
+  if(!password_verify(trim($data['token']), $reset['otp_hash'])) json(['success'=>false,'message'=>'Invalid reset code'], 400);
+  if(strlen($data['password']) < 6) json(['success'=>false,'message'=>'Password must be at least 6 characters'], 400);
 
   $hash = password_hash($data['password'], PASSWORD_BCRYPT);
   updateUserPassword($pdo, $user['role'], $user['id'], $hash);
