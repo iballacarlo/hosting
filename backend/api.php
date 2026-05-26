@@ -121,83 +121,43 @@ function secondsUntilOtpCanResend($reset){
   return max(0, RESET_OTP_RESEND_SECONDS - $elapsed);
 }
 
-function sendSmtpCommand($socket, $command, $expectCodes){
-  if($command !== null){
-    fwrite($socket, $command . "\r\n");
-  }
-
-  $response = '';
-  while(($line = fgets($socket, 515)) !== false){
-    $response .= $line;
-    if(strlen($line) >= 4 && $line[3] === ' ') break;
-  }
-
-  $code = substr($response, 0, 3);
-  if(!in_array($code, $expectCodes, true)){
-    throw new Exception('SMTP error: ' . trim($response));
-  }
-
-  return $response;
-}
-
 function sendOtpEmail($toEmail, $code){
   global $cfg;
 
-  $smtpHost = getenv('SMTP_HOST') ?: ($cfg['smtp_host'] ?? 'smtp.gmail.com');
-  $smtpPort = intval(getenv('SMTP_PORT') ?: ($cfg['smtp_port'] ?? 465));
-  $smtpSecure = strtolower(getenv('SMTP_SECURE') ?: ($cfg['smtp_secure'] ?? ($smtpPort === 465 ? 'ssl' : 'tls')));
-  $smtpUser = getenv('SMTP_USER') ?: ($cfg['smtp_user'] ?? 'brgy.mambog.ii@gmail.com');
-  $smtpPass = getenv('SMTP_PASS') ?: ($cfg['smtp_pass'] ?? '');
-  $fromEmail = getenv('SMTP_FROM') ?: ($cfg['smtp_from'] ?? $smtpUser);
-  $fromName = getenv('SMTP_FROM_NAME') ?: ($cfg['smtp_from_name'] ?? 'Barangay Mambog II');
-
-  if(!$smtpPass){
-    throw new Exception('SMTP_PASS is not configured');
+  $url = trim($cfg['mail_api_url'] ?? '');
+  $secret = trim($cfg['mail_api_secret'] ?? '');
+  if($url === '' || $secret === ''){
+    throw new Exception('Mail API is not configured. Set MAIL_API_URL and MAIL_API_SECRET in Railway Variables.');
   }
 
-  $socketHost = $smtpSecure === 'ssl' ? 'ssl://' . $smtpHost : $smtpHost;
-  $socket = fsockopen($socketHost, $smtpPort, $errno, $errstr, 20);
-  if(!$socket){
-    throw new Exception('Unable to connect to SMTP server (' . $smtpHost . ':' . $smtpPort . '): ' . $errstr);
+  $payload = json_encode([
+    'secret' => $secret,
+    'to' => $toEmail,
+    'subject' => 'Your Barangay Mambog II password reset OTP',
+    'body' => "Hello,\n\nYour password reset OTP is: {$code}\n\nThis code expires in 15 minutes. If you did not request this, you can ignore this email.\n\nBarangay Mambog II",
+    'fromName' => $cfg['mail_from_name'] ?? 'Barangay Mambog II',
+  ]);
+
+  $context = stream_context_create([
+    'http' => [
+      'method' => 'POST',
+      'header' => "Content-Type: application/json\r\n",
+      'content' => $payload,
+      'timeout' => 12,
+      'ignore_errors' => true,
+    ],
+  ]);
+
+  $response = @file_get_contents($url, false, $context);
+  $status = 0;
+  if(!empty($http_response_header) && preg_match('#HTTP/\S+\s+(\d+)#', $http_response_header[0], $m)){
+    $status = intval($m[1]);
   }
 
-  stream_set_timeout($socket, 20);
-
-  try {
-    sendSmtpCommand($socket, null, ['220']);
-    sendSmtpCommand($socket, 'EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'), ['250']);
-
-    if($smtpSecure === 'tls'){
-      sendSmtpCommand($socket, 'STARTTLS', ['220']);
-
-      if(!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)){
-        throw new Exception('Unable to start SMTP TLS');
-      }
-
-      sendSmtpCommand($socket, 'EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'), ['250']);
-    }
-    sendSmtpCommand($socket, 'AUTH LOGIN', ['334']);
-    sendSmtpCommand($socket, base64_encode($smtpUser), ['334']);
-    sendSmtpCommand($socket, base64_encode($smtpPass), ['235']);
-    sendSmtpCommand($socket, 'MAIL FROM:<' . $fromEmail . '>', ['250']);
-    sendSmtpCommand($socket, 'RCPT TO:<' . $toEmail . '>', ['250', '251']);
-    sendSmtpCommand($socket, 'DATA', ['354']);
-
-    $subject = 'Your Barangay Mambog II password reset OTP';
-    $body = "Hello,\r\n\r\nYour password reset OTP is: {$code}\r\n\r\nThis code expires in 15 minutes. If you did not request this, you can ignore this email.\r\n\r\nBarangay Mambog II";
-    $headers = [
-      'From: ' . $fromName . ' <' . $fromEmail . '>',
-      'To: <' . $toEmail . '>',
-      'Subject: ' . $subject,
-      'MIME-Version: 1.0',
-      'Content-Type: text/plain; charset=UTF-8'
-    ];
-    $message = implode("\r\n", $headers) . "\r\n\r\n" . $body . "\r\n.";
-
-    sendSmtpCommand($socket, $message, ['250']);
-    sendSmtpCommand($socket, 'QUIT', ['221']);
-  } finally {
-    fclose($socket);
+  $result = json_decode($response ?: '', true);
+  if($status < 200 || $status >= 300 || !is_array($result) || empty($result['success'])){
+    $message = is_array($result) && !empty($result['message']) ? $result['message'] : 'Mail API request failed';
+    throw new Exception($message);
   }
 }
 
@@ -507,7 +467,7 @@ if($uri === '/forgot-password' && $method === 'POST'){
   } catch (Exception $e) {
     deletePasswordResetOtp($pdo, $user);
     error_log('Password reset OTP email failed: ' . $e->getMessage());
-    json(['success'=>false,'message'=>'Unable to send OTP email. Please check Railway SMTP settings and try again.'], 502);
+    json(['success'=>false,'message'=>'Unable to send OTP email. Please check Railway mail relay settings and try again.'], 502);
   }
 
   json([

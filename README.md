@@ -84,17 +84,69 @@ Notes:
 - This PHP API is a minimal demo and uses token strings stored in the DB (not full JWT). For production, add HTTPS, JWT, input validation, and stricter auth.
 
 Password reset OTP email:
-- The backend sends password reset OTPs through Gmail SMTP.
-- Set these Railway environment variables on the backend service:
+- Railway Free/Trial/Hobby cannot use SMTP. The backend sends password reset OTPs through an HTTPS mail relay.
+- Recommended free option with the barangay Gmail: Google Apps Script.
 
-```text
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=brgy.mambog.ii@gmail.com
-SMTP_PASS=icgoivisconpgudt
-SMTP_FROM=brgy.mambog.ii@gmail.com
-SMTP_FROM_NAME=Barangay Mambog II
+Google Apps Script setup:
+1. Log in to `brgy.mambog.ii@gmail.com`.
+2. Open https://script.google.com and create a new project named `BRGY Mail Relay`.
+3. Paste this code into `Code.gs`:
+
+```javascript
+const SECRET = 'change-this-long-random-secret';
+
+function doGet() {
+  return json({
+    success: true,
+    message: 'BRGY Mail Relay is running. Use POST to send email.'
+  });
+}
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents || '{}');
+
+    if (data.secret !== SECRET) {
+      return json({ success: false, message: 'Unauthorized' });
+    }
+
+    if (!data.to || !data.subject || !data.body) {
+      return json({ success: false, message: 'Missing email fields' });
+    }
+
+    MailApp.sendEmail({
+      to: data.to,
+      subject: data.subject,
+      body: data.body,
+      name: data.fromName || 'Barangay Mambog II'
+    });
+
+    return json({ success: true });
+  } catch (err) {
+    return json({ success: false, message: err.message });
+  }
+}
+
+function json(payload) {
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
+}
 ```
 
+4. Click Deploy, then New deployment.
+5. Type: Web app.
+6. Execute as: Me.
+7. Who has access: Anyone.
+8. Copy the Web app URL.
+9. Set these Railway environment variables on the backend service:
+
+```text
+MAIL_API_URL=your_google_apps_script_web_app_url
+MAIL_API_SECRET=change-this-long-random-secret
+MAIL_FROM_NAME=Barangay Mambog II
+```
+
+- Use the same secret in Apps Script and Railway.
 - OTPs can be resent after 30 seconds and expire after 15 minutes.
 - The app creates the `Password_Reset` table automatically if it is missing, but `sql/schema.sql` also includes it for fresh databases.
