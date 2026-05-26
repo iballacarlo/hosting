@@ -18,8 +18,9 @@ export default function ManageResidents(){
   const [searchTerm, setSearchTerm] = useState('')
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const [addressFilterType, setAddressFilterType] = useState('All')
-  const [addressFilterValue, setAddressFilterValue] = useState('')
+  const [addressPhase, setAddressPhase] = useState('')
+  const [addressStreet, setAddressStreet] = useState('')
+  const [addressBlock, setAddressBlock] = useState('')
   const [selectedResident, setSelectedResident] = useState(null)
   const [selectedForDelete, setSelectedForDelete] = useState(null)
   const [selectedForStatus, setSelectedForStatus] = useState(null)
@@ -41,12 +42,11 @@ export default function ManageResidents(){
   useEffect(()=>{ load() }, [])
 
   const statusOptions = sortTextAsc(['Active', 'Suspended', 'Banned'])
-  const addressFilterTypes = ['All', 'Phase', 'Street', 'Block']
   const phaseOptions = sortTextAsc(Object.keys(addressData))
   const streetOptions = useMemo(() => {
-    const streets = Object.values(addressData).flat()
-    return sortTextAsc([...new Set(streets)])
-  }, [])
+    if(!addressPhase) return []
+    return sortTextAsc(addressData[addressPhase] || [])
+  }, [addressPhase])
 
   const parseResidentAddress = (address = '') => {
     const parts = String(address || '').split(',').map(part => part.trim()).filter(Boolean)
@@ -73,21 +73,24 @@ export default function ManageResidents(){
     setQuery(searchTerm.trim())
   }
 
-  const handleAddressFilterTypeChange = (value) => {
-    setAddressFilterType(value)
-    setAddressFilterValue('')
+  const handleAddressPhaseChange = (value) => {
+    setAddressPhase(value)
+    setAddressStreet('')
   }
 
   const filteredItems = items.filter(item => {
     const statusMatch = statusFilter === 'All' || String(item.account_status || 'Unknown') === statusFilter
     if(!statusMatch) return false
 
-    if(addressFilterType !== 'All' && addressFilterValue){
-      const parsedAddress = parseResidentAddress(item.address)
-      const field = addressFilterType.toLowerCase()
-      if(String(parsedAddress[field] || '').toLowerCase() !== String(addressFilterValue).toLowerCase()){
-        return false
-      }
+    const parsedAddress = parseResidentAddress(item.address)
+    if(addressPhase && String(parsedAddress.phase || '').toLowerCase() !== addressPhase.toLowerCase()){
+      return false
+    }
+    if(addressStreet && String(parsedAddress.street || '').toLowerCase() !== addressStreet.toLowerCase()){
+      return false
+    }
+    if(addressBlock && String(parsedAddress.block || '').toLowerCase() !== addressBlock.toLowerCase()){
+      return false
     }
 
     if(!query) return true
@@ -184,44 +187,30 @@ export default function ManageResidents(){
               </select>
               <select
                 className="ui-input"
-                value={addressFilterType}
-                onChange={(e) => handleAddressFilterTypeChange(e.target.value)}
+                value={addressPhase}
+                onChange={(e) => handleAddressPhaseChange(e.target.value)}
               >
-                {addressFilterTypes.map(opt => (
-                  <option key={opt} value={opt}>{opt === 'All' ? 'All Addresses' : `By ${opt}`}</option>
-                ))}
+                <option value="">All Phases</option>
+                {phaseOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
-              {addressFilterType === 'Phase' && (
-                <select
-                  className="ui-input"
-                  value={addressFilterValue}
-                  onChange={(e) => setAddressFilterValue(e.target.value)}
-                >
-                  <option value="">All Phases</option>
-                  {phaseOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              )}
-              {addressFilterType === 'Street' && (
-                <select
-                  className="ui-input"
-                  value={addressFilterValue}
-                  onChange={(e) => setAddressFilterValue(e.target.value)}
-                >
-                  <option value="">All Streets</option>
-                  {streetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              )}
-              {addressFilterType === 'Block' && (
-                <input
-                  className="ui-input"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Block"
-                  value={addressFilterValue}
-                  onChange={(e) => setAddressFilterValue(e.target.value)}
-                  style={{ maxWidth: 140 }}
-                />
-              )}
+              <select
+                className="ui-input"
+                value={addressStreet}
+                onChange={(e) => setAddressStreet(e.target.value)}
+                disabled={!addressPhase}
+              >
+                <option value="">All Streets</option>
+                {streetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+              <input
+                className="ui-input"
+                type="text"
+                inputMode="numeric"
+                placeholder="Block"
+                value={addressBlock}
+                onChange={(e) => setAddressBlock(e.target.value.replace(/\D/g, ''))}
+                style={{ maxWidth: 140 }}
+              />
             </div>
           </div>
 

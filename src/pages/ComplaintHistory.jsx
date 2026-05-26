@@ -432,14 +432,12 @@ export default function ComplaintHistory(){
             </div>
           </div>
 
-          <div className="history-card">
-
-            {loading ? (
-              <div className="empty-state">Loading complaints...</div>
-            ) : list.length === 0 ? (
-              <div className="empty-state">No complaints found.</div>
-            ) : (
-              <div className="table-wrap">
+          {loading ? (
+            <div className="empty-state">Loading complaints...</div>
+          ) : list.length === 0 ? (
+            <div className="empty-state">No complaints found.</div>
+          ) : (
+            <div className="table-wrap">
                 <table>
                   <thead>
                     <tr>
@@ -479,10 +477,8 @@ export default function ComplaintHistory(){
                     ))}
                   </tbody>
                 </table>
-              </div>
-            )}
-
-          </div>
+            </div>
+          )}
 
           {/* COMPLAINT DETAILS MODAL */}
           {selectedComplaint && (
@@ -590,12 +586,10 @@ export default function ComplaintHistory(){
                       </div>
                     )}
 
-                    {selectedComplaint.anonymous && (
-                      <div className="complaint-detail-row">
-                        <span className="detail-label">Anonymous:</span>
-                        <span className="detail-value">Yes</span>
-                      </div>
-                    )}
+                    <div className="complaint-detail-row">
+                      <span className="detail-label">Anonymous:</span>
+                      <span className="detail-value">{Number(selectedComplaint.anonymous) === 1 || selectedComplaint.anonymous === true ? 'Yes' : 'No'}</span>
+                    </div>
 
                     {!isEditableStatus(selectedComplaint.status) && (
                       <div className="edit-time-warning">

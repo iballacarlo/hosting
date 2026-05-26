@@ -291,14 +291,12 @@ export default function DocumentHistory(){
             </div>
           </div>
 
-          <div className="history-card">
-
-            {loading ? (
-              <div className="empty-state">Loading documents...</div>
-            ) : list.length === 0 ? (
-              <div className="empty-state">No document requests found.</div>
-            ) : (
-              <div className="table-wrap">
+          {loading ? (
+            <div className="empty-state">Loading documents...</div>
+          ) : list.length === 0 ? (
+            <div className="empty-state">No document requests found.</div>
+          ) : (
+            <div className="table-wrap">
                 <table>
                   <thead>
                     <tr>
@@ -338,10 +336,8 @@ export default function DocumentHistory(){
                     ))}
                   </tbody>
                 </table>
-              </div>
-            )}
-
-          </div>
+            </div>
+          )}
 
           {/* DOCUMENT DETAILS MODAL */}
           {selectedDocument && (
