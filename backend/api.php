@@ -141,13 +141,15 @@ function sendSmtpCommand($socket, $command, $expectCodes){
 }
 
 function sendOtpEmail($toEmail, $code){
-  $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-  $smtpPort = intval(getenv('SMTP_PORT') ?: 465);
-  $smtpSecure = strtolower(getenv('SMTP_SECURE') ?: ($smtpPort === 465 ? 'ssl' : 'tls'));
-  $smtpUser = getenv('SMTP_USER') ?: 'brgy.mambog.ii@gmail.com';
-  $smtpPass = getenv('SMTP_PASS') ?: '';
-  $fromEmail = getenv('SMTP_FROM') ?: $smtpUser;
-  $fromName = getenv('SMTP_FROM_NAME') ?: 'Barangay Mambog II';
+  global $cfg;
+
+  $smtpHost = getenv('SMTP_HOST') ?: ($cfg['smtp_host'] ?? 'smtp.gmail.com');
+  $smtpPort = intval(getenv('SMTP_PORT') ?: ($cfg['smtp_port'] ?? 465));
+  $smtpSecure = strtolower(getenv('SMTP_SECURE') ?: ($cfg['smtp_secure'] ?? ($smtpPort === 465 ? 'ssl' : 'tls')));
+  $smtpUser = getenv('SMTP_USER') ?: ($cfg['smtp_user'] ?? 'brgy.mambog.ii@gmail.com');
+  $smtpPass = getenv('SMTP_PASS') ?: ($cfg['smtp_pass'] ?? '');
+  $fromEmail = getenv('SMTP_FROM') ?: ($cfg['smtp_from'] ?? $smtpUser);
+  $fromName = getenv('SMTP_FROM_NAME') ?: ($cfg['smtp_from_name'] ?? 'Barangay Mambog II');
 
   if(!$smtpPass){
     throw new Exception('SMTP_PASS is not configured');
