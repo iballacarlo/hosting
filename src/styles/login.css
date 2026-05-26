@@ -369,7 +369,7 @@ html.high-contrast{
 html.font-medium .login-auth-shell .login-main,
 html.font-large .login-auth-shell .login-main,
 html.font-xlarge .login-auth-shell .login-main{
-  padding-bottom:64px;
+  padding-bottom:200px;
 }
 
 html.font-medium .login-auth-shell .login-info,
