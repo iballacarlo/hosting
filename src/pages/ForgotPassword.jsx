@@ -68,6 +68,10 @@ export default function ForgotPassword(){
     return err?.message || fallback
   }
 
+  function isValidEmail(value){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+  }
+
   useEffect(() => {
     function onDown(e){
       if(!settingsOpen) return
@@ -100,6 +104,7 @@ export default function ForgotPassword(){
   function validateStep1(){
     const e = {}
     if(!email.trim()) e.email = 'Email is required'
+    else if(!isValidEmail(email)) e.email = 'Enter a valid email address'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -107,6 +112,7 @@ export default function ForgotPassword(){
   function validateStep2(){
     const e = {}
     if(!email.trim()) e.email = 'Email is required'
+    else if(!isValidEmail(email)) e.email = 'Enter a valid email address'
     if(!token.trim()) e.token = 'Reset code is required'
     if(token.trim() && token.trim().length !== 6) e.token = 'Enter the 6-digit reset code'
     if(!password.trim()) e.password = 'Password is required'

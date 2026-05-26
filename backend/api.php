@@ -180,11 +180,11 @@ function validateRegistrationEmail($email){
   $domain = substr(strrchr($email, '@') ?: '', 1);
   $suggestedDomain = suggestEmailDomain($domain);
   if($suggestedDomain){
-    return 'Enter a valid email domain.';
+    return 'Enter a valid email address.';
   }
 
   if(!emailDomainExists($domain)){
-    return 'Enter a valid email domain.';
+    return 'Enter a valid email address.';
   }
 
   return '';
