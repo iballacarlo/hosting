@@ -57,12 +57,18 @@ export default function ManageDocuments(){
 
   async function load(){
     setLoading(true)
+    setError(null)
 
     try{
-      const data = mockApi.listDocs() // local version of data, keep consistent with mock API
-      setItems(data || [])
+      const res = await api.get('/docs')
+      if(res.data?.success && Array.isArray(res.data.data)){
+        setItems(res.data.data)
+      } else {
+        throw new Error(res.data?.message || 'Invalid document response')
+      }
     }catch(err){
-      setError(err?.message || 'Failed to load')
+      setError(err?.response?.data?.message || err?.message || 'Failed to load')
+      setItems([])
     }
 
     setLoading(false)
@@ -168,8 +174,8 @@ export default function ManageDocuments(){
   }
 
   const buildDocumentFields = (item) => ({
-    name: item.name || item.resident_name || item.requester_name || '',
-    birthdate: item.birthdate || '',
+    name: item.name || item.full_name || item.resident_name || item.requester_name || '',
+    birthdate: item.birthdate || item.birth_date || '',
     address: item.address || item.business_address || '',
     purpose: item.purpose || `Request for ${item.document_type || item.type || ''}`,
     business_name: item.business_name || item.document_name || '',
@@ -424,7 +430,7 @@ export default function ManageDocuments(){
                       const matchesSearch = searchQuery === '' ||
                         (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
                         (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (item.name || item.resident_id || '').toLowerCase().includes(searchQuery.toLowerCase())
+                        (item.name || item.full_name || item.resident_id || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
                       return matchesStatus && matchesSearch
                     })
                     .map(it=>(
@@ -435,7 +441,7 @@ export default function ManageDocuments(){
                     >
                       <td>{it.reference_number || it.request_id}</td>
                       <td>{it.document_type || it.document}</td>
-                      <td>{it.name || it.resident_id || '—'}</td>
+                      <td>{it.name || it.full_name || it.resident_id || '—'}</td>
                       <td>{new Date(it.date_requested || Date.now()).toLocaleDateString('en-US')}</td>
                       <td><StatusBadge status={it.status}/></td>
                       <td>
@@ -461,7 +467,7 @@ export default function ManageDocuments(){
                 const matchesSearch = searchQuery === '' ||
                   (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
                   (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (item.name || item.resident_id || '').toLowerCase().includes(searchQuery.toLowerCase())
+                  (item.name || item.full_name || item.resident_id || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
                 return matchesStatus && matchesSearch
               }).length === 0 && (
               <div className="empty-state">No document requests match your search criteria.</div>

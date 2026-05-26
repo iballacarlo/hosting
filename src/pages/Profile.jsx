@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import { useAuth } from '../context/AuthContext'
 import mockApi from '../api/mockApi'
+import api from '../api/axios'
 import InputField from '../components/InputField'
 import Button from '../components/Button'
 
@@ -83,24 +84,26 @@ function formatProfileAddress(raw){
 export default function Profile(){
 
   const { user } = useAuth()
+  const [profileUser, setProfileUser] = useState(user)
 
   const initial = useMemo(() => {
-    const parsed = splitName(user?.name)
-    const first = user?.first_name || user?.firstName || user?.fname || parsed.first
-    const middle = user?.middle_name || user?.middleName || user?.middle || parsed.middle
-    const last = user?.last_name || user?.lastName || user?.lname || parsed.last
-    const suffix = user?.suffix || user?.suf || parsed.suffix
-    const rawAddress = user?.address || user?.location || ''
+    const sourceUser = profileUser || user
+    const parsed = splitName(sourceUser?.name)
+    const first = sourceUser?.first_name || sourceUser?.firstName || sourceUser?.fname || parsed.first
+    const middle = sourceUser?.middle_name || sourceUser?.middleName || sourceUser?.middle || parsed.middle
+    const last = sourceUser?.last_name || sourceUser?.lastName || sourceUser?.lname || parsed.last
+    const suffix = sourceUser?.suffix || sourceUser?.suf || parsed.suffix
+    const rawAddress = sourceUser?.address || sourceUser?.location || ''
     const address = formatProfileAddress(rawAddress)
     return { first, middle, last, suffix, address }
-  }, [user])
+  }, [profileUser, user])
 
   const [first,setFirst] = useState(initial.first)
   const [middle,setMiddle] = useState(initial.middle)
   const [last,setLast] = useState(initial.last)
   const [suffix,setSuffix] = useState(initial.suffix)
   const [address,setAddress] = useState(initial.address)
-  const [email,setEmail] = useState(user?.email || user?.username || mockApi.getCurrentUser()?.email || '')
+  const [email,setEmail] = useState(profileUser?.email || user?.email || user?.username || mockApi.getCurrentUser()?.email || '')
   const [password,setPassword] = useState('********')
   const [passwordDirty,setPasswordDirty] = useState(false)
 
@@ -115,8 +118,31 @@ export default function Profile(){
   }, [initial.first, initial.middle, initial.last, initial.suffix, initial.address, passwordDirty])
 
   React.useEffect(() => {
-    setEmail(user?.email || user?.username || mockApi.getCurrentUser()?.email || '')
+    setEmail(profileUser?.email || user?.email || user?.username || mockApi.getCurrentUser()?.email || '')
+  }, [profileUser, user])
+
+  React.useEffect(() => {
+    setProfileUser(user)
   }, [user])
+
+  React.useEffect(() => {
+    let cancelled = false
+    async function loadProfile(){
+      try {
+        const res = await api.get('/me')
+        if(!cancelled && res.data?.success){
+          setProfileUser(res.data.user)
+        }
+      } catch(err){
+        // Keep context/mock data if live profile fetch is unavailable.
+      }
+    }
+
+    loadProfile()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const [msg,setMsg] = useState('')
   const [saving,setSaving] = useState(false)

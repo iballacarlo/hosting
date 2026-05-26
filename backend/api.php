@@ -68,6 +68,20 @@ function tableExists($pdo, $table){
   return $cache[$table];
 }
 
+function tableColumnExists($pdo, $table, $column){
+  static $cache = [];
+  $key = $table . '.' . $column;
+  if(isset($cache[$key])) return $cache[$key];
+  try {
+    $stmt = $pdo->prepare('SHOW COLUMNS FROM `' . $table . '` LIKE ?');
+    $stmt->execute([$column]);
+    $cache[$key] = (bool)$stmt->fetch();
+  } catch (PDOException $e) {
+    $cache[$key] = false;
+  }
+  return $cache[$key];
+}
+
 function ensurePasswordResetTable($pdo){
   static $ready = false;
   if($ready) return;
@@ -1010,6 +1024,14 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   $newStatus = null;
   if(isset($data['status'])){ $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status']; }
   if(isset($data['processed_by'])){ $fields[] = 'processed_by = ?'; $vals[] = $data['processed_by']; }
+  if(isset($data['name'])){ $fields[] = 'full_name = ?'; $vals[] = $data['name']; }
+  if(isset($data['full_name'])){ $fields[] = 'full_name = ?'; $vals[] = $data['full_name']; }
+  if(isset($data['birthdate'])){ $fields[] = 'birth_date = ?'; $vals[] = $data['birthdate'] ?: null; }
+  if(isset($data['birth_date'])){ $fields[] = 'birth_date = ?'; $vals[] = $data['birth_date'] ?: null; }
+  if(isset($data['address'])){ $fields[] = 'address = ?'; $vals[] = $data['address']; }
+  if(isset($data['document_type'])){ $fields[] = 'document_type = ?'; $vals[] = $data['document_type']; }
+  if(isset($data['purpose'])){ $fields[] = 'purpose = ?'; $vals[] = $data['purpose']; }
+  if(isset($data['business_name']) && tableColumnExists($pdo, 'Document_Request', 'business_name')){ $fields[] = 'business_name = ?'; $vals[] = $data['business_name']; }
   if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update']);
 
   if($statusUpdate){
@@ -1055,6 +1077,17 @@ if(preg_match('#^/notifications/(\d+)/read$#', $uri, $m) && $method === 'POST'){
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
   markNotificationRead($pdo, $user, intval($m[1]));
+  json(['success'=>true]);
+}
+
+// Route: /notifications/mark-read - backwards-compatible single notification read endpoint
+if($uri === '/notifications/mark-read' && $method === 'POST'){
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  $data = json_decode(file_get_contents('php://input'), true);
+  if(empty($data['id'])) json(['success'=>false,'message'=>'Notification id is required'], 400);
+  markNotificationRead($pdo, $user, intval($data['id']));
   json(['success'=>true]);
 }
 

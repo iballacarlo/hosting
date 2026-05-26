@@ -37,7 +37,7 @@ export default function DocumentHistory(){
 
     const reference = String(item.reference_number || item.request_id || item.id || item.numericId || item.ref || '')
     const type = String(item.document_type || item.type || '')
-    const name = String(item.name || item.resident_name || item.resident_id || item.user?.name || item.user?.full_name || '')
+    const name = String(item.name || item.full_name || item.resident_name || item.resident_id || item.user?.name || item.user?.full_name || '')
     const purpose = String(item.purpose || '')
     const status = String(item.status || '')
     const address = String(item.address || '')
@@ -82,17 +82,34 @@ export default function DocumentHistory(){
     const currentUser = authUser || mockApi.getCurrentUser()
     const currentUserId = Number(currentUser?.id ?? currentUser?.user_id ?? currentUser?.userId)
 
-    let mockData = []
-    if(currentUser && (currentUser.role === 'admin' || currentUser.role === 'staff')){
-      mockData = mockApi.listDocs()
-    } else if(currentUser){
-      mockData = mockApi.listDocsByUser(currentUserId)
-    } else {
-      mockData = []
+    async function loadDocuments(){
+      if(!currentUser){
+        setData([])
+        setLoading(false)
+        return
+      }
+
+      try {
+        const res = await api.get('/docs')
+        if(res.data?.success && Array.isArray(res.data.data)){
+          setData(res.data.data)
+          setLoading(false)
+          return
+        }
+        throw new Error(res.data?.message || 'Invalid document response')
+      } catch(err){
+        let mockData = []
+        if(currentUser.role === 'admin' || currentUser.role === 'staff'){
+          mockData = mockApi.listDocs()
+        } else {
+          mockData = mockApi.listDocsByUser(currentUserId)
+        }
+        setData(mockData)
+        setLoading(false)
+      }
     }
 
-    setData(mockData)
-    setLoading(false)
+    loadDocuments()
   }, [authUser, authLoading])
 
   const handleViewDocument = (doc) => {
@@ -173,8 +190,8 @@ export default function DocumentHistory(){
       setEditFormData({
         document_type: selectedDocument.document_type || '',
         purpose: selectedDocument.purpose || '',
-        name: selectedDocument.name || '',
-        birthdate: selectedDocument.birthdate || '',
+        name: selectedDocument.name || selectedDocument.full_name || '',
+        birthdate: selectedDocument.birthdate || selectedDocument.birth_date || '',
         address: selectedDocument.address || '',
         business_name: selectedDocument.business_name || '',
         notes: selectedDocument.notes || ''
@@ -187,7 +204,7 @@ export default function DocumentHistory(){
     setEditFormData(prev => ({...prev, [field]: value}))
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     const currentUser = authUser || mockApi.getCurrentUser()
     if(!currentUser) {
       alert('Not authenticated')
@@ -200,18 +217,28 @@ export default function DocumentHistory(){
       return
     }
 
-    const result = mockApi.updateDoc(selectedDocument.request_id, editFormData, currentUser)
-
-    if(result.success) {
-      const saved = result.data || { ...selectedDocument, ...editFormData }
+    try {
+      await api.patch(`/docs/${selectedDocument.request_id}`, editFormData)
+      const saved = { ...selectedDocument, ...editFormData, full_name: editFormData.name, birth_date: editFormData.birthdate }
       const updatedData = data.map(d => 
         d.request_id === selectedDocument.request_id ? saved : d
       )
       setData(updatedData)
       setSelectedDocument(saved)
       setIsEditingDocument(false)
-    } else {
-      alert(result.message || 'Failed to update document')
+    } catch(err){
+      const result = mockApi.updateDoc(selectedDocument.request_id, editFormData, currentUser)
+      if(result.success) {
+        const saved = result.data || { ...selectedDocument, ...editFormData }
+        const updatedData = data.map(d => 
+          d.request_id === selectedDocument.request_id ? saved : d
+        )
+        setData(updatedData)
+        setSelectedDocument(saved)
+        setIsEditingDocument(false)
+      } else {
+        alert(err?.response?.data?.message || result.message || 'Failed to update document')
+      }
     }
   }
 
@@ -318,7 +345,7 @@ export default function DocumentHistory(){
                     {list.map(d => (
                       <tr key={documentIdToString(getDocumentId(d)) || d.reference_number || d.id}>
                         <td>{d.reference_number}</td>
-                        <td>{d.name || d.resident_id || '—'}</td>
+                        <td>{d.name || d.full_name || d.resident_id || '—'}</td>
                         <td>{d.document_type}</td>
                         <td>{new Date(d.date_requested).toLocaleDateString('en-US')}</td>
                         <td><StatusBadge status={d.status} /></td>
@@ -376,7 +403,7 @@ export default function DocumentHistory(){
 
                     <div className="complaint-detail-row">
                       <span className="detail-label">Resident:</span>
-                      <span className="detail-value">{selectedDocument.name || selectedDocument.resident_id || '—'}</span>
+                      <span className="detail-value">{selectedDocument.name || selectedDocument.full_name || selectedDocument.resident_id || '—'}</span>
                     </div>
 
                     <div className="complaint-detail-row">
@@ -391,7 +418,7 @@ export default function DocumentHistory(){
 
                     <div className="complaint-detail-row">
                       <span className="detail-label">Birthdate:</span>
-                      <span className="detail-value">{selectedDocument.birthdate || '—'}</span>
+                      <span className="detail-value">{selectedDocument.birthdate || selectedDocument.birth_date || '—'}</span>
                     </div>
 
                     <div className="complaint-detail-row">

@@ -157,7 +157,7 @@ export default function Header(){
 
     if(user && user.role){
       try {
-        await api.post('/notifications/mark-read', { id: notificationId })
+        await api.post(`/notifications/${notificationId}/read`)
       } catch (error) {
         mockApi.markNotificationRead(notificationId)
       }
@@ -198,11 +198,18 @@ export default function Header(){
     setSettingsOpen(false)
 
     if(notificationId){
+      const wasUnread = !isNotificationRead(notification)
       setNotifications(prev => prev.map(item => {
         const id = item.id || item.notification_id
         return id === notificationId ? { ...item, read: true, is_read: true } : item
       }))
-      setUnreadCount(count => Math.max(0, count - 1))
+      if(wasUnread){
+        setUnreadCount(count => {
+          const nextCount = Math.max(0, count - 1)
+          setLastSeenUnreadCount(nextCount)
+          return nextCount
+        })
+      }
       markNotificationRead(notificationId)
         .then(() => loadNotifications())
         .catch(() => loadNotifications())
