@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import InputField from '../components/InputField'
 import Button from '../components/Button'
 import { useSettings } from '../context/SettingsContext'
+import api from '../api/axios'
 import '../styles/login.css'
 import Logo from '../assets/Bacoor.png'
 import { addressData } from '../data/addressData'
@@ -37,6 +38,10 @@ export default function Register(){
 
   const [currentStep, setCurrentStep] = useState(0)
   const [err, setErr] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const [otp, setOtp] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [resendSeconds, setResendSeconds] = useState(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const panelRef = useRef(null)
 
@@ -44,7 +49,7 @@ export default function Register(){
     setForm(prev => ({ ...prev, [key]: value }))
   }
 
-  const stepLabels = ['Personal', 'Address', 'Account']
+  const stepLabels = ['Personal', 'Address', 'Account', 'Verify']
 
   function isStepValid(step){
     if(step === 0){
@@ -62,6 +67,10 @@ export default function Register(){
 
     if(step === 2){
       return form.email.trim() && form.password.length >= 6 && form.password === form.confirm
+    }
+
+    if(step === 3){
+      return otp.trim().length === 6
     }
 
     return false
@@ -103,12 +112,25 @@ export default function Register(){
       }
     }
 
+    if(step === 3){
+      if(!otp.trim()){
+        setErr('Registration code is required.')
+        return false
+      }
+
+      if(otp.trim().length !== 6){
+        setErr('Enter the 6-digit registration code.')
+        return false
+      }
+    }
+
     setErr('')
     return true
   }
 
   function canGoToStep(index){
     if(index <= currentStep) return true
+    if(index === 3) return currentStep === 3
     for(let i = 0; i < index; i++){
       if(!isStepValid(i)) return false
     }
@@ -127,32 +149,66 @@ export default function Register(){
 
   const maxBirthdate = useMemo(() => new Date().toISOString().split('T')[0], [])
 
-  async function handle(e){
-    e.preventDefault()
+  function getRegistrationPayload(){
+    const fullAddress = `${form.phase}, ${form.street}, Block ${form.block}, Lot ${form.lot}`
+
+    return {
+      first_name: form.first,
+      middle_name: form.middle,
+      last_name: form.last,
+      suffix: form.suffix || '',
+
+      birth_date: form.birthdate,
+      gender: form.gender,
+      address: fullAddress,
+
+      email: form.email,
+      password: form.password,
+      otp
+    }
+  }
+
+  async function requestRegistrationOtp(){
     setErr('')
+    setSuccessMessage('')
 
     if(!validateStep(0) || !validateStep(1) || !validateStep(2)){
       return
     }
 
-    const fullAddress = `${form.phase}, ${form.street}, Block ${form.block}, Lot ${form.lot}`
+    setLoading(true)
+    try {
+      const res = await api.post('/register-otp', { email: form.email }, { timeout: 45000 })
+      if(res.data?.success){
+        setOtp('')
+        setCurrentStep(3)
+        setSuccessMessage(res.data.message || 'OTP sent to your email.')
+        setResendSeconds(res.data.resend_after || 30)
+      } else {
+        setErr(res.data?.message || 'Failed to send registration code.')
+      }
+    } catch(err){
+      const retryAfter = err.response?.data?.retry_after
+      if(retryAfter) setResendSeconds(retryAfter)
+      setErr(err.response?.data?.message || err.message || 'Failed to send registration code.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
+  async function handle(e){
+    e.preventDefault()
+    setErr('')
+    setSuccessMessage('')
+
+    if(!validateStep(0) || !validateStep(1) || !validateStep(2) || !validateStep(3)){
+      return
+    }
+
+    setLoading(true)
     try {
       // call AuthContext.register so token and user are set on success
-      const result = await register({
-        first_name: form.first,
-        middle_name: form.middle,
-        last_name: form.last,
-        suffix: form.suffix || '',
-
-        birth_date: form.birthdate,
-        gender: form.gender,
-        address: fullAddress,
-
-        email: form.email,
-        password: form.password
-      })
-
+      const result = await register(getRegistrationPayload())
       if(result.ok){
         // registration succeeded and user is signed in; go to resident dashboard
         navigate('/dashboard')
@@ -163,6 +219,8 @@ export default function Register(){
     } catch(err){
       console.error(err)
       setErr(err.response?.data?.message || err.message || 'Server error')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -186,6 +244,15 @@ export default function Register(){
       document.removeEventListener('keydown', onEsc)
     }
   }, [settingsOpen])
+
+  useEffect(() => {
+    if(resendSeconds <= 0) return undefined
+    const timer = window.setInterval(() => {
+      setResendSeconds(seconds => Math.max(0, seconds - 1))
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [resendSeconds])
 
   const fontOptions = useMemo(() => ([
     { key: 'small', label: 'S' },
@@ -303,7 +370,18 @@ export default function Register(){
       </header>
 
       <main className="login-main">
-        <form className="login-card register-card" onSubmit={handle} noValidate>
+        <form
+          className="login-card register-card"
+          onSubmit={(e) => {
+            if(currentStep === 3){
+              handle(e)
+              return
+            }
+            e.preventDefault()
+            if(currentStep === 2) requestRegistrationOtp()
+          }}
+          noValidate
+        >
           <div className="login-body">
             <div className="card-head">
               <h2 className="card-title">Create Account</h2>
@@ -490,7 +568,11 @@ export default function Register(){
                     label="Email *"
                     type="email"
                     value={form.email}
-                    onChange={e => setField('email', e.target.value)}
+                    onChange={e => {
+                      setField('email', e.target.value)
+                      setOtp('')
+                      setSuccessMessage('')
+                    }}
                     placeholder="you@email.com"
                     autoComplete="email"
                   />
@@ -526,7 +608,54 @@ export default function Register(){
                     <Button type="button" variant="secondary" onClick={() => setCurrentStep(1)}>
                       Back
                     </Button>
-                    <Button type="submit">Register</Button>
+                    <Button type="button" onClick={requestRegistrationOtp} disabled={loading}>
+                      {loading ? 'Sending...' : 'Send OTP'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="register-col">
+                  <div className="register-title">
+                    <span className="step-pill">4</span>
+                    Verify Email
+                  </div>
+
+                  <p className="muted" style={{ margin: 0 }}>
+                    Enter the 6-digit OTP sent to {form.email}.
+                  </p>
+
+                  <InputField
+                    label="Registration Code *"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={otp}
+                    onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="Enter 6-digit OTP"
+                    autoComplete="one-time-code"
+                  />
+
+                  {successMessage && <div className="success">{successMessage}</div>}
+                  {err && <div className="error">{err}</div>}
+
+                  <div className="register-actions step-actions">
+                    <Button type="button" variant="secondary" onClick={() => setCurrentStep(2)}>
+                      Back
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={requestRegistrationOtp}
+                      disabled={loading || resendSeconds > 0}
+                    >
+                      {resendSeconds > 0 ? `Resend in ${resendSeconds}s` : 'Resend OTP'}
+                    </Button>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? 'Registering...' : 'Register'}
+                    </Button>
                   </div>
                 </div>
               )}

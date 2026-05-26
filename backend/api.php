@@ -17,6 +17,8 @@ require __DIR__ . '/db.php';
 
 const RESET_OTP_TTL_SECONDS = 900;
 const RESET_OTP_RESEND_SECONDS = 30;
+const REGISTRATION_OTP_TTL_SECONDS = 900;
+const REGISTRATION_OTP_RESEND_SECONDS = 30;
 
 // REQUEST INFO
 $method = $_SERVER['REQUEST_METHOD'];
@@ -86,6 +88,24 @@ function ensurePasswordResetTable($pdo){
   $ready = true;
 }
 
+function ensureRegistrationOtpTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Registration_Otp (
+    otp_id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    last_sent_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_registration_otp_email (email),
+    INDEX idx_registration_otp_expires_at (expires_at)
+  )');
+
+  $ready = true;
+}
+
 function getPasswordReset($pdo, $user){
   ensurePasswordResetTable($pdo);
   $stmt = $pdo->prepare('SELECT * FROM Password_Reset WHERE user_id = ? AND user_role = ? LIMIT 1');
@@ -113,6 +133,31 @@ function deletePasswordResetOtp($pdo, $user){
   $stmt->execute([$user['id'], $user['role']]);
 }
 
+function getRegistrationOtp($pdo, $email){
+  ensureRegistrationOtpTable($pdo);
+  $stmt = $pdo->prepare('SELECT * FROM Registration_Otp WHERE email = ? LIMIT 1');
+  $stmt->execute([strtolower(trim($email))]);
+  return $stmt->fetch();
+}
+
+function upsertRegistrationOtp($pdo, $email, $code){
+  ensureRegistrationOtpTable($pdo);
+  $hash = password_hash($code, PASSWORD_BCRYPT);
+  $stmt = $pdo->prepare('INSERT INTO Registration_Otp (email, otp_hash, expires_at, last_sent_at)
+    VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW())
+    ON DUPLICATE KEY UPDATE
+      otp_hash = VALUES(otp_hash),
+      expires_at = VALUES(expires_at),
+      last_sent_at = VALUES(last_sent_at)');
+  $stmt->execute([strtolower(trim($email)), $hash]);
+}
+
+function deleteRegistrationOtp($pdo, $email){
+  ensureRegistrationOtpTable($pdo);
+  $stmt = $pdo->prepare('DELETE FROM Registration_Otp WHERE email = ?');
+  $stmt->execute([strtolower(trim($email))]);
+}
+
 function secondsUntilOtpCanResend($reset){
   if(!$reset || empty($reset['last_sent_at'])) return 0;
   $lastSent = strtotime($reset['last_sent_at']);
@@ -121,7 +166,7 @@ function secondsUntilOtpCanResend($reset){
   return max(0, RESET_OTP_RESEND_SECONDS - $elapsed);
 }
 
-function sendOtpEmail($toEmail, $code){
+function sendOtpEmail($toEmail, $code, $type = 'password_reset'){
   global $cfg;
 
   $url = trim($cfg['mail_api_url'] ?? '');
@@ -130,15 +175,27 @@ function sendOtpEmail($toEmail, $code){
     throw new Exception('Mail API is not configured. Set MAIL_API_URL and MAIL_API_SECRET in Railway Variables.');
   }
 
+  $isRegistration = $type === 'registration';
+  $subject = $isRegistration
+    ? 'Your Barangay Mambog II registration OTP'
+    : 'Your Barangay Mambog II password reset OTP';
+  $title = $isRegistration ? 'Account Registration Verification' : 'Password Reset Verification';
+  $instruction = $isRegistration
+    ? 'Use this 6-digit OTP to verify your email and finish creating your account:'
+    : 'Use this 6-digit OTP to reset your account password:';
+  $htmlInstruction = $isRegistration
+    ? 'Use this 6-digit OTP to verify your email and finish creating your account.'
+    : 'Use this 6-digit OTP to reset your account password.';
+
   $payload = json_encode([
     'secret' => $secret,
     'to' => $toEmail,
-    'subject' => 'Your Barangay Mambog II password reset OTP',
+    'subject' => $subject,
     'body' => implode("\n", [
       'Barangay Mambog II',
-      'Password Reset Verification',
+      $title,
       '',
-      'Use this 6-digit OTP to reset your account password:',
+      $instruction,
       '',
       $code,
       '',
@@ -153,10 +210,10 @@ function sendOtpEmail($toEmail, $code){
       . '<div style="border:1px solid #dbeafe;border-radius:12px;overflow:hidden;background:#ffffff">'
       . '<div style="background:#2563eb;color:#ffffff;padding:18px 22px">'
       . '<div style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Barangay Mambog II</div>'
-      . '<div style="font-size:22px;font-weight:800;margin-top:4px">Password Reset Verification</div>'
+      . '<div style="font-size:22px;font-weight:800;margin-top:4px">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</div>'
       . '</div>'
       . '<div style="padding:22px">'
-      . '<p style="margin:0 0 14px">Use this 6-digit OTP to reset your account password.</p>'
+      . '<p style="margin:0 0 14px">' . htmlspecialchars($htmlInstruction, ENT_QUOTES, 'UTF-8') . '</p>'
       . '<div style="font-size:34px;font-weight:900;letter-spacing:10px;text-align:center;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px 12px;color:#1d4ed8">'
       . htmlspecialchars($code, ENT_QUOTES, 'UTF-8')
       . '</div>'
@@ -382,21 +439,69 @@ function getUnreadNotificationCount($pdo, $user){
   return $row ? intval($row['c']) : 0;
 }
 
+// Route: /register-otp
+if($uri === '/register-otp' && $method === 'POST'){
+  $data = json_decode(file_get_contents('php://input'), true);
+  if(empty($data['email'])) json(['success'=>false,'message'=>'Email is required'], 400);
+  $email = strtolower(trim($data['email']));
+  if(!filter_var($email, FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address'], 400);
+  if(findUserByEmail($pdo, $email)) json(['success'=>false,'message'=>'Email already registered'], 409);
+
+  $existingOtp = getRegistrationOtp($pdo, $email);
+  $waitSeconds = secondsUntilOtpCanResend($existingOtp);
+  if($waitSeconds > 0){
+    json([
+      'success'=>false,
+      'message'=>'Please wait before requesting another OTP.',
+      'retry_after'=>$waitSeconds
+    ], 429);
+  }
+
+  $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+  try {
+    upsertRegistrationOtp($pdo, $email, $code);
+    sendOtpEmail($email, $code, 'registration');
+  } catch (Exception $e) {
+    deleteRegistrationOtp($pdo, $email);
+    error_log('Registration OTP email failed: ' . $e->getMessage());
+    json(['success'=>false,'message'=>'Unable to send OTP email: '.$e->getMessage()], 502);
+  }
+
+  json([
+    'success'=>true,
+    'message'=>'OTP sent to your email.',
+    'expires_in'=>REGISTRATION_OTP_TTL_SECONDS,
+    'resend_after'=>REGISTRATION_OTP_RESEND_SECONDS
+  ]);
+}
+
 // Route: /register
 if($uri === '/register' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
-  if(empty($data['email']) || empty($data['password'])) json(['success'=>false,'message'=>'Email and password required']);
+  if(empty($data['email']) || empty($data['password']) || empty($data['otp'])) json(['success'=>false,'message'=>'Email, password, and OTP are required'], 400);
+  $email = strtolower(trim($data['email']));
+  if(!filter_var($email, FILTER_VALIDATE_EMAIL)) json(['success'=>false,'message'=>'Enter a valid email address'], 400);
+  if(strlen($data['password']) < 6) json(['success'=>false,'message'=>'Password must be at least 6 characters'], 400);
   // check unique
-  $stmt = $pdo->prepare('SELECT resident_id FROM Resident WHERE email = ?');
-  $stmt->execute([$data['email']]);
-  if($stmt->fetch()) json(['success'=>false,'message'=>'Email already registered']);
+  if(findUserByEmail($pdo, $email)) json(['success'=>false,'message'=>'Email already registered'], 409);
+
+  $registrationOtp = getRegistrationOtp($pdo, $email);
+  if(!$registrationOtp) json(['success'=>false,'message'=>'Please request a registration OTP first'], 400);
+  if(strtotime($registrationOtp['expires_at']) < time()){
+    deleteRegistrationOtp($pdo, $email);
+    json(['success'=>false,'message'=>'Registration code expired. Please request a new OTP.'], 400);
+  }
+  if(!password_verify(trim($data['otp']), $registrationOtp['otp_hash'])) json(['success'=>false,'message'=>'Invalid registration code'], 400);
+
   $hash = password_hash($data['password'], PASSWORD_BCRYPT);
   $stmt = $pdo->prepare('INSERT INTO Resident (first_name, middle_name, last_name, birth_date, gender, address, email, password, account_status, registration_date) VALUES (?,?,?,?,?,?,?,?,?,"Active",NOW())');
-  $stmt->execute([$data['first_name'] ?? '', $data['middle_name'] ?? '', $data['last_name'] ?? '', $data['birth_date'] ?? null, $data['gender'] ?? null, $data['address'] ?? null, $data['email'], $hash]);
+  $stmt->execute([$data['first_name'] ?? '', $data['middle_name'] ?? '', $data['last_name'] ?? '', $data['birth_date'] ?? null, $data['gender'] ?? null, $data['address'] ?? null, $email, $hash]);
   $id = $pdo->lastInsertId();
   $token = bin2hex(random_bytes(16));
   $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $id]);  $residentName = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')) ?: $data['email'];
-  createNotification($pdo, null, 'New resident registration: ' . $residentName, 'registration');  json(['success'=>true,'token'=>$token,'user'=>['id'=>$id,'email'=>$data['email'],'role'=>'resident']]);
+  deleteRegistrationOtp($pdo, $email);
+  createNotification($pdo, null, 'New resident registration: ' . $residentName, 'registration');  json(['success'=>true,'token'=>$token,'user'=>['id'=>$id,'email'=>$email,'role'=>'resident']]);
 }
 
 // Route: /login

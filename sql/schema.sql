@@ -213,6 +213,20 @@ CREATE TABLE IF NOT EXISTS Password_Reset (
 );
 
 
+CREATE TABLE IF NOT EXISTS Registration_Otp (
+  otp_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  email VARCHAR(255) NOT NULL,
+  otp_hash VARCHAR(255) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  last_sent_at DATETIME NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uq_registration_otp_email (email),
+  INDEX idx_registration_otp_expires_at (expires_at)
+);
+
+
 CREATE TABLE IF NOT EXISTS Report_Log (
   report_id INT AUTO_INCREMENT PRIMARY KEY,
 
