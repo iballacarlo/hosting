@@ -143,7 +143,7 @@ function json(payload) {
 
 ```text
 MAIL_API_URL=your_google_apps_script_web_app_url
-MAIL_API_SECRET=change-this-long-random-secret
+MAIL_API_SECRET=BRGY-2026-x9Kp72LmQ4vTz88A
 MAIL_FROM_NAME=Barangay Mambog II
 ```
 

@@ -145,13 +145,27 @@ function sendOtpEmail($toEmail, $code){
       'content' => $payload,
       'timeout' => 12,
       'ignore_errors' => true,
+      'follow_location' => 1,
+      'max_redirects' => 5,
     ],
   ]);
 
   $response = @file_get_contents($url, false, $context);
-  $status = 0;
-  if(!empty($http_response_header) && preg_match('#HTTP/\S+\s+(\d+)#', $http_response_header[0], $m)){
-    $status = intval($m[1]);
+  $status = getLastHttpStatus($http_response_header ?? []);
+  $location = getHttpHeaderValue($http_response_header ?? [], 'Location');
+
+  if($status >= 300 && $status < 400 && $location){
+    $redirectContext = stream_context_create([
+      'http' => [
+        'method' => 'POST',
+        'header' => "Content-Type: application/json\r\n",
+        'content' => $payload,
+        'timeout' => 12,
+        'ignore_errors' => true,
+      ],
+    ]);
+    $response = @file_get_contents($location, false, $redirectContext);
+    $status = getLastHttpStatus($http_response_header ?? []);
   }
 
   $result = json_decode($response ?: '', true);
@@ -163,6 +177,25 @@ function sendOtpEmail($toEmail, $code){
     }
     throw new Exception($message);
   }
+}
+
+function getLastHttpStatus($headers){
+  $status = 0;
+  foreach($headers as $header){
+    if(preg_match('#HTTP/\S+\s+(\d+)#', $header, $m)){
+      $status = intval($m[1]);
+    }
+  }
+  return $status;
+}
+
+function getHttpHeaderValue($headers, $name){
+  foreach($headers as $header){
+    if(stripos($header, $name . ':') === 0){
+      return trim(substr($header, strlen($name) + 1));
+    }
+  }
+  return '';
 }
 
 function findUserByToken($pdo, $token){
