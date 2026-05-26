@@ -983,6 +983,13 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
   if(isset($data['status'])){ $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status']; }
   if(isset($data['assigned_staff_id'])){ $fields[] = 'assigned_staff_id = ?'; $vals[] = $data['assigned_staff_id']; }
   if(isset($data['resolution_notes'])){ $fields[] = 'resolution_notes = ?'; $vals[] = $data['resolution_notes']; }
+  if(isset($data['title'])){ $fields[] = 'title = ?'; $vals[] = $data['title']; }
+  if(isset($data['description'])){ $fields[] = 'description = ?'; $vals[] = $data['description']; }
+  if(isset($data['location'])){ $fields[] = 'incident_location = ?'; $vals[] = $data['location']; }
+  if(isset($data['incident_location'])){ $fields[] = 'incident_location = ?'; $vals[] = $data['incident_location']; }
+  if(isset($data['date'])){ $fields[] = 'incident_date = ?'; $vals[] = $data['date'] ?: null; }
+  if(isset($data['incident_date'])){ $fields[] = 'incident_date = ?'; $vals[] = $data['incident_date'] ?: null; }
+  if(isset($data['category_id'])){ $fields[] = 'category_id = ?'; $vals[] = $data['category_id']; }
   if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update']);
 
   if($statusUpdate){
@@ -1055,19 +1062,25 @@ if($uri === '/docs'){
   }
 }
 
-// Route: /docs/{id} - update document request (admin)
-if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','POST'])){
+// Route: /docs/{id} - update/delete document request
+if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','POST','DELETE'])){
   $token = getBearerToken();
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
   $id = intval($m[1]);
-  $data = json_decode(file_get_contents('php://input'), true);
   $stmt = $pdo->prepare('SELECT resident_id, status, reference_number, document_type FROM Document_Request WHERE request_id = ?');
   $stmt->execute([$id]);
   $request = $stmt->fetch();
   if(!$request) json(['success'=>false,'message'=>'Document request not found'], 404);
-
   $isOwner = $user['role'] !== 'staff' && intval($request['resident_id']) === intval($user['id']);
+
+  if($method === 'DELETE'){
+    if($user['role'] !== 'staff' && !$isOwner) json(['success'=>false,'message'=>'Forbidden']);
+    $pdo->prepare('DELETE FROM Document_Request WHERE request_id = ?')->execute([$id]);
+    json(['success'=>true]);
+  }
+
+  $data = json_decode(file_get_contents('php://input'), true);
   $residentMarksReceived = $isOwner
     && count($data) === 1
     && isset($data['status'])
@@ -1095,10 +1108,14 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   if($statusUpdate){
     if($request && !empty($request['resident_id'])){
       $label = trim($request['document_type'] ?: $request['reference_number'] ?: 'Document request');
-      $message = $newStatus === 'Released'
-        ? 'Your document request "' . $label . '" has been released and is ready for pickup at the barangay.'
-        : 'Your document request "' . $label . '" status is now ' . $newStatus . '.';
-      createNotification($pdo, intval($request['resident_id']), $message, 'document_status');
+      if(strcasecmp($newStatus, 'Received') === 0){
+        createNotification($pdo, null, 'Document request "' . $label . '" has been marked as received by the resident.', 'document_received');
+      } else {
+        $message = strcasecmp($newStatus, 'Released') === 0
+          ? 'Your document request "' . $label . '" has been released and is ready for pickup at the barangay.'
+          : 'Your document request "' . $label . '" status is now ' . $newStatus . '.';
+        createNotification($pdo, intval($request['resident_id']), $message, 'document_status');
+      }
     }
   }
 

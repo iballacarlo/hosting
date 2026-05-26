@@ -3,7 +3,6 @@ import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import '../styles/history.css'
 import api from '../api/axios'
-import mockApi from '../api/mockApi'
 import StatusBadge from '../components/StatusBadge'
 import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
@@ -24,7 +23,7 @@ export default function DocumentHistory(){
   const deleteConfirmRef = useRef(null)
   const receivedConfirmRef = useRef(null)
   const { user: authUser, loading: authLoading } = useAuth()
-  const currentUser = authUser || mockApi.getCurrentUser()
+  const currentUser = authUser
   const maxBirthdate = new Date().toISOString().split('T')[0]
 
   const list = data.filter(item => {
@@ -79,8 +78,7 @@ export default function DocumentHistory(){
   useEffect(() => {
     if(authLoading) return
 
-    const currentUser = authUser || mockApi.getCurrentUser()
-    const currentUserId = Number(currentUser?.id ?? currentUser?.user_id ?? currentUser?.userId)
+    const currentUser = authUser
 
     async function loadDocuments(){
       if(!currentUser){
@@ -98,13 +96,7 @@ export default function DocumentHistory(){
         }
         throw new Error(res.data?.message || 'Invalid document response')
       } catch(err){
-        let mockData = []
-        if(currentUser.role === 'admin' || currentUser.role === 'staff'){
-          mockData = mockApi.listDocs()
-        } else {
-          mockData = mockApi.listDocsByUser(currentUserId)
-        }
-        setData(mockData)
+        setData([])
         setLoading(false)
       }
     }
@@ -145,9 +137,9 @@ export default function DocumentHistory(){
     setDeleteConfirmModal({show: true, docId, doc})
   }
 
-  const confirmDeleteDocument = () => {
+  const confirmDeleteDocument = async () => {
     const { docId, doc: modalDoc } = deleteConfirmModal
-    const currentUser = authUser || mockApi.getCurrentUser()
+    const currentUser = authUser
     if(!currentUser) return
     
     const docToDelete = modalDoc || data.find(item => documentIdToString(getDocumentId(item)) === documentIdToString(docId))
@@ -156,20 +148,12 @@ export default function DocumentHistory(){
     const documentIdToDelete = getDocumentId(docToDelete)
     if(!documentIdToDelete) return
 
-    const result = mockApi.deleteDoc(documentIdToDelete, currentUser)
-    
-    if(result.success){
-      const currentUserId = Number(currentUser?.id ?? currentUser?.user_id ?? currentUser?.userId)
-      let updatedData = []
-      if(currentUser && (currentUser.role === 'admin' || currentUser.role === 'staff')){
-        updatedData = mockApi.listDocs()
-      } else if(currentUser){
-        updatedData = mockApi.listDocsByUser(currentUserId)
-      }
-      setData(updatedData.filter(item => item !== docToDelete && documentIdToString(getDocumentId(item)) !== documentIdToString(documentIdToDelete)))
+    try {
+      await api.delete(`/docs/${documentIdToDelete}`)
+      setData(prev => prev.filter(item => documentIdToString(getDocumentId(item)) !== documentIdToString(documentIdToDelete)))
       setSelectedDocument(null)
-    } else {
-      alert(result.message || 'Failed to delete document')
+    } catch(err){
+      alert(err?.response?.data?.message || 'Failed to delete document')
     }
     
     setDeleteConfirmModal({show: false, docId: null, doc: null})
@@ -205,7 +189,7 @@ export default function DocumentHistory(){
   }
 
   const handleSaveEdit = async () => {
-    const currentUser = authUser || mockApi.getCurrentUser()
+    const currentUser = authUser
     if(!currentUser) {
       alert('Not authenticated')
       return
@@ -227,18 +211,7 @@ export default function DocumentHistory(){
       setSelectedDocument(saved)
       setIsEditingDocument(false)
     } catch(err){
-      const result = mockApi.updateDoc(selectedDocument.request_id, editFormData, currentUser)
-      if(result.success) {
-        const saved = result.data || { ...selectedDocument, ...editFormData }
-        const updatedData = data.map(d => 
-          d.request_id === selectedDocument.request_id ? saved : d
-        )
-        setData(updatedData)
-        setSelectedDocument(saved)
-        setIsEditingDocument(false)
-      } else {
-        alert(err?.response?.data?.message || result.message || 'Failed to update document')
-      }
+      alert(err?.response?.data?.message || 'Failed to update document')
     }
   }
 
@@ -252,7 +225,7 @@ export default function DocumentHistory(){
   }
 
   const handleMarkReceived = async () => {
-    const currentUser = authUser || mockApi.getCurrentUser()
+    const currentUser = authUser
     if(!currentUser){
       alert('Not authenticated')
       setReceivedConfirmModal({show: false})
@@ -273,28 +246,9 @@ export default function DocumentHistory(){
       setData(updatedData)
       setSelectedDocument(saved)
 
-      try{
-        mockApi.notifyAdmins({
-          message: `Document ${saved.reference_number || saved.request_id} was marked as Received by ${currentUser.name || currentUser.email || 'a user'}`,
-          category: 'document_received',
-          data: { request_id: saved.request_id }
-        })
-      } catch(e){
-        // ignore notification failure in mock
-        console.warn('notifyAdmins failed', e)
-      }
-
       setReceivedConfirmModal({show: false})
     } catch(err){
-      const result = mockApi.updateDocStatus(selectedDocument.request_id, 'Received')
-      if(result.success){
-        const saved = result.data
-        const updatedData = data.map(d => d.request_id === selectedDocument.request_id ? saved : d)
-        setData(updatedData)
-        setSelectedDocument(saved)
-      } else {
-        alert(err?.response?.data?.message || result.message || 'Failed to mark as received')
-      }
+      alert(err?.response?.data?.message || 'Failed to mark as received')
       setReceivedConfirmModal({show: false})
     }
   }

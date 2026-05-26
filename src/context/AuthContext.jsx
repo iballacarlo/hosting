@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import api from '../api/axios'
-import mockApi from '../api/mockApi'
 
 const AuthContext = createContext()
 

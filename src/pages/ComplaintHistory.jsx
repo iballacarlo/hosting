@@ -4,7 +4,6 @@ import Header from '../components/Header'
 import StatusBadge from '../components/StatusBadge'
 import '../styles/history.css'
 import api from '../api/axios'
-import mockApi from '../api/mockApi'
 import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 
@@ -14,7 +13,6 @@ export default function ComplaintHistory(){
   const [q, setQ] = useState('')
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
-  const [useBackend, setUseBackend] = useState(true)
   const [selectedComplaint, setSelectedComplaint] = useState(null)
   const [selectedComplaintMedia, setSelectedComplaintMedia] = useState([])
   const [expandedMediaPreview, setExpandedMediaPreview] = useState(null)
@@ -27,7 +25,7 @@ export default function ComplaintHistory(){
   const expandedMediaPreviewRef = useRef(null)
   const deleteConfirmRef = useRef(null)
   const { user: authUser, loading: authLoading } = useAuth()
-  const currentUser = authUser || mockApi.getCurrentUser()
+  const currentUser = authUser
 
   const getOwnerId = (item) => {
     if(!item) return null
@@ -60,8 +58,7 @@ export default function ComplaintHistory(){
   useEffect(() => {
     if(authLoading) return
 
-    const currentUser = authUser || mockApi.getCurrentUser()
-    const currentUserId = Number(currentUser?.id ?? currentUser?.user_id ?? currentUser?.userId)
+    const currentUser = authUser
 
     const loadComplaints = async () => {
       if(!currentUser){
@@ -70,28 +67,16 @@ export default function ComplaintHistory(){
         return
       }
 
-      const isAdminOrStaff = currentUser.role === 'admin' || currentUser.role === 'staff'
-      if(!isAdminOrStaff){
-        const mockData = mockApi.listComplaintsByUser(currentUserId)
-        setData(mockData)
-        setUseBackend(false)
-        setLoading(false)
-        return
-      }
-
       try {
         const res = await api.get('/complaints')
         if(res?.data?.success && Array.isArray(res.data.data)){
           setData(res.data.data)
-          setUseBackend(true)
           setLoading(false)
           return
         }
         throw new Error(res?.data?.message || 'Invalid complaints response')
       } catch(err) {
-        const mockData = mockApi.listComplaints()
-        setData(mockData)
-        setUseBackend(false)
+        setData([])
         if(err && err.message){
           console.log('Complaint backend unavailable, using local mock data:', err.message)
         }
@@ -203,7 +188,7 @@ export default function ComplaintHistory(){
 
   const confirmDeleteComplaint = async () => {
     const { complaintId, complaint: modalComplaint } = deleteConfirmModal
-    const currentUser = authUser || mockApi.getCurrentUser()
+    const currentUser = authUser
     if(!currentUser) return
 
     const complaintToDelete = modalComplaint || data.find(item => complaintIdToString(getComplaintId(item)) === complaintIdToString(complaintId))
@@ -212,44 +197,12 @@ export default function ComplaintHistory(){
     const complaintIdToDelete = getComplaintId(complaintToDelete)
     if(!complaintIdToDelete) return
 
-    let result = { success: false, message: 'Unable to delete complaint' }
-    let attemptedBackend = false
-    const isAdminOrStaff = currentUser.role === 'admin' || currentUser.role === 'staff'
-
-    if(useBackend && isAdminOrStaff){
-      try {
-        const res = await api.delete(`/complaints/${complaintIdToDelete}`)
-        attemptedBackend = true
-        if(res?.data?.success){
-          result = { success: true }
-        } else {
-          result = { success: false, message: res?.data?.message || 'Failed to delete complaint' }
-        }
-      } catch(err) {
-        attemptedBackend = true
-        result = { success: false, message: err.response?.data?.message || err.message || 'Failed to delete complaint' }
-      }
-
-      if(!result.success){
-        result = mockApi.deleteComplaint(complaintIdToDelete, currentUser)
-      }
-    } else {
-      result = mockApi.deleteComplaint(complaintIdToDelete, currentUser)
-    }
-
-    if(result.success){
-      if(attemptedBackend){
-        try {
-          mockApi.deleteComplaint(complaintIdToDelete, currentUser)
-        } catch {}
-      }
+    try {
+      await api.delete(`/complaints/${complaintIdToDelete}`)
       setData(prevData => prevData.filter(item => item !== complaintToDelete && complaintIdToString(getComplaintId(item)) !== complaintIdToString(complaintIdToDelete)))
       setSelectedComplaint(null)
-      try {
-        localStorage.setItem('complaint_sync', Date.now().toString())
-      } catch {}
-    } else {
-      alert(result.message || 'Failed to delete complaint')
+    } catch(err){
+      alert(err?.response?.data?.message || 'Failed to delete complaint')
     }
 
     setDeleteConfirmModal({show: false, complaintId: null, complaint: null})
@@ -282,8 +235,8 @@ export default function ComplaintHistory(){
     setEditFormData(prev => ({...prev, [field]: value}))
   }
 
-  const handleSaveEdit = () => {
-    const currentUser = authUser || mockApi.getCurrentUser()
+  const handleSaveEdit = async () => {
+    const currentUser = authUser
     if(!currentUser) {
       alert('Not authenticated')
       return
@@ -294,10 +247,15 @@ export default function ComplaintHistory(){
       return
     }
 
-    const result = mockApi.updateComplaint(selectedComplaint.complaint_id, editFormData, currentUser)
-
-    if(result.success) {
-      const saved = result.data || { ...selectedComplaint, ...editFormData }
+    try {
+      await api.patch(`/complaints/${selectedComplaint.complaint_id}`, {
+        title: editFormData.title,
+        description: editFormData.description,
+        location: editFormData.location,
+        incident_date: editFormData.date,
+        category_id: editFormData.category
+      })
+      const saved = { ...selectedComplaint, ...editFormData, incident_location: editFormData.location, incident_date: editFormData.date }
       const updatedData = data.map(c => 
         c.complaint_id === selectedComplaint.complaint_id ? saved : c
       )
@@ -306,8 +264,8 @@ export default function ComplaintHistory(){
       setSelectedComplaintMedia(normalizeComplaintMedia(saved.images))
       setEditMediaPreviews(normalizeComplaintMedia(saved.images))
       setIsEditingComplaint(false)
-    } else {
-      alert(result.message || 'Failed to update complaint')
+    } catch(err){
+      alert(err?.response?.data?.message || 'Failed to update complaint')
     }
   }
 

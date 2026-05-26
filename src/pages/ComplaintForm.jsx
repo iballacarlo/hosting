@@ -6,7 +6,6 @@ import InputField from '../components/InputField'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import '../styles/form.css'
 import api from '../api/axios'
-import mockApi from '../api/mockApi'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
@@ -65,7 +64,13 @@ export default function ComplaintForm(){
   const nav = useNavigate()
 
   useEffect(() => {
-    setCategories(mockApi.listCategories())
+    setCategories([
+      { id: 1, category_id: 1, name: 'Noise Complaint', category_name: 'Noise Complaint' },
+      { id: 2, category_id: 2, name: 'Garbage Collection', category_name: 'Garbage Collection' },
+      { id: 3, category_id: 3, name: 'Road/Drainage Issue', category_name: 'Road/Drainage Issue' },
+      { id: 4, category_id: 4, name: 'Peace and Order', category_name: 'Peace and Order' },
+      { id: 5, category_id: 5, name: 'Other', category_name: 'Other' },
+    ])
   }, [])
 
   function setField(key, value){
@@ -166,44 +171,18 @@ export default function ComplaintForm(){
   }
 
   async function submitToApi(){
-    try {
-      const residentName = form.resident_name || ''
-
-      // Use mock API to ensure all data is stored properly
-      const result = mockApi.addComplaint({
-        category: form.category,
-        title: form.title,
-        description: form.description,
-        location: form.location,
-        date: form.date ? formatMmDdYyyy(form.date) : '',
-        anonymous: form.anonymous,
-        images: normalizeUploadedMedia(form.images),
-        resident_name: residentName,
-        respondent_name: form.respondent_name,
-        userId: user?.id
-      })
-      
-      // Also try to send to real backend for redundancy
-      try {
-        const payload = {
-          category_id: form.category,
-          title: form.title,
-          description: form.description,
-          incident_location: form.location,
-          incident_date: form.date ? formatMmDdYyyy(form.date) : '',
-          anonymous: form.anonymous,
-          respondent_name: form.respondent_name,
-          resident_name: residentName
-        }
-        await api.post('/complaints', payload)
-      } catch(err) {
-        console.log('Real API unavailable, but complaint saved to local storage')
-      }
-      
-      return { data: { success: true, data: result } }
-    } catch(err) {
-      throw err
+    const residentName = form.resident_name || ''
+    const payload = {
+      category_id: form.category,
+      title: form.title,
+      description: form.description,
+      incident_location: form.location,
+      incident_date: form.date || '',
+      anonymous: form.anonymous,
+      respondent_name: form.respondent_name,
+      resident_name: residentName
     }
+    return api.post('/complaints', payload)
   }
 
   async function handleSubmit(e){

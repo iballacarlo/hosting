@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useSettings } from '../context/SettingsContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
-import mockApi from '../api/mockApi'
 import './header.css'
 
 export default function Header(){
@@ -54,33 +53,26 @@ export default function Header(){
   const isNotificationRead = (notification) => notification?.is_read ?? notification?.read ?? false
 
   async function loadNotifications(){
-    const currentUser = user || mockApi.getCurrentUser()
-    if(!currentUser){
+    if(!user){
       setNotifications([])
       setUnreadCount(0)
       return 0
     }
 
-    if(user && user.role){
-      try {
-        const res = await api.get('/notifications')
-        if(res.data && res.data.success){
-          const list = Array.isArray(res.data.data) ? res.data.data : []
-          const count = list.filter(notification => !isNotificationRead(notification)).length
-          setNotifications(list)
-          setUnreadCount(count)
-          return count
-        }
-      } catch (error) {
-        // Fallback to mock notifications if backend is unavailable.
+    try {
+      const res = await api.get('/notifications')
+      if(res.data && res.data.success){
+        const list = Array.isArray(res.data.data) ? res.data.data : []
+        const count = list.filter(notification => !isNotificationRead(notification)).length
+        setNotifications(list)
+        setUnreadCount(count)
+        return count
       }
+    } catch (error) {
+      setNotifications([])
+      setUnreadCount(0)
     }
-
-    const list = mockApi.listNotificationsByUser(currentUser)
-    const count = mockApi.getUnreadNotificationCount(currentUser)
-    setNotifications(list)
-    setUnreadCount(count)
-    return count
+    return 0
   }
 
   useEffect(() => {
@@ -92,7 +84,7 @@ export default function Header(){
     init()
 
     const handleStorage = (e) => {
-      if(!e.key || e.key === 'mock_notifications' || e.key === 'mock_complaints'){
+      if(!e.key){
         loadNotifications()
       }
     }
@@ -135,40 +127,26 @@ export default function Header(){
   }
 
   async function markAllAsRead(){
-    const currentUser = user || mockApi.getCurrentUser()
-    if(!currentUser) return
+    if(!user) return
 
-    if(user && user.role){
-      try {
-        await api.post('/notifications/mark-all-read')
-      } catch (error) {
-        mockApi.markAllNotificationsRead(currentUser)
-      }
-    } else {
-      mockApi.markAllNotificationsRead(currentUser)
-    }
+    try {
+      await api.post('/notifications/mark-all-read')
+    } catch (error) {}
 
     await loadNotifications()
   }
 
   async function markNotificationRead(notificationId){
-    const currentUser = user || mockApi.getCurrentUser()
-    if(!currentUser) return
+    if(!user) return
 
-    if(user && user.role){
-      try {
-        await api.post(`/notifications/${notificationId}/read`)
-      } catch (error) {
-        mockApi.markNotificationRead(notificationId)
-      }
-    } else {
-      mockApi.markNotificationRead(notificationId)
-    }
+    try {
+      await api.post(`/notifications/${notificationId}/read`)
+    } catch (error) {}
   }
 
   async function handleNotificationClick(notification){
     const notificationId = notification.id || notification.notification_id
-    const currentUser = user || mockApi.getCurrentUser()
+    const currentUser = user
     const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'staff'
     const payload = notification.data || {}
     const rawCategory = String(notification.category || notification.type || payload.category || payload.type || '').toLowerCase()
@@ -274,14 +252,7 @@ export default function Header(){
     user?.username ||
     user?.user_email ||
     user?.email_address ||
-    mockApi.getCurrentUser()?.email ||
-    (() => {
-      try {
-        return JSON.parse(localStorage.getItem('mock_current_user') || '{}')?.email || ''
-      } catch {
-        return ''
-      }
-    })()
+    ''
 
   const nameParts = parseName(user || {})
   const fullName = [nameParts.first, nameParts.middle, nameParts.last, nameParts.suffix]

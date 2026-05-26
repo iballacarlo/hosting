@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import Button from '../components/Button'
 import '../styles/dashboard.css'
-import mockApi from '../api/mockApi'
+import api from '../api/axios'
 import {
   BarChart3,
   Download,
@@ -36,13 +36,13 @@ export default function AdminReports(){
     async function loadData(){
       setLoading(true)
       try{
-        // prefer backend when available (keeps parity with other pages)
-        // attempt to fetch complaints/docs via mockApi (fast, local)
-        const c = mockApi.listComplaints()
-        const d = mockApi.listDocs()
+        const [complaintsRes, docsRes] = await Promise.all([
+          api.get('/complaints'),
+          api.get('/docs')
+        ])
         if(!isMounted) return
-        setComplaints(Array.isArray(c) ? c : [])
-        setDocs(Array.isArray(d) ? d : [])
+        setComplaints(Array.isArray(complaintsRes.data?.data) ? complaintsRes.data.data : [])
+        setDocs(Array.isArray(docsRes.data?.data) ? docsRes.data.data : [])
       }catch(e){
         setComplaints([])
         setDocs([])

@@ -7,7 +7,6 @@ import StatusBadge from '../components/StatusBadge'
 import '../styles/history.css'
 import '../styles/form.css'
 import api from '../api/axios'
-import mockApi from '../api/mockApi'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import BacoorLogo from '../assets/Bacoor.png'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
@@ -76,15 +75,10 @@ export default function ManageDocuments(){
 
   async function submitRequest(){
     try{
-      mockApi.addDoc({
-        type: requestType,
-        document_type: requestType,
-        purpose: `Request for ${requestType}`
-      })
       await api.post('/docs', {
         document_type: requestType,
         purpose: `Request for ${requestType}`
-      }).catch(() => {})
+      })
 
       load()
       alert(`${requestType} request submitted`)
@@ -356,11 +350,11 @@ export default function ManageDocuments(){
 
   const handleFinalizeRequest = async () => {
     if(!processingRequest) return
-    mockApi.updateDocStatus(processingRequest.request_id, 'Released')
     try {
       await api.put(`/docs/${processingRequest.request_id}`, { status: 'Released' })
-    } catch {
-      // Best-effort; continue with local state
+    } catch(err) {
+      alert('Failed to release document: ' + (err?.response?.data?.message || err.message))
+      return
     }
     load()
     setProcessingRequest(null)

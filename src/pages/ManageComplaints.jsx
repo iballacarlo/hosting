@@ -5,7 +5,7 @@ import Header from '../components/Header'
 import StatusBadge from '../components/StatusBadge'
 import Button from '../components/Button'
 import '../styles/history.css'
-import mockApi from '../api/mockApi'
+import api from '../api/axios'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 
@@ -26,11 +26,17 @@ export default function ManageComplaints(){
     setError(null)
 
     try{
-      setItems(mockApi.listComplaints())
+      const res = await api.get('/complaints')
+      if(res.data?.success && Array.isArray(res.data.data)){
+        setItems(res.data.data)
+      } else {
+        throw new Error(res.data?.message || 'Invalid complaints response')
+      }
     }catch(err){
       setItems([])
+      setError(err?.response?.data?.message || err?.message || 'Failed to load complaints')
       if(err && err.message){
-        console.log('Failed to load local complaints:', err.message)
+        console.log('Failed to load complaints:', err.message)
       }
     }
 
@@ -39,13 +45,8 @@ export default function ManageComplaints(){
 
   useEffect(() => {
     load()
-    const handleStorage = (e) => {
-      if(!e.key || e.key === 'mock_complaints' || e.key === 'mock_notifications' || e.key === 'complaint_sync'){
-        load()
-      }
-    }
-    window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
+    const interval = window.setInterval(load, 5000)
+    return () => window.clearInterval(interval)
   }, [load])
 
   useEffect(() => {
@@ -74,11 +75,7 @@ export default function ManageComplaints(){
     if(!status || status === item.status) return
 
     try{
-      const result = mockApi.updateComplaintStatus(id, status)
-      if(!result.success) throw new Error(result.message || 'Failed to update status')
-      try {
-        localStorage.setItem('complaint_sync', Date.now().toString())
-      } catch {}
+      await api.patch(`/complaints/${id}`, { status })
       load()
     }catch(err){
       alert('Update failed: ' + (err?.message || 'Unknown error'))
@@ -88,11 +85,7 @@ export default function ManageComplaints(){
   async function confirmChangeStatus(id, status){
     try{
       setSelectedForStatus(prev => ({ ...prev, loading: true }))
-      const result = mockApi.updateComplaintStatus(id, status)
-      if(!result.success) throw new Error(result.message || 'Failed to update status')
-      try {
-        localStorage.setItem('complaint_sync', Date.now().toString())
-      } catch {}
+      await api.patch(`/complaints/${id}`, { status })
       setSelectedForStatus(null)
       load()
     }catch(err){

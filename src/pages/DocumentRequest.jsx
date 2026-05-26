@@ -5,7 +5,6 @@ import Header from '../components/Header'
 import Button from '../components/Button'
 import '../styles/form.css'
 import api from '../api/axios'
-import mockApi from '../api/mockApi'
 import { useAuth } from '../context/AuthContext'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { addressData } from '../data/addressData'
@@ -80,11 +79,7 @@ export default function DocumentRequest(){
   const { user } = useAuth()
 
   useEffect(() => {
-    const statuses = mockApi.getDocumentStatuses()
-    setDocumentStatuses(statuses)
-    if (statuses[type] === 'disabled') {
-      setType(getFirstEnabledDocType(statuses))
-    }
+    setDocumentStatuses({})
   }, [])
 
   useEffect(() => {
@@ -146,36 +141,14 @@ export default function DocumentRequest(){
   }
 
   async function submitToApi(){
-    try {
-      // Use mock API to ensure all data is stored properly
-      const formattedAddress = `${phase}, ${street}, Block ${block}, Lot ${lot}`
-      const result = mockApi.addDoc({
-        userId: user?.id,
-        type: type,
-        document_type: type,
-        name,
-        birthdate: birthdate ? formatMmDdYyyy(birthdate) : '',
-        address: formattedAddress,
-        purpose: purpose
-      })
-      
-      // Also try to send to real backend for redundancy
-      try {
-        await api.post('/docs', {
-          name,
-          birthdate,
-          address: formattedAddress,
-          document_type: type,
-          purpose
-        })
-      } catch(err) {
-        console.log('Real API unavailable, but document saved to local storage')
-      }
-      
-      return { data: { success: true, data: result } }
-    } catch(err) {
-      throw err
-    }
+    const formattedAddress = `${phase}, ${street}, Block ${block}, Lot ${lot}`
+    return api.post('/docs', {
+      name,
+      birthdate,
+      address: formattedAddress,
+      document_type: type,
+      purpose
+    })
   }
 
   async function handleSubmit(){

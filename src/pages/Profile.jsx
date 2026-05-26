@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import { useAuth } from '../context/AuthContext'
-import mockApi from '../api/mockApi'
 import api from '../api/axios'
 import InputField from '../components/InputField'
 import Button from '../components/Button'
@@ -103,7 +102,7 @@ export default function Profile(){
   const [last,setLast] = useState(initial.last)
   const [suffix,setSuffix] = useState(initial.suffix)
   const [address,setAddress] = useState(initial.address)
-  const [email,setEmail] = useState(profileUser?.email || user?.email || user?.username || mockApi.getCurrentUser()?.email || '')
+  const [email,setEmail] = useState(profileUser?.email || user?.email || user?.username || '')
   const [password,setPassword] = useState('********')
   const [passwordDirty,setPasswordDirty] = useState(false)
 
@@ -118,7 +117,7 @@ export default function Profile(){
   }, [initial.first, initial.middle, initial.last, initial.suffix, initial.address, passwordDirty])
 
   React.useEffect(() => {
-    setEmail(profileUser?.email || user?.email || user?.username || mockApi.getCurrentUser()?.email || '')
+    setEmail(profileUser?.email || user?.email || user?.username || '')
   }, [profileUser, user])
 
   React.useEffect(() => {
