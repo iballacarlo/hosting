@@ -369,13 +369,19 @@ html.high-contrast{
 html.font-medium .login-auth-shell .login-main,
 html.font-large .login-auth-shell .login-main,
 html.font-xlarge .login-auth-shell .login-main{
-  padding-bottom:200px;
+  padding-bottom:64px;
 }
 
 html.font-medium .login-auth-shell .login-info,
 html.font-large .login-auth-shell .login-info,
 html.font-xlarge .login-auth-shell .login-info{
   padding-bottom:48px;
+}
+
+html.font-medium .login-auth-shell .login-card,
+html.font-large .login-auth-shell .login-card,
+html.font-xlarge .login-auth-shell .login-card{
+  margin-bottom:48px;
 }
 
 .login-layout{
