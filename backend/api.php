@@ -819,17 +819,25 @@ function findUserByToken($pdo, $token){
   if(!$token) return null;
   // check residents
   if(tableExists($pdo, 'Resident')){
-    $stmt = $pdo->prepare('SELECT resident_id as id, first_name, middle_name, last_name, birth_date, address, email, "resident" as role FROM Resident WHERE api_token = ?');
+    $stmt = $pdo->prepare('SELECT resident_id as id, first_name, middle_name, last_name, birth_date, address, email, account_status, suspension_end_date, "resident" as role FROM Resident WHERE api_token = ?');
     $stmt->execute([$token]);
     $r = $stmt->fetch();
-    if($r) return $r;
+    if($r){
+      $restriction = getAccountRestriction($pdo, 'Resident', 'resident_id', $r['id'], $r['account_status'] ?? '', $r['suspension_end_date'] ?? null);
+      if($restriction) return null;
+      return $r;
+    }
   }
   // check staff
   if(tableExists($pdo, 'Staff')){
-    $stmt = $pdo->prepare('SELECT staff_id as id, full_name as first_name, email, "staff" as role FROM Staff WHERE api_token = ?');
+    $stmt = $pdo->prepare('SELECT staff_id as id, full_name as first_name, email, account_status, suspension_end_date, "staff" as role FROM Staff WHERE api_token = ?');
     $stmt->execute([$token]);
     $s = $stmt->fetch();
-    if($s) return $s;
+    if($s){
+      $restriction = getAccountRestriction($pdo, 'Staff', 'staff_id', $s['id'], $s['account_status'] ?? '', $s['suspension_end_date'] ?? null);
+      if($restriction) return null;
+      return $s;
+    }
   }
   return null;
 }
@@ -837,15 +845,38 @@ function findUserByToken($pdo, $token){
 function findUserByEmail($pdo, $email){
   if(!$email) return null;
   if(tableExists($pdo, 'Resident')){
-    $stmt = $pdo->prepare('SELECT resident_id AS id, first_name, last_name, email, password, api_token, "resident" AS role FROM Resident WHERE email = ?');
+    $stmt = $pdo->prepare('SELECT resident_id AS id, first_name, last_name, email, password, api_token, account_status, suspension_end_date, "resident" AS role FROM Resident WHERE email = ?');
     $stmt->execute([$email]);
     $r = $stmt->fetch();
     if($r) return $r;
   }
   if(tableExists($pdo, 'Staff')){
-    $stmt = $pdo->prepare('SELECT staff_id AS id, full_name AS first_name, email, password, api_token, "staff" AS role FROM Staff WHERE email = ?');
+    $stmt = $pdo->prepare('SELECT staff_id AS id, full_name AS first_name, email, password, api_token, account_status, suspension_end_date, "staff" AS role FROM Staff WHERE email = ?');
     $stmt->execute([$email]);
     return $stmt->fetch();
+  }
+  return null;
+}
+
+function getAccountRestriction($pdo, $table, $keyColumn, $id, $status, $suspensionEndDate){
+  $accountStatus = trim($status ?? '');
+  if(strcasecmp($accountStatus, 'Banned') === 0){
+    return ['status'=>'Banned','message'=>'Your account has been banned. Please contact the barangay for assistance.'];
+  }
+  if(strcasecmp($accountStatus, 'Suspended') === 0){
+    $now = new DateTime('now');
+    if(!empty(trim($suspensionEndDate ?? ''))){
+      $end = DateTime::createFromFormat('Y-m-d', $suspensionEndDate);
+      if($end){
+        $end->setTime(23, 59, 59);
+      }
+      if($end && $end >= $now){
+        return ['status'=>'Suspended','message'=>'Your account is suspended until '.$end->format('F j, Y').'.','suspension_end_date'=>$suspensionEndDate];
+      }
+      $pdo->prepare("UPDATE {$table} SET account_status = ?, suspension_end_date = NULL WHERE {$keyColumn} = ?")->execute(['Active', $id]);
+      return null;
+    }
+    return ['status'=>'Suspended','message'=>'Your account is suspended. Please contact the barangay for assistance.'];
   }
   return null;
 }
@@ -879,21 +910,7 @@ function restoreTestAccounts($pdo){
     return;
   }
 
-  if(tableExists($pdo, 'Staff')){
-    $adminEmail = 'admin@gmail.com';
-    $adminPass = '123';
-    $stmt = $pdo->prepare('SELECT staff_id FROM Staff WHERE email = ?');
-    $stmt->execute([$adminEmail]);
-    $admin = $stmt->fetch();
-    $adminHash = password_hash($adminPass, PASSWORD_BCRYPT);
-    if($admin){
-      $pdo->prepare('UPDATE Staff SET full_name = ?, role = ?, password = ?, account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')
-        ->execute(['Admin', 'Admin', $adminHash, 'Active', $admin['staff_id']]);
-    } else {
-      $pdo->prepare('INSERT INTO Staff (full_name, role, email, password, account_status) VALUES (?, ?, ?, ?, ?)')
-        ->execute(['Admin', 'Admin', $adminEmail, $adminHash, 'Active']);
-    }
-  }
+  restoreAdminAccount($pdo);
 
   $resEmail = 'carlo@gmail.com';
   $resPass = '123';
@@ -1046,8 +1063,8 @@ if($uri === '/login' && $method === 'POST'){
       'retry_after'=>$loginWaitSeconds
     ], 429);
   }
-  if(in_array($loginIdentifier, ['admin@gmail.com', 'carlo@gmail.com'], true)){
-    restoreTestAccounts($pdo);
+  if($loginIdentifier === 'admin@gmail.com'){
+    restoreAdminAccount($pdo);
   }
   // try staff
   if(tableExists($pdo, 'Staff')){
@@ -1055,24 +1072,9 @@ if($uri === '/login' && $method === 'POST'){
     $stmt->execute([$loginIdentifier]);
     $s = $stmt->fetch();
     if($s && password_verify($data['password'], $s['password'])){
-      $now = new DateTime('now');
-      $staffStatus = trim($s['account_status'] ?? '');
-      if(strcasecmp($staffStatus, 'Banned') === 0){
-        json(['success'=>false,'message'=>'Your account has been banned. Please contact the barangay for assistance.','status'=>'Banned']);
-      }
-      if(strcasecmp($staffStatus, 'Suspended') === 0){
-        if(!empty(trim($s['suspension_end_date'] ?? ''))){
-          $end = DateTime::createFromFormat('Y-m-d', $s['suspension_end_date']);
-          if($end){
-            $end->setTime(23, 59, 59);
-          }
-          if($end && $end >= $now){
-            json(['success'=>false,'message'=>'Your account is suspended until '.$end->format('F j, Y').'.','status'=>'Suspended','suspension_end_date'=>$s['suspension_end_date']]);
-          }
-          $pdo->prepare('UPDATE Staff SET account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')->execute(['Active', $s['staff_id']]);
-        } else {
-          json(['success'=>false,'message'=>'Your account is suspended. Please contact the barangay for assistance.','status'=>'Suspended']);
-        }
+      $restriction = getAccountRestriction($pdo, 'Staff', 'staff_id', $s['staff_id'], $s['account_status'] ?? '', $s['suspension_end_date'] ?? null);
+      if($restriction){
+        json(array_merge(['success'=>false], $restriction));
       }
       $token = bin2hex(random_bytes(16));
       $pdo->prepare('UPDATE Staff SET api_token = ? WHERE staff_id = ?')->execute([$token, $s['staff_id']]);
@@ -1086,27 +1088,9 @@ if($uri === '/login' && $method === 'POST'){
     $stmt->execute([$loginIdentifier]);
     $r = $stmt->fetch();
     if($r && password_verify($data['password'], $r['password'])){
-      $now = new DateTime('now');
-      $accountStatus = trim($r['account_status'] ?? '');
-      if(strcasecmp($accountStatus, 'Banned') === 0){
-        json(['success'=>false,'message'=>'Your account has been banned. Please contact the barangay for assistance.','status'=>'Banned']);
-      }
-      if(strcasecmp($accountStatus, 'Suspended') === 0){
-        if(!empty(trim($r['suspension_end_date'] ?? ''))){
-          $end = DateTime::createFromFormat('Y-m-d', $r['suspension_end_date']);
-          if($end){
-            $end->setTime(23, 59, 59);
-          }
-          if($end && $end >= $now){
-            json(['success'=>false,'message'=>'Your account is suspended until '.$end->format('F j, Y').'.','status'=>'Suspended','suspension_end_date'=>$r['suspension_end_date']]);
-          }
-          // suspension expired; automatically reactivate
-          $pdo->prepare('UPDATE Resident SET account_status = ?, suspension_end_date = NULL WHERE resident_id = ?')->execute(['Active', $r['resident_id']]);
-          $r['account_status'] = 'Active';
-          $r['suspension_end_date'] = null;
-        } else {
-          json(['success'=>false,'message'=>'Your account is suspended. Please contact the barangay for assistance.','status'=>'Suspended']);
-        }
+      $restriction = getAccountRestriction($pdo, 'Resident', 'resident_id', $r['resident_id'], $r['account_status'] ?? '', $r['suspension_end_date'] ?? null);
+      if($restriction){
+        json(array_merge(['success'=>false], $restriction));
       }
       $token = bin2hex(random_bytes(16));
       $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $r['resident_id']]);
@@ -1140,26 +1124,9 @@ if($uri === '/me' && $method === 'GET'){
       $user['account_status'] = $details['account_status'];
       $user['suspension_end_date'] = $details['suspension_end_date'];
     }
-    $accountStatus = trim($user['account_status'] ?? '');
-    if(strcasecmp($accountStatus, 'Banned') === 0){
-      json(['success'=>false,'message'=>'Your account has been banned. Please contact the barangay for assistance.','status'=>'Banned']);
-    }
-    if(strcasecmp($accountStatus, 'Suspended') === 0){
-      $now = new DateTime('now');
-      if(!empty(trim($user['suspension_end_date'] ?? ''))){
-        $end = DateTime::createFromFormat('Y-m-d', $user['suspension_end_date']);
-        if($end){
-          $end->setTime(23, 59, 59);
-        }
-        if($end && $end >= $now){
-          json(['success'=>false,'message'=>'Your account is suspended until '.$end->format('F j, Y').'.','status'=>'Suspended','suspension_end_date'=>$user['suspension_end_date']]);
-        }
-        $pdo->prepare("UPDATE {$table} SET account_status = ?, suspension_end_date = NULL WHERE {$key} = ?")->execute(['Active', $user['id']]);
-        $user['account_status'] = 'Active';
-        $user['suspension_end_date'] = null;
-      } else {
-        json(['success'=>false,'message'=>'Your account is suspended. Please contact the barangay for assistance.','status'=>'Suspended']);
-      }
+    $restriction = getAccountRestriction($pdo, $table, $key, $user['id'], $user['account_status'] ?? '', $user['suspension_end_date'] ?? null);
+    if($restriction){
+      json(array_merge(['success'=>false], $restriction));
     }
   }
   json(['success'=>true,'user'=>$user]);
@@ -1345,6 +1312,26 @@ if($uri === '/categories'){
 
     $stmt = $pdo->query('SELECT category_id, category_name, description FROM Category ORDER BY ' . categoryOrderSql());
     json(['success'=>true,'data'=>$stmt->fetchAll()]);
+  }
+}
+
+function restoreAdminAccount($pdo){
+  if(!tableExists($pdo, 'Staff')){
+    return;
+  }
+
+  $adminEmail = 'admin@gmail.com';
+  $adminPass = '123';
+  $stmt = $pdo->prepare('SELECT staff_id FROM Staff WHERE email = ?');
+  $stmt->execute([$adminEmail]);
+  $admin = $stmt->fetch();
+  $adminHash = password_hash($adminPass, PASSWORD_BCRYPT);
+  if($admin){
+    $pdo->prepare('UPDATE Staff SET full_name = ?, role = ?, password = ?, account_status = ?, suspension_end_date = NULL WHERE staff_id = ?')
+      ->execute(['Admin', 'Admin', $adminHash, 'Active', $admin['staff_id']]);
+  } else {
+    $pdo->prepare('INSERT INTO Staff (full_name, role, email, password, account_status) VALUES (?, ?, ?, ?, ?)')
+      ->execute(['Admin', 'Admin', $adminEmail, $adminHash, 'Active']);
   }
 }
 
@@ -1745,15 +1732,22 @@ if(preg_match('#^/residents/(\d+)$#', $uri, $m) && in_array($method, ['PATCH','P
   $fields = [];
   $vals = [];
   if(isset($data['account_status'])){
+    $status = trim($data['account_status']);
+    if(!in_array($status, ['Active', 'Suspended', 'Banned'], true)){
+      json(['success'=>false,'message'=>'Invalid account status'], 400);
+    }
     $fields[] = 'account_status = ?';
-    $vals[] = $data['account_status'];
-    if(strcasecmp($data['account_status'], 'Suspended') !== 0){
+    $vals[] = $status;
+    if(strcasecmp($status, 'Suspended') !== 0){
       $fields[] = 'suspension_end_date = NULL';
+    }
+    if(strcasecmp($status, 'Active') !== 0){
+      $fields[] = 'api_token = NULL';
     }
   }
   if(isset($data['first_name'])){ $fields[] = 'first_name = ?'; $vals[] = $data['first_name']; }
   if(isset($data['last_name'])){ $fields[] = 'last_name = ?'; $vals[] = $data['last_name']; }
-  if(isset($data['suspension_end_date'])){ $fields[] = 'suspension_end_date = ?'; $vals[] = $data['suspension_end_date']; }
+  if(isset($data['suspension_end_date'])){ $fields[] = 'suspension_end_date = ?'; $vals[] = $data['suspension_end_date'] ?: null; }
   if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update']);
   $vals[] = $id;
   $sql = 'UPDATE Resident SET '.implode(', ', $fields).' WHERE resident_id = ?';
