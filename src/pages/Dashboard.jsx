@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import StatusBadge from '../components/StatusBadge'
-import mockApi from '../api/mockApi'
+import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import '../styles/dashboard.css'
 
@@ -12,34 +12,46 @@ export default function Dashboard(){
   const [complaints, setComplaints] = useState([])
   const [docs, setDocs] = useState([])
   const { user: authUser, loading: authLoading } = useAuth()
-  const currentUser = authUser || mockApi.getCurrentUser() || JSON.parse(localStorage.getItem('mock_current_user') || 'null')
-  const currentUserId = Number(currentUser?.id ?? currentUser?.user_id ?? currentUser?.userId)
-
-  const refreshData = () => {
-    if(Number.isNaN(currentUserId) || currentUserId === null) {
-      setComplaints([])
-      setDocs([])
-      return
-    }
-
-    const allComplaints = mockApi.listComplaints()
-    const allDocs = mockApi.listDocs()
-    setComplaints(allComplaints.filter(c => Number(c.userId ?? c.resident_id ?? c.user_id ?? c.residentId) === currentUserId))
-    setDocs(allDocs.filter(d => Number(d.userId ?? d.resident_id ?? d.user_id ?? d.residentId) === currentUserId))
-  }
 
   useEffect(() => {
+    if(authLoading) return undefined
+
+    let cancelled = false
+
+    async function refreshData(){
+      try {
+        const [complaintsRes, docsRes] = await Promise.all([
+          api.get('/complaints'),
+          api.get('/docs')
+        ])
+
+        if(cancelled) return
+        setComplaints(Array.isArray(complaintsRes.data?.data) ? complaintsRes.data.data : [])
+        setDocs(Array.isArray(docsRes.data?.data) ? docsRes.data.data : [])
+      } catch(err){
+        if(!cancelled){
+          console.error('Failed to load resident dashboard data:', err)
+          setComplaints([])
+          setDocs([])
+        }
+      }
+    }
+
     refreshData()
-    const interval = setInterval(refreshData, 5000) // Refresh every 5 seconds
-    return () => clearInterval(interval)
-  }, [currentUser?.id])
+    const interval = window.setInterval(refreshData, 5000)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+    }
+  }, [authLoading, authUser?.id])
 
 
   const totalComplaints = complaints.length
 
   const activeComplaints = complaints.filter(c => {
     const status = (c.status || '').toLowerCase()
-    return !['resolved', 'approved', 'closed', 'rejected', 'completed'].some(term => status.includes(term))
+    return !['resolved', 'closed', 'rejected', 'completed'].some(term => status.includes(term))
   }).length
 
   const totalDocs = docs.length

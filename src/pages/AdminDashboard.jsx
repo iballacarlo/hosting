@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
-import mockApi from '../api/mockApi'
+import api from '../api/axios'
 import StatusBadge from '../components/StatusBadge'
 import '../styles/dashboard.css'
 
@@ -19,16 +19,49 @@ import {
 
 export default function AdminDashboard(){
   const navigate = useNavigate()
+  const [complaints, setComplaints] = useState([])
+  const [docs, setDocs] = useState([])
+  const [residents, setResidents] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const complaints = mockApi.listComplaints()
-  const docs = mockApi.listDocs()
-  const users = JSON.parse(localStorage.getItem('mock_users') || '[]')
+  useEffect(() => {
+    let cancelled = false
 
-  const totalResidents = users.length
+    async function loadDashboardData(){
+      try {
+        const [complaintsRes, docsRes, residentsRes] = await Promise.all([
+          api.get('/complaints'),
+          api.get('/docs'),
+          api.get('/residents')
+        ])
+
+        if(cancelled) return
+        setComplaints(Array.isArray(complaintsRes.data?.data) ? complaintsRes.data.data : [])
+        setDocs(Array.isArray(docsRes.data?.data) ? docsRes.data.data : [])
+        setResidents(Array.isArray(residentsRes.data?.data) ? residentsRes.data.data : [])
+      } catch(err){
+        if(!cancelled){
+          console.error('Failed to load admin dashboard data:', err)
+        }
+      } finally {
+        if(!cancelled) setLoading(false)
+      }
+    }
+
+    loadDashboardData()
+    const interval = window.setInterval(loadDashboardData, 5000)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+    }
+  }, [])
+
+  const totalResidents = residents.length
   const totalComplaints = complaints.length
 
   const pendingComplaints = complaints.filter(c =>
-    (c.status||'').toLowerCase().includes('pend')
+    ['pending', 'submitted', 'open'].some(term => (c.status||'').toLowerCase().includes(term))
   ).length
 
   const resolvedComplaints = complaints.filter(c =>
@@ -38,7 +71,7 @@ export default function AdminDashboard(){
   const totalDocs = docs.length
 
   const pendingDocs = docs.filter(d =>
-    (d.status||'').toLowerCase().includes('pend')
+    ['pending', 'submitted'].some(term => (d.status||'').toLowerCase().includes(term))
   ).length
 
   const approvedDocs = docs.filter(d =>
@@ -78,17 +111,15 @@ export default function AdminDashboard(){
     return '⚪'
   }
 
-  const userHistory = complaints.slice(0, 3).map(c => ({
-    complaint: c.title || c.category || `C-${c.complaint_id}`,
-    statusText: `${c.status || 'Pending'} ${getStatusEmoji(c.status)}`
-  }))
-
   const recentActivity = [...complaints,...docs]
     .map(item => ({
       ...item,
-      type: item.request_id ? 'Document' : 'Complaint'
+      type: item.request_id ? 'Document' : 'Complaint',
+      ref: item.reference_number || item.ref || item.complaint_id || item.request_id || item.id,
+      category: item.document_type || item.category || item.title || item.type || 'Request',
+      date: item.date_requested || item.date_submitted || item.date || item.created_at
     }))
-    .sort((a,b)=> new Date(b.date || b.date_requested || b.created_at || 0) - new Date(a.date || a.date_requested || a.created_at || 0))
+    .sort((a,b)=> new Date(b.date || 0) - new Date(a.date || 0))
     .slice(0,5)
 
   const handleViewActivity = (item) => {

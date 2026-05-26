@@ -964,8 +964,20 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && $method === 'DELETE'){
 // Route: /docs GET/POST
 if($uri === '/docs'){
   if($method === 'GET'){
-    $stmt = $pdo->query('SELECT * FROM Document_Request ORDER BY date_requested DESC LIMIT 200');
-    json(['success'=>true,'data'=>$stmt->fetchAll()]);
+    $token = getBearerToken();
+    $user = findUserByToken($pdo, $token);
+    if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+
+    if($user['role'] === 'staff'){
+      $stmt = $pdo->query('SELECT * FROM Document_Request ORDER BY date_requested DESC LIMIT 200');
+      $rows = $stmt->fetchAll();
+    } else {
+      $stmt = $pdo->prepare('SELECT * FROM Document_Request WHERE resident_id = ? ORDER BY date_requested DESC LIMIT 200');
+      $stmt->execute([$user['id']]);
+      $rows = $stmt->fetchAll();
+    }
+
+    json(['success'=>true,'data'=>$rows]);
   }
   if($method === 'POST'){
     $token = getBearerToken();
