@@ -142,7 +142,8 @@ function sendSmtpCommand($socket, $command, $expectCodes){
 
 function sendOtpEmail($toEmail, $code){
   $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-  $smtpPort = intval(getenv('SMTP_PORT') ?: 587);
+  $smtpPort = intval(getenv('SMTP_PORT') ?: 465);
+  $smtpSecure = strtolower(getenv('SMTP_SECURE') ?: ($smtpPort === 465 ? 'ssl' : 'tls'));
   $smtpUser = getenv('SMTP_USER') ?: 'brgy.mambog.ii@gmail.com';
   $smtpPass = getenv('SMTP_PASS') ?: '';
   $fromEmail = getenv('SMTP_FROM') ?: $smtpUser;
@@ -152,9 +153,10 @@ function sendOtpEmail($toEmail, $code){
     throw new Exception('SMTP_PASS is not configured');
   }
 
-  $socket = fsockopen($smtpHost, $smtpPort, $errno, $errstr, 20);
+  $socketHost = $smtpSecure === 'ssl' ? 'ssl://' . $smtpHost : $smtpHost;
+  $socket = fsockopen($socketHost, $smtpPort, $errno, $errstr, 20);
   if(!$socket){
-    throw new Exception('Unable to connect to SMTP server: ' . $errstr);
+    throw new Exception('Unable to connect to SMTP server (' . $smtpHost . ':' . $smtpPort . '): ' . $errstr);
   }
 
   stream_set_timeout($socket, 20);
@@ -162,13 +164,16 @@ function sendOtpEmail($toEmail, $code){
   try {
     sendSmtpCommand($socket, null, ['220']);
     sendSmtpCommand($socket, 'EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'), ['250']);
-    sendSmtpCommand($socket, 'STARTTLS', ['220']);
 
-    if(!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)){
-      throw new Exception('Unable to start SMTP TLS');
+    if($smtpSecure === 'tls'){
+      sendSmtpCommand($socket, 'STARTTLS', ['220']);
+
+      if(!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)){
+        throw new Exception('Unable to start SMTP TLS');
+      }
+
+      sendSmtpCommand($socket, 'EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'), ['250']);
     }
-
-    sendSmtpCommand($socket, 'EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'), ['250']);
     sendSmtpCommand($socket, 'AUTH LOGIN', ['334']);
     sendSmtpCommand($socket, base64_encode($smtpUser), ['334']);
     sendSmtpCommand($socket, base64_encode($smtpPass), ['235']);
