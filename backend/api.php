@@ -134,7 +134,38 @@ function sendOtpEmail($toEmail, $code){
     'secret' => $secret,
     'to' => $toEmail,
     'subject' => 'Your Barangay Mambog II password reset OTP',
-    'body' => "Hello,\n\nYour password reset OTP is: {$code}\n\nThis code expires in 15 minutes. If you did not request this, you can ignore this email.\n\nBarangay Mambog II",
+    'body' => implode("\n", [
+      'Barangay Mambog II',
+      'Password Reset Verification',
+      '',
+      'Use this 6-digit OTP to reset your account password:',
+      '',
+      $code,
+      '',
+      'This code expires in 15 minutes.',
+      'For your security, do not share this code with anyone.',
+      '',
+      'If you did not request a password reset, you can safely ignore this email.',
+      '',
+      'Barangay Mambog II Service & Complaint Management System',
+    ]),
+    'htmlBody' => '<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#111827;line-height:1.55">'
+      . '<div style="border:1px solid #dbeafe;border-radius:12px;overflow:hidden;background:#ffffff">'
+      . '<div style="background:#2563eb;color:#ffffff;padding:18px 22px">'
+      . '<div style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Barangay Mambog II</div>'
+      . '<div style="font-size:22px;font-weight:800;margin-top:4px">Password Reset Verification</div>'
+      . '</div>'
+      . '<div style="padding:22px">'
+      . '<p style="margin:0 0 14px">Use this 6-digit OTP to reset your account password.</p>'
+      . '<div style="font-size:34px;font-weight:900;letter-spacing:10px;text-align:center;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px 12px;color:#1d4ed8">'
+      . htmlspecialchars($code, ENT_QUOTES, 'UTF-8')
+      . '</div>'
+      . '<p style="margin:18px 0 0;color:#374151">This code expires in <strong>15 minutes</strong>. For your security, do not share this code with anyone.</p>'
+      . '<p style="margin:14px 0 0;color:#6b7280;font-size:14px">If you did not request a password reset, you can safely ignore this email.</p>'
+      . '</div>'
+      . '</div>'
+      . '<p style="margin:14px 0 0;text-align:center;color:#6b7280;font-size:12px">Barangay Mambog II Service &amp; Complaint Management System</p>'
+      . '</div>',
     'fromName' => $cfg['mail_from_name'] ?? 'Barangay Mambog II',
   ]);
 

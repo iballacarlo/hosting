@@ -109,6 +109,7 @@ export default function ForgotPassword(){
     const e = {}
     if(!email.trim()) e.email = 'Email is required'
     if(!token.trim()) e.token = 'Reset code is required'
+    if(token.trim() && token.trim().length !== 6) e.token = 'Enter the 6-digit reset code'
     if(!password.trim()) e.password = 'Password is required'
     if(!confirmPassword.trim()) e.confirmPassword = 'Confirm password is required'
     if(password && confirmPassword && password !== confirmPassword) e.confirmPassword = 'Passwords do not match'
@@ -143,6 +144,63 @@ export default function ForgotPassword(){
     } finally {
       setLoading(false)
     }
+  }
+
+  function setOtpValue(value){
+    setToken(String(value || '').replace(/\D/g, '').slice(0, 6))
+  }
+
+  function handleOtpChange(index, value){
+    const digits = String(value || '').replace(/\D/g, '')
+    if(!digits){
+      const next = token.split('')
+      next[index] = ''
+      setOtpValue(next.join(''))
+      return
+    }
+
+    const next = token.padEnd(6, ' ').split('')
+    digits.split('').forEach((digit, offset) => {
+      if(index + offset < 6) next[index + offset] = digit
+    })
+    const updated = next.join('').replace(/\s/g, '')
+    setOtpValue(updated)
+
+    const nextIndex = Math.min(index + digits.length, 5)
+    window.requestAnimationFrame(() => {
+      document.getElementById(`otp-${nextIndex}`)?.focus()
+    })
+  }
+
+  function handleOtpKeyDown(index, e){
+    if(e.key === 'Backspace' && !token[index] && index > 0){
+      e.preventDefault()
+      document.getElementById(`otp-${index - 1}`)?.focus()
+      const next = token.split('')
+      next[index - 1] = ''
+      setOtpValue(next.join(''))
+    }
+
+    if(e.key === 'ArrowLeft' && index > 0){
+      e.preventDefault()
+      document.getElementById(`otp-${index - 1}`)?.focus()
+    }
+
+    if(e.key === 'ArrowRight' && index < 5){
+      e.preventDefault()
+      document.getElementById(`otp-${index + 1}`)?.focus()
+    }
+  }
+
+  function handleOtpPaste(e){
+    const pasted = e.clipboardData.getData('text')
+    const digits = pasted.replace(/\D/g, '').slice(0, 6)
+    if(!digits) return
+    e.preventDefault()
+    setOtpValue(digits)
+    window.requestAnimationFrame(() => {
+      document.getElementById(`otp-${Math.min(digits.length, 6) - 1}`)?.focus()
+    })
   }
 
   async function handleRequestReset(e){
@@ -388,15 +446,32 @@ export default function ForgotPassword(){
                   disabled
                 />
 
-                <InputField
-                  label="Reset Code"
-                  type="text"
-                  value={token}
-                  onChange={e => setToken(e.target.value)}
-                  error={errors.token}
-                  placeholder="Enter the code you received"
-                  autoComplete="off"
-                />
+                <div className={`otp-group ${errors.token ? 'has-error' : ''}`}>
+                  <label className="field-label" htmlFor="otp-0">Reset Code</label>
+
+                  <div className="otp-inputs" onPaste={handleOtpPaste}>
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <input
+                        key={index}
+                        id={`otp-${index}`}
+                        className="otp-input"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                        enterKeyHint="next"
+                        maxLength={1}
+                        value={token[index] || ''}
+                        aria-label={`Reset code digit ${index + 1}`}
+                        onChange={e => handleOtpChange(index, e.target.value)}
+                        onKeyDown={e => handleOtpKeyDown(index, e)}
+                        onFocus={e => e.target.select()}
+                      />
+                    ))}
+                  </div>
+
+                  {errors.token && <div className="error otp-error">{errors.token}</div>}
+                </div>
 
                 <InputField
                   label="New Password"

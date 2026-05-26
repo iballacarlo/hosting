@@ -118,6 +118,7 @@ function doPost(e) {
       to: data.to,
       subject: data.subject,
       body: data.body,
+      htmlBody: data.htmlBody || data.body,
       name: data.fromName || 'Barangay Mambog II'
     });
 

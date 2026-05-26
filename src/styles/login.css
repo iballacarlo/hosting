@@ -583,6 +583,49 @@ html.dark .login-card .showbtn:hover{
   font-weight:800;
 }
 
+.otp-group{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.otp-inputs{
+  display:grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap:10px;
+  width:100%;
+}
+
+.otp-input{
+  width:100%;
+  aspect-ratio:1;
+  min-height:54px;
+  border:1px solid var(--border-color);
+  border-radius:14px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  text-align:center;
+  font-size:1.35rem;
+  font-weight:900;
+  line-height:1;
+  outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .15s ease;
+}
+
+.otp-input:focus{
+  border-color: var(--primary-color);
+  box-shadow:0 0 0 4px var(--primary-soft);
+  transform:translateY(-1px);
+}
+
+.otp-group.has-error .otp-input{
+  border-color: color-mix(in srgb, var(--danger-color) 55%, transparent);
+}
+
+.otp-error{
+  margin-top:4px;
+}
+
 .muted{
   color: var(--muted-color);
   font-size:0.95rem;
@@ -1036,6 +1079,16 @@ html.high-contrast .switch input:checked + .slider{
   .login-card{
     padding:22px;
     border-radius:20px;
+  }
+
+  .otp-inputs{
+    gap:6px;
+  }
+
+  .otp-input{
+    min-height:44px;
+    border-radius:12px;
+    font-size:1.1rem;
   }
 
   .settings-panel{
