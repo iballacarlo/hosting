@@ -251,7 +251,7 @@ export default function DocumentHistory(){
     setReceivedConfirmModal({show: true})
   }
 
-  const handleMarkReceived = () => {
+  const handleMarkReceived = async () => {
     const currentUser = authUser || mockApi.getCurrentUser()
     if(!currentUser){
       alert('Not authenticated')
@@ -266,9 +266,9 @@ export default function DocumentHistory(){
       return
     }
 
-    const result = mockApi.updateDocStatus(selectedDocument.request_id, 'Received')
-    if(result.success){
-      const saved = result.data
+    try {
+      await api.patch(`/docs/${selectedDocument.request_id}`, { status: 'Received' })
+      const saved = { ...selectedDocument, status: 'Received' }
       const updatedData = data.map(d => d.request_id === selectedDocument.request_id ? saved : d)
       setData(updatedData)
       setSelectedDocument(saved)
@@ -285,8 +285,16 @@ export default function DocumentHistory(){
       }
 
       setReceivedConfirmModal({show: false})
-    } else {
-      alert(result.message || 'Failed to mark as received')
+    } catch(err){
+      const result = mockApi.updateDocStatus(selectedDocument.request_id, 'Received')
+      if(result.success){
+        const saved = result.data
+        const updatedData = data.map(d => d.request_id === selectedDocument.request_id ? saved : d)
+        setData(updatedData)
+        setSelectedDocument(saved)
+      } else {
+        alert(err?.response?.data?.message || result.message || 'Failed to mark as received')
+      }
       setReceivedConfirmModal({show: false})
     }
   }

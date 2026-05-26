@@ -191,6 +191,8 @@ export default function Profile(){
         return
       }
 
+      setPasswordDirty(false)
+      setPassword('********')
       setMsg('Saved successfully.')
     }catch(err){
       setMsg('Network error.')

@@ -105,45 +105,20 @@ export function AuthProvider({ children }){
   }
 
   async function updateProfile(data){
-    // data: { name, first_name, middle_name, last_name, suffix, address?, password? }
-    // Try backend first (existing app used /profile_update.php)
     try{
-      const res = await fetch('/profile_update.php',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'include',
-        body: JSON.stringify(data)
-      })
-
-      if(res.ok){
-        try{
-          const json = await res.json()
-          if(json && json.success && json.user){
-            setUser(json.user)
-            return { ok:true }
-          }
-        }catch{}
-        // If backend returned non-JSON or no user, still update local state
-        const merged = { ...user, ...data }
-        setUser(merged)
+      const res = await api.patch('/profile', data)
+      if(res.data?.success){
+        if(res.data.user){
+          setUser(res.data.user)
+        } else {
+          setUser(prev => ({ ...prev, ...data }))
+        }
         return { ok:true }
       }
-    }catch(e){
-      // network error -> fallback to mock
+      return { ok:false, message: res.data?.message || 'Failed to update profile' }
+    }catch(err){
+      return { ok:false, message: err?.response?.data?.message || err.message || 'Failed to update profile' }
     }
-
-    // Fallback to mock API (localStorage)
-    if(user?.id){
-      const updated = mockApi.updateUser(user.id, {
-        ...data
-      })
-      if(updated){
-        setUser(updated)
-        return { ok:true }
-      }
-    }
-
-    return { ok:false, message: 'Failed to update profile' }
   }
 
   return (

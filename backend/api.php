@@ -817,6 +817,51 @@ if($uri === '/me' && $method === 'GET'){
   json(['success'=>true,'user'=>$user]);
 }
 
+// Route: /profile - update current user profile/password
+if($uri === '/profile' && in_array($method, ['PATCH', 'PUT', 'POST'])){
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+
+  $data = json_decode(file_get_contents('php://input'), true) ?: [];
+  $fields = [];
+  $vals = [];
+
+  if($user['role'] === 'staff'){
+    $name = trim($data['name'] ?? (($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')));
+    if($name !== ''){
+      $fields[] = 'full_name = ?';
+      $vals[] = $name;
+    }
+    if(isset($data['password']) && trim($data['password']) !== ''){
+      $passwordError = validateStrongPassword($data['password']);
+      if($passwordError) json(['success'=>false,'message'=>$passwordError], 400);
+      $fields[] = 'password = ?';
+      $vals[] = password_hash($data['password'], PASSWORD_BCRYPT);
+    }
+    if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update'], 400);
+    $vals[] = $user['id'];
+    $pdo->prepare('UPDATE Staff SET ' . implode(', ', $fields) . ' WHERE staff_id = ?')->execute($vals);
+  } else {
+    if(isset($data['first_name'])){ $fields[] = 'first_name = ?'; $vals[] = trim($data['first_name']); }
+    if(isset($data['middle_name'])){ $fields[] = 'middle_name = ?'; $vals[] = trim($data['middle_name']); }
+    if(isset($data['last_name'])){ $fields[] = 'last_name = ?'; $vals[] = trim($data['last_name']); }
+    if(isset($data['address'])){ $fields[] = 'address = ?'; $vals[] = trim($data['address']); }
+    if(isset($data['password']) && trim($data['password']) !== ''){
+      $passwordError = validateStrongPassword($data['password']);
+      if($passwordError) json(['success'=>false,'message'=>$passwordError], 400);
+      $fields[] = 'password = ?';
+      $vals[] = password_hash($data['password'], PASSWORD_BCRYPT);
+    }
+    if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update'], 400);
+    $vals[] = $user['id'];
+    $pdo->prepare('UPDATE Resident SET ' . implode(', ', $fields) . ' WHERE resident_id = ?')->execute($vals);
+  }
+
+  $updated = findUserByToken($pdo, $token);
+  json(['success'=>true,'user'=>$updated]);
+}
+
 // Route: /forgot-password
 if($uri === '/forgot-password' && $method === 'POST'){
   $data = json_decode(file_get_contents('php://input'), true);
@@ -1015,9 +1060,22 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   $token = getBearerToken();
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
-  if($user['role'] !== 'staff') json(['success'=>false,'message'=>'Forbidden']);
   $id = intval($m[1]);
   $data = json_decode(file_get_contents('php://input'), true);
+  $stmt = $pdo->prepare('SELECT resident_id, status, reference_number, document_type FROM Document_Request WHERE request_id = ?');
+  $stmt->execute([$id]);
+  $request = $stmt->fetch();
+  if(!$request) json(['success'=>false,'message'=>'Document request not found'], 404);
+
+  $isOwner = $user['role'] !== 'staff' && intval($request['resident_id']) === intval($user['id']);
+  $residentMarksReceived = $isOwner
+    && count($data) === 1
+    && isset($data['status'])
+    && strcasecmp($data['status'], 'Received') === 0
+    && strcasecmp($request['status'] ?? '', 'Released') === 0;
+
+  if($user['role'] !== 'staff' && !$residentMarksReceived) json(['success'=>false,'message'=>'Forbidden']);
+
   $fields = [];
   $vals = [];
   $statusUpdate = false;
@@ -1035,9 +1093,6 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update']);
 
   if($statusUpdate){
-    $stmt = $pdo->prepare('SELECT resident_id, reference_number, document_type FROM Document_Request WHERE request_id = ?');
-    $stmt->execute([$id]);
-    $request = $stmt->fetch();
     if($request && !empty($request['resident_id'])){
       $label = trim($request['document_type'] ?: $request['reference_number'] ?: 'Document request');
       $message = $newStatus === 'Released'
