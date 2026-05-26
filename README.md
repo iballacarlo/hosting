@@ -91,7 +91,7 @@ Password reset OTP email:
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=brgy.mambog.ii@gmail.com
-SMTP_PASS=icgo ivis conp gudt
+SMTP_PASS=icgoivisconpgudt
 SMTP_FROM=brgy.mambog.ii@gmail.com
 SMTP_FROM_NAME=Barangay Mambog II
 ```

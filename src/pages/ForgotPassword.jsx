@@ -84,7 +84,7 @@ export default function ForgotPassword(){
 
     setLoading(true)
     try{
-      const res = await api.post('/forgot-password', { email })
+      const res = await api.post('/forgot-password', { email }, { timeout: 45000 })
       const data = res.data
       
       if(data.success){
@@ -123,7 +123,7 @@ export default function ForgotPassword(){
 
     setLoading(true)
     try{
-      const res = await api.post('/reset-password', { email, token, password })
+      const res = await api.post('/reset-password', { email, token, password }, { timeout: 30000 })
       const data = res.data
 
       if(data.success){
