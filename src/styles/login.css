@@ -377,6 +377,83 @@ html.high-contrast{
   display:block;
 }
 
+.login-layout.single-card .login-card{
+  padding:22px;
+}
+
+.login-layout.single-card .login-body{
+  gap:10px;
+}
+
+.login-layout.single-card .card-head{
+  gap:6px;
+}
+
+.login-layout.single-card .card-title{
+  margin:0;
+  font-size:1.65rem;
+  line-height:1.1;
+}
+
+.login-layout.single-card .card-sub{
+  width:100%;
+  margin:0;
+  font-size:0.9rem;
+  line-height:1.25;
+}
+
+.login-layout.single-card .form-group{
+  margin-bottom:0;
+}
+
+.login-layout.single-card .field-label,
+.login-layout.single-card .form-group label{
+  margin-bottom:4px;
+}
+
+.login-layout.single-card .field-input,
+.login-layout.single-card .form-group input{
+  height:40px;
+  padding-top:9px;
+  padding-bottom:9px;
+}
+
+.login-layout.single-card .showbtn{
+  height:28px;
+  min-width:54px;
+  padding:0 10px;
+}
+
+.login-layout.single-card .otp-group{
+  gap:6px;
+}
+
+.login-layout.single-card .otp-inputs{
+  gap:8px;
+}
+
+.login-layout.single-card .otp-input{
+  min-height:44px;
+  border-radius:12px;
+  font-size:1.15rem;
+}
+
+.login-layout.single-card .actions{
+  margin-top:6px;
+}
+
+.login-layout.single-card .bottom-text{
+  margin-top:8px;
+  margin-bottom:0;
+}
+
+.login-layout.single-card .error,
+.login-layout.single-card .success{
+  margin-top:4px;
+  padding:9px 10px;
+  border-radius:10px;
+}
+
 /* =========================
    Left Info Panel
 ========================= */

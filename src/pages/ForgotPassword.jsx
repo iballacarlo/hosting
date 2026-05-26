@@ -395,10 +395,9 @@ export default function ForgotPassword(){
               <div className="login-body">
                 <div className="card-head">
                   <h2 id="resetPasswordTitle" className="card-title">Reset password</h2>
-                  <p className="card-sub">Enter your reset code and new password.</p>
-                  {expiresAt && (
-                    <p className="card-sub">Your OTP expires in 15 minutes.</p>
-                  )}
+                  <p className="card-sub">
+                    Enter your reset code and new password{expiresAt ? '. Your OTP expires in 15 minutes.' : '.'}
+                  </p>
                 </div>
 
                 <InputField
