@@ -385,18 +385,21 @@ html.font-xlarge .login-auth-shell .login-card{
 }
 
 @media (max-width: 560px){
+  html.font-small .login-auth-shell .login-main,
   html.font-medium .login-auth-shell .login-main,
   html.font-large .login-auth-shell .login-main,
   html.font-xlarge .login-auth-shell .login-main{
     padding-bottom:42px;
   }
 
+  html.font-small .login-auth-shell .login-info,
   html.font-medium .login-auth-shell .login-info,
   html.font-large .login-auth-shell .login-info,
   html.font-xlarge .login-auth-shell .login-info{
     padding-bottom:28px;
   }
 
+  html.font-small .login-auth-shell .login-card,
   html.font-medium .login-auth-shell .login-card,
   html.font-large .login-auth-shell .login-card,
   html.font-xlarge .login-auth-shell .login-card{
