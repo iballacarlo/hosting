@@ -209,6 +209,84 @@ function ensureAccessibilitySettingsTable($pdo){
   $ready = true;
 }
 
+function ensureComplaintExtraColumns($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  foreach([
+    'anonymous' => 'BOOLEAN DEFAULT FALSE',
+    'respondent_name' => 'VARCHAR(255) DEFAULT NULL',
+    'respondent_contact' => 'VARCHAR(255) DEFAULT NULL',
+  ] as $column => $definition){
+    if(!tableColumnExists($pdo, 'Complaint', $column)){
+      $pdo->exec('ALTER TABLE Complaint ADD COLUMN ' . $column . ' ' . $definition);
+    }
+  }
+
+  $ready = true;
+}
+
+function ensureDocumentTypeTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Document_Type (
+    document_type_id INT AUTO_INCREMENT PRIMARY KEY,
+    document_name VARCHAR(255) UNIQUE NOT NULL,
+    status VARCHAR(50) DEFAULT "enabled",
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )');
+
+  $defaults = [
+    'Barangay Clearance',
+    'Certificate of Residency',
+    'Certificate of Indigency',
+  ];
+
+  $stmt = $pdo->prepare('INSERT IGNORE INTO Document_Type (document_name, status) VALUES (?, "enabled")');
+  foreach($defaults as $documentName){
+    $stmt->execute([$documentName]);
+  }
+
+  $ready = true;
+}
+
+function ensureDefaultCategories($pdo){
+  $defaults = [
+    ['Noise Complaint', 'Noise related complaints'],
+    ['Garbage Collection', 'Garbage collection concerns'],
+    ['Road/Drainage Issue', 'Road and drainage concerns'],
+    ['Peace and Order', 'Peace and order concerns'],
+    ['Other', 'Other concerns'],
+  ];
+
+  $existingStmt = $pdo->query('SELECT category_name FROM Category');
+  $existing = [];
+  foreach($existingStmt->fetchAll() as $row){
+    $existing[strtolower($row['category_name'])] = true;
+  }
+
+  $stmt = $pdo->prepare('INSERT INTO Category (category_name, description) VALUES (?, ?)');
+  foreach($defaults as $item){
+    if(!isset($existing[strtolower($item[0])])){
+      $stmt->execute($item);
+    }
+  }
+}
+
+function getComplaintSelectSql($where = ''){
+  return 'SELECT c.*, 
+      cat.category_name AS category,
+      cat.category_name,
+      c.incident_location AS location,
+      CONCAT_WS(" ", r.first_name, r.middle_name, r.last_name) AS resident_name
+    FROM Complaint c
+    LEFT JOIN Category cat ON c.category_id = cat.category_id
+    LEFT JOIN Resident r ON c.resident_id = r.resident_id ' . $where . '
+    ORDER BY c.date_submitted DESC
+    LIMIT 200';
+}
+
 function getComplaintAttachments($pdo, $complaintIds){
   ensureComplaintAttachmentTable($pdo);
   $ids = array_values(array_filter(array_map('intval', $complaintIds)));
@@ -1084,18 +1162,119 @@ if($uri === '/seed' && $method === 'GET'){
   json(['success'=>true,'message'=>'Recreated test accounts: admin@gmail.com / 123 and carlo@gmail.com / 123']);
 }
 
+// Route: /categories - complaint categories shared by admin and residents
+if($uri === '/categories'){
+  ensureDefaultCategories($pdo);
+
+  if($method === 'GET'){
+    $stmt = $pdo->query('SELECT category_id, category_name, description FROM Category ORDER BY category_name ASC');
+    json(['success'=>true,'data'=>$stmt->fetchAll()]);
+  }
+
+  if($method === 'PUT' || $method === 'POST'){
+    $token = getBearerToken();
+    $user = findUserByToken($pdo, $token);
+    if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+    if($user['role'] !== 'staff') json(['success'=>false,'message'=>'Forbidden'], 403);
+
+    $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    $categories = $data['categories'] ?? [];
+    if(!is_array($categories)) json(['success'=>false,'message'=>'Categories must be an array'], 400);
+
+    $names = [];
+    foreach($categories as $category){
+      $name = is_array($category) ? trim($category['category_name'] ?? $category['name'] ?? '') : trim($category);
+      if($name !== '') $names[] = $name;
+    }
+    $names = array_values(array_unique($names));
+
+    $pdo->beginTransaction();
+    try {
+      $existingStmt = $pdo->query('SELECT category_id, category_name FROM Category');
+      $existing = [];
+      foreach($existingStmt->fetchAll() as $row){
+        $existing[strtolower($row['category_name'])] = $row;
+      }
+
+      $insertStmt = $pdo->prepare('INSERT INTO Category (category_name, description) VALUES (?, ?)');
+      foreach($names as $name){
+        if(!isset($existing[strtolower($name)])){
+          $insertStmt->execute([$name, null]);
+        }
+      }
+
+      if(count($names) > 0){
+        $placeholders = implode(',', array_fill(0, count($names), '?'));
+        $deleteSql = 'DELETE FROM Category
+          WHERE category_name NOT IN (' . $placeholders . ')
+          AND category_id NOT IN (SELECT DISTINCT category_id FROM Complaint WHERE category_id IS NOT NULL)';
+        $pdo->prepare($deleteSql)->execute($names);
+      }
+
+      $pdo->commit();
+    } catch(Exception $e){
+      $pdo->rollBack();
+      json(['success'=>false,'message'=>'Failed to save categories'], 500);
+    }
+
+    $stmt = $pdo->query('SELECT category_id, category_name, description FROM Category ORDER BY category_name ASC');
+    json(['success'=>true,'data'=>$stmt->fetchAll()]);
+  }
+}
+
+// Route: /document-types - document availability shared by admin and residents
+if($uri === '/document-types'){
+  ensureDocumentTypeTable($pdo);
+
+  if($method === 'GET'){
+    $stmt = $pdo->query('SELECT document_type_id, document_name, status FROM Document_Type ORDER BY document_type_id ASC');
+    json(['success'=>true,'data'=>$stmt->fetchAll()]);
+  }
+
+  if($method === 'PUT' || $method === 'POST'){
+    $token = getBearerToken();
+    $user = findUserByToken($pdo, $token);
+    if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+    if($user['role'] !== 'staff') json(['success'=>false,'message'=>'Forbidden'], 403);
+
+    $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    $documentTypes = $data['document_types'] ?? $data['documents'] ?? [];
+    if(!is_array($documentTypes)) json(['success'=>false,'message'=>'Document types must be an array'], 400);
+
+    $pdo->beginTransaction();
+    try {
+      $pdo->exec('DELETE FROM Document_Type');
+      $stmt = $pdo->prepare('INSERT INTO Document_Type (document_name, status) VALUES (?, ?)');
+      foreach($documentTypes as $item){
+        $name = is_array($item) ? trim($item['document_name'] ?? $item['name'] ?? '') : trim($item);
+        if($name === '') continue;
+        $status = is_array($item) ? strtolower(trim($item['status'] ?? 'enabled')) : 'enabled';
+        $stmt->execute([$name, $status === 'disabled' ? 'disabled' : 'enabled']);
+      }
+      $pdo->commit();
+    } catch(Exception $e){
+      $pdo->rollBack();
+      json(['success'=>false,'message'=>'Failed to save document types'], 500);
+    }
+
+    $stmt = $pdo->query('SELECT document_type_id, document_name, status FROM Document_Type ORDER BY document_type_id ASC');
+    json(['success'=>true,'data'=>$stmt->fetchAll()]);
+  }
+}
+
 // Route: /complaints GET (list) or POST (create)
 if($uri === '/complaints'){
+  ensureComplaintExtraColumns($pdo);
   if($method === 'GET'){
     $token = getBearerToken();
     $user = findUserByToken($pdo, $token);
     if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
 
     if($user['role'] === 'staff'){
-      $stmt = $pdo->query('SELECT * FROM Complaint ORDER BY date_submitted DESC LIMIT 200');
+      $stmt = $pdo->query(getComplaintSelectSql());
       $rows = $stmt->fetchAll();
     } else {
-      $stmt = $pdo->prepare('SELECT * FROM Complaint WHERE resident_id = ? ORDER BY date_submitted DESC LIMIT 200');
+      $stmt = $pdo->prepare(getComplaintSelectSql('WHERE c.resident_id = ?'));
       $stmt->execute([$user['id']]);
       $rows = $stmt->fetchAll();
     }
@@ -1113,8 +1292,8 @@ if($uri === '/complaints'){
     } else {
       $data = json_decode(file_get_contents('php://input'), true) ?: [];
     }
-    $stmt = $pdo->prepare('INSERT INTO Complaint (resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, status, date_submitted) VALUES (?, ?, NULL, ?, ?, ?, ?, "Submitted", NOW())');
-    $stmt->execute([$user['id'], $data['category_id'] ?? null, $data['title'] ?? '', $data['description'] ?? '', $data['incident_location'] ?? '', $data['incident_date'] ?? null]);
+    $stmt = $pdo->prepare('INSERT INTO Complaint (resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, anonymous, respondent_name, status, date_submitted) VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, "Submitted", NOW())');
+    $stmt->execute([$user['id'], $data['category_id'] ?? null, $data['title'] ?? '', $data['description'] ?? '', $data['incident_location'] ?? '', $data['incident_date'] ?? null, !empty($data['anonymous']) ? 1 : 0, $data['respondent_name'] ?? null]);
     $complaintId = $pdo->lastInsertId();
     saveComplaintUploads($pdo, $complaintId);
 
@@ -1131,20 +1310,35 @@ if($uri === '/complaints'){
 
 // Route: /complaints/{id} - update complaint (admin)
 if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','POST'])){
+  ensureComplaintExtraColumns($pdo);
   $token = getBearerToken();
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
-  // only staff can update complaints
-  if($user['role'] !== 'staff') json(['success'=>false,'message'=>'Forbidden']);
   $id = intval($m[1]);
+
+  $stmt = $pdo->prepare('SELECT resident_id, status, date_submitted, title, description FROM Complaint WHERE complaint_id = ?');
+  $stmt->execute([$id]);
+  $existingComplaint = $stmt->fetch();
+  if(!$existingComplaint) json(['success'=>false,'message'=>'Complaint not found'], 404);
+
+  $isOwner = $user['role'] !== 'staff' && intval($existingComplaint['resident_id']) === intval($user['id']);
+  if($user['role'] !== 'staff'){
+    if(!$isOwner) json(['success'=>false,'message'=>'Forbidden'], 403);
+    if(strcasecmp($existingComplaint['status'] ?? '', 'Submitted') !== 0) json(['success'=>false,'message'=>'Cannot edit a complaint that is already in process or completed.'], 403);
+    $submittedAt = strtotime(str_replace(' ', 'T', $existingComplaint['date_submitted']) . 'Z');
+    if($submittedAt && time() - $submittedAt > 15 * 60){
+      json(['success'=>false,'message'=>'Cannot edit - 15 minutes have passed since submission'], 403);
+    }
+  }
+
   $data = json_decode(file_get_contents('php://input'), true);
   $fields = [];
   $vals = [];
   $statusUpdate = false;
   $newStatus = null;
-  if(isset($data['status'])){ $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status']; }
-  if(isset($data['assigned_staff_id'])){ $fields[] = 'assigned_staff_id = ?'; $vals[] = $data['assigned_staff_id']; }
-  if(isset($data['resolution_notes'])){ $fields[] = 'resolution_notes = ?'; $vals[] = $data['resolution_notes']; }
+  if($user['role'] === 'staff' && isset($data['status'])){ $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status']; }
+  if($user['role'] === 'staff' && isset($data['assigned_staff_id'])){ $fields[] = 'assigned_staff_id = ?'; $vals[] = $data['assigned_staff_id']; }
+  if($user['role'] === 'staff' && isset($data['resolution_notes'])){ $fields[] = 'resolution_notes = ?'; $vals[] = $data['resolution_notes']; }
   if(isset($data['title'])){ $fields[] = 'title = ?'; $vals[] = $data['title']; }
   if(isset($data['description'])){ $fields[] = 'description = ?'; $vals[] = $data['description']; }
   if(isset($data['location'])){ $fields[] = 'incident_location = ?'; $vals[] = $data['location']; }
@@ -1152,12 +1346,12 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
   if(isset($data['date'])){ $fields[] = 'incident_date = ?'; $vals[] = $data['date'] ?: null; }
   if(isset($data['incident_date'])){ $fields[] = 'incident_date = ?'; $vals[] = $data['incident_date'] ?: null; }
   if(isset($data['category_id'])){ $fields[] = 'category_id = ?'; $vals[] = $data['category_id']; }
+  if(isset($data['anonymous'])){ $fields[] = 'anonymous = ?'; $vals[] = !empty($data['anonymous']) ? 1 : 0; }
+  if(isset($data['respondent_name'])){ $fields[] = 'respondent_name = ?'; $vals[] = $data['respondent_name']; }
   if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update']);
 
   if($statusUpdate){
-    $stmt = $pdo->prepare('SELECT resident_id, title, description FROM Complaint WHERE complaint_id = ?');
-    $stmt->execute([$id]);
-    $complaint = $stmt->fetch();
+    $complaint = $existingComplaint;
     if($complaint && !empty($complaint['resident_id'])){
       $title = trim($complaint['title'] ?: $complaint['description'] ?: 'Complaint');
       createNotification($pdo, intval($complaint['resident_id']), 'Your complaint "' . $title . '" status is now ' . $newStatus . '.', 'complaint_status');
@@ -1208,18 +1402,26 @@ if($uri === '/docs'){
     json(['success'=>true,'data'=>$rows]);
   }
   if($method === 'POST'){
+    ensureDocumentTypeTable($pdo);
     $token = getBearerToken();
     $user = findUserByToken($pdo, $token);
     if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
     $data = json_decode(file_get_contents('php://input'), true);
+    $requestedType = trim($data['document_type'] ?? '');
+    $typeStmt = $pdo->prepare('SELECT status FROM Document_Type WHERE document_name = ? LIMIT 1');
+    $typeStmt->execute([$requestedType]);
+    $documentTypeRow = $typeStmt->fetch();
+    if($documentTypeRow && strtolower($documentTypeRow['status'] ?? '') === 'disabled'){
+      json(['success'=>false,'message'=>'This document type is currently frozen by the administrator.'], 403);
+    }
     $ref = 'REQ-'.time();
     $fullName = trim($data['name'] ?? '');
     if($fullName === ''){
       $fullName = trim(($user['first_name'] ?? '') . ' ' . ($user['middle_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
     }
     $stmt = $pdo->prepare('INSERT INTO Document_Request (resident_id, processed_by, full_name, birth_date, address, document_type, purpose, status, reference_number, date_requested) VALUES (?, NULL, ?, ?, ?, ?, ?, "Submitted", ?, NOW())');
-    $stmt->execute([$user['id'], $fullName, $data['birthdate'] ?? null, $data['address'] ?? '', $data['document_type'] ?? '', $data['purpose'] ?? '', $ref]);
-    createNotification($pdo, null, 'New document request submitted by ' . trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) . ': ' . trim($data['document_type'] ?? $ref), 'document_request');
+    $stmt->execute([$user['id'], $fullName, $data['birthdate'] ?? null, $data['address'] ?? '', $requestedType, $data['purpose'] ?? '', $ref]);
+    createNotification($pdo, null, 'New document request submitted by ' . trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) . ': ' . trim($requestedType ?: $ref), 'document_request');
     json(['success'=>true,'id'=>$pdo->lastInsertId(),'reference'=>$ref]);
   }
 }

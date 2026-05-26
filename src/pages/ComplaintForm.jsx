@@ -64,13 +64,31 @@ export default function ComplaintForm(){
   const nav = useNavigate()
 
   useEffect(() => {
-    setCategories([
-      { id: 1, category_id: 1, name: 'Noise Complaint', category_name: 'Noise Complaint' },
-      { id: 2, category_id: 2, name: 'Garbage Collection', category_name: 'Garbage Collection' },
-      { id: 3, category_id: 3, name: 'Road/Drainage Issue', category_name: 'Road/Drainage Issue' },
-      { id: 4, category_id: 4, name: 'Peace and Order', category_name: 'Peace and Order' },
-      { id: 5, category_id: 5, name: 'Other', category_name: 'Other' },
-    ])
+    let cancelled = false
+
+    async function loadCategories(){
+      try {
+        const res = await api.get('/categories')
+        if(!cancelled && res.data?.success && Array.isArray(res.data.data)){
+          setCategories(res.data.data)
+        }
+      } catch {
+        if(!cancelled){
+          setCategories([
+            { id: 1, category_id: 1, name: 'Noise Complaint', category_name: 'Noise Complaint' },
+            { id: 2, category_id: 2, name: 'Garbage Collection', category_name: 'Garbage Collection' },
+            { id: 3, category_id: 3, name: 'Road/Drainage Issue', category_name: 'Road/Drainage Issue' },
+            { id: 4, category_id: 4, name: 'Peace and Order', category_name: 'Peace and Order' },
+            { id: 5, category_id: 5, name: 'Other', category_name: 'Other' },
+          ])
+        }
+      }
+    }
+
+    loadCategories()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   function setField(key, value){

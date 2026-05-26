@@ -21,11 +21,20 @@ export default function ComplaintHistory(){
   const [editMediaPreviews, setEditMediaPreviews] = useState([])
   const [editTimeExceeded, setEditTimeExceeded] = useState(false)
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({show: false, complaintId: null, complaint: null})
+  const [categories, setCategories] = useState([])
   const selectedComplaintRef = useRef(null)
   const expandedMediaPreviewRef = useRef(null)
   const deleteConfirmRef = useRef(null)
   const { user: authUser, loading: authLoading } = useAuth()
   const currentUser = authUser
+
+  const parseServerDate = (value) => {
+    if(!value) return null
+    const text = String(value)
+    const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(text)
+    const normalized = text.includes(' ') ? text.replace(' ', 'T') : text
+    return new Date(hasTimezone ? normalized : `${normalized}Z`)
+  }
 
   const resolveMediaUrl = (url) => {
     if(!url) return ''
@@ -92,6 +101,24 @@ export default function ComplaintHistory(){
 
     loadComplaints()
   }, [authUser, authLoading])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadCategories(){
+      try {
+        const res = await api.get('/categories')
+        if(!cancelled && res.data?.success && Array.isArray(res.data.data)){
+          setCategories(res.data.data)
+        }
+      } catch {
+        if(!cancelled) setCategories([])
+      }
+    }
+    loadCategories()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const normalizeComplaintMedia = (images = []) => {
     if(!Array.isArray(images)) return []
@@ -173,7 +200,12 @@ export default function ComplaintHistory(){
   }
 
   const checkIfCanEdit = (complaint) => {
-    const submittedTime = new Date(complaint.date_submitted).getTime()
+    const submittedDate = parseServerDate(complaint.date_submitted)
+    if(!submittedDate || Number.isNaN(submittedDate.getTime())){
+      setEditTimeExceeded(false)
+      return
+    }
+    const submittedTime = submittedDate.getTime()
     const currentTime = new Date().getTime()
     const minutesElapsed = (currentTime - submittedTime) / (1000 * 60)
     setEditTimeExceeded(minutesElapsed > 15)
@@ -223,9 +255,9 @@ export default function ComplaintHistory(){
       const normalizedMedia = normalizeComplaintMedia(selectedComplaint.images)
       setEditFormData({
         title: selectedComplaint.title || '',
-        category: selectedComplaint.category || '',
+        category: selectedComplaint.category_id || '',
         description: selectedComplaint.description || '',
-        location: selectedComplaint.location || '',
+        location: selectedComplaint.location || selectedComplaint.incident_location || '',
         notes: selectedComplaint.notes || '',
         resident_name: selectedComplaint.resident_name || selectedComplaint.name || selectedComplaint.resident_id || '',
         respondent_name: selectedComplaint.respondent_name || '',
@@ -259,9 +291,18 @@ export default function ComplaintHistory(){
         description: editFormData.description,
         location: editFormData.location,
         incident_date: editFormData.date,
-        category_id: editFormData.category
+        category_id: editFormData.category || null
       })
-      const saved = { ...selectedComplaint, ...editFormData, incident_location: editFormData.location, incident_date: editFormData.date }
+      const selectedCategory = categories.find(category => String(category.category_id || category.id) === String(editFormData.category))
+      const saved = {
+        ...selectedComplaint,
+        ...editFormData,
+        category_id: editFormData.category,
+        category: selectedCategory?.category_name || selectedCategory?.name || selectedComplaint.category,
+        incident_location: editFormData.location,
+        location: editFormData.location,
+        incident_date: editFormData.date
+      }
       const updatedData = data.map(c => 
         c.complaint_id === selectedComplaint.complaint_id ? saved : c
       )
@@ -314,8 +355,10 @@ export default function ComplaintHistory(){
       complaint.complaint_id?.toString(),
       complaint.title,
       complaint.category,
+      complaint.category_name,
       complaint.description,
       complaint.location,
+      complaint.incident_location,
       complaint.status,
       complaint.notes,
       complaint.resident_name,
@@ -392,8 +435,8 @@ export default function ComplaintHistory(){
                       <tr key={complaintIdToString(getComplaintId(r)) || r.ref || r.id}>
                         <td>{r.ref || `C-${r.complaint_id}`}</td>
                         <td>{r.resident_name || r.name || r.resident_id || '—'}</td>
-                        <td>{r.category || r.category_id || '—'}</td>
-                        <td>{r.date_submitted ? new Date(r.date_submitted).toLocaleDateString('en-US') : '—'}</td>
+                        <td>{r.category || r.category_name || r.category_id || '—'}</td>
+                        <td>{r.date_submitted ? parseServerDate(r.date_submitted).toLocaleDateString('en-US') : '—'}</td>
                         <td><StatusBadge status={r.status} /></td>
                         <td>
                           <button 
@@ -454,7 +497,7 @@ export default function ComplaintHistory(){
 
                     <div className="complaint-detail-row">
                       <span className="detail-label">Category:</span>
-                      <span className="detail-value">{selectedComplaint.category || selectedComplaint.category_id || '—'}</span>
+                      <span className="detail-value">{selectedComplaint.category || selectedComplaint.category_name || selectedComplaint.category_id || '—'}</span>
                     </div>
 
                     <div className="complaint-detail-row">
@@ -469,12 +512,12 @@ export default function ComplaintHistory(){
 
                     <div className="complaint-detail-row">
                       <span className="detail-label">Location:</span>
-                      <span className="detail-value">{selectedComplaint.location || '—'}</span>
+                      <span className="detail-value">{selectedComplaint.location || selectedComplaint.incident_location || '—'}</span>
                     </div>
 
                     <div className="complaint-detail-row">
                       <span className="detail-label">Date Submitted:</span>
-                      <span className="detail-value">{selectedComplaint.date_submitted ? new Date(selectedComplaint.date_submitted).toLocaleDateString('en-US') : '—'}</span>
+                      <span className="detail-value">{selectedComplaint.date_submitted ? parseServerDate(selectedComplaint.date_submitted).toLocaleDateString('en-US') : '—'}</span>
                     </div>
 
                     {selectedComplaint.respondent_name && (
@@ -576,9 +619,14 @@ export default function ComplaintHistory(){
                         onChange={(e) => handleEditFieldChange('category', e.target.value)}
                       >
                         <option value="">Select Category</option>
-                        <option value="Noise">Noise</option>
-                        <option value="Garbage">Garbage</option>
-                        <option value="Traffic">Traffic</option>
+                        {categories.map(category => (
+                          <option
+                            key={category.category_id || category.id || category.category_name || category.name}
+                            value={category.category_id || category.id}
+                          >
+                            {category.category_name || category.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 

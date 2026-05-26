@@ -5,7 +5,7 @@ import Button from '../components/Button'
 import '../styles/form.css'
 import { Settings, Tags, Save, RotateCcw, Accessibility } from 'lucide-react'
 import { useSettings } from '../context/SettingsContext'
-import mockApi from '../api/mockApi'
+import api from '../api/axios'
 
 const DEFAULT_CATEGORIES = ['Noise', 'Garbage', 'Traffic', 'Water Supply', 'Electricity', 'Public Safety', 'Other']
 const DEFAULT_SYSTEM_NAME = 'Barangay Service & Complaint Management System'
@@ -34,11 +34,54 @@ export default function AdminSettings(){
   const [documentStatuses, setDocumentStatuses] = useState({})
 
   useEffect(() => {
-    setCategories(mockApi.listCategories())
-    const config = mockApi.getSystemSettings()
-    setSystemName(config.systemName || DEFAULT_SYSTEM_NAME)
-    setContactEmail(config.contactEmail || DEFAULT_CONTACT_EMAIL)
-    setDocumentStatuses(mockApi.getDocumentStatuses())
+    let cancelled = false
+
+    async function loadSettings(){
+      setSystemName(DEFAULT_SYSTEM_NAME)
+      setContactEmail(DEFAULT_CONTACT_EMAIL)
+
+      try {
+        const [categoryRes, documentTypeRes] = await Promise.all([
+          api.get('/categories'),
+          api.get('/document-types')
+        ])
+
+        if(cancelled) return
+
+        if(categoryRes.data?.success && Array.isArray(categoryRes.data.data)){
+          setCategories(categoryRes.data.data.map(category => category.category_name || category.name).filter(Boolean))
+        } else {
+          setCategories(DEFAULT_CATEGORIES)
+        }
+
+        if(documentTypeRes.data?.success && Array.isArray(documentTypeRes.data.data)){
+          const statuses = {}
+          documentTypeRes.data.data.forEach(item => {
+            statuses[item.document_name || item.name] = item.status === 'disabled' ? 'disabled' : 'enabled'
+          })
+          setDocumentStatuses(statuses)
+        } else {
+          const statuses = {}
+          DEFAULT_DOCUMENT_TYPES.forEach(doc => {
+            statuses[doc] = 'enabled'
+          })
+          setDocumentStatuses(statuses)
+        }
+      } catch {
+        if(cancelled) return
+        setCategories(DEFAULT_CATEGORIES)
+        const statuses = {}
+        DEFAULT_DOCUMENT_TYPES.forEach(doc => {
+          statuses[doc] = 'enabled'
+        })
+        setDocumentStatuses(statuses)
+      }
+    }
+
+    loadSettings()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -59,7 +102,7 @@ export default function AdminSettings(){
     setCategories(prev => prev.filter((_, i) => i !== idx))
   }
 
-  function resetDefaults(){
+  async function resetDefaults(){
     setCategories(DEFAULT_CATEGORIES)
     setNewCat('')
     setSystemName(DEFAULT_SYSTEM_NAME)
@@ -69,14 +112,18 @@ export default function AdminSettings(){
       defaultDocStatuses[doc] = 'enabled'
     })
     setDocumentStatuses(defaultDocStatuses)
-    resetSettings()
-    mockApi.saveCategories(DEFAULT_CATEGORIES)
-    mockApi.saveSystemSettings({
-      systemName: DEFAULT_SYSTEM_NAME,
-      contactEmail: DEFAULT_CONTACT_EMAIL
-    })
-    mockApi.saveDocumentStatuses(defaultDocStatuses)
-    setNotice('System and accessibility settings reset to default.')
+    try {
+      await Promise.all([
+        api.put('/categories', { categories: DEFAULT_CATEGORIES }),
+        api.put('/document-types', {
+          document_types: DEFAULT_DOCUMENT_TYPES.map(document_name => ({ document_name, status: 'enabled' }))
+        }),
+        resetSettings()
+      ])
+      setNotice('System and accessibility settings reset to default.')
+    } catch {
+      setNotice('Settings were reset on this device, but could not be saved to the server.')
+    }
   }
 
   function toggleDocumentStatus(docType){
@@ -86,15 +133,22 @@ export default function AdminSettings(){
     }))
   }
 
-  function save(){
-    mockApi.saveCategories(categories)
-    mockApi.saveSystemSettings({
-      systemName,
-      contactEmail
-    })
-    mockApi.saveDocumentStatuses(documentStatuses)
-    saveSettings()
-    setNotice('System and accessibility settings saved.')
+  async function save(){
+    try {
+      await Promise.all([
+        api.put('/categories', { categories }),
+        api.put('/document-types', {
+          document_types: Object.entries(documentStatuses).map(([document_name, status]) => ({
+            document_name,
+            status
+          }))
+        }),
+        saveSettings()
+      ])
+      setNotice('System and accessibility settings saved.')
+    } catch {
+      setNotice('Some settings could not be saved to the server.')
+    }
   }
 
   return (

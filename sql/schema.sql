@@ -65,6 +65,9 @@ CREATE TABLE IF NOT EXISTS Complaint (
   incident_location VARCHAR(255) DEFAULT NULL,
 
   incident_date DATE DEFAULT NULL,
+  anonymous BOOLEAN DEFAULT FALSE,
+  respondent_name VARCHAR(255) DEFAULT NULL,
+  respondent_contact VARCHAR(255) DEFAULT NULL,
 
   status VARCHAR(50) DEFAULT 'Submitted',
 
@@ -132,6 +135,14 @@ CREATE TABLE IF NOT EXISTS Document_Request (
 
   FOREIGN KEY (resident_id) REFERENCES Resident(resident_id) ON DELETE SET NULL,
   FOREIGN KEY (processed_by) REFERENCES Staff(staff_id) ON DELETE SET NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS Document_Type (
+  document_type_id INT AUTO_INCREMENT PRIMARY KEY,
+  document_name VARCHAR(255) UNIQUE NOT NULL,
+  status VARCHAR(50) DEFAULT 'enabled',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -224,13 +235,18 @@ CREATE TABLE IF NOT EXISTS Login_Attempt (
 
 INSERT IGNORE INTO Category (category_id, category_name, description)
 VALUES
-(1, 'Noise', 'Noise related complaints'),
-(2, 'Garbage', 'Garbage collection concerns'),
-(3, 'Traffic', 'Traffic related complaints'),
-(4, 'Water Supply', 'Water supply concerns'),
-(5, 'Electricity', 'Electricity related concerns'),
-(6, 'Public Safety', 'Public safety concerns'),
-(7, 'Other', 'Other concerns');
+(1, 'Noise Complaint', 'Noise related complaints'),
+(2, 'Garbage Collection', 'Garbage collection concerns'),
+(3, 'Road/Drainage Issue', 'Road and drainage concerns'),
+(4, 'Peace and Order', 'Peace and order concerns'),
+(5, 'Other', 'Other concerns');
+
+
+INSERT IGNORE INTO Document_Type (document_type_id, document_name, status)
+VALUES
+(1, 'Barangay Clearance', 'enabled'),
+(2, 'Certificate of Residency', 'enabled'),
+(3, 'Certificate of Indigency', 'enabled');
 
 
 

@@ -10,7 +10,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { addressData } from '../data/addressData'
 import { useNavigate } from 'react-router-dom'
 
-const DOC_TYPES = [
+const DEFAULT_DOC_TYPES = [
   'Barangay Clearance',
   'Certificate of Residency',
   'Certificate of Indigency',
@@ -59,11 +59,12 @@ export default function DocumentRequest(){
   const [street, setStreet] = useState('')
   const [block, setBlock] = useState('')
   const [lot, setLot] = useState('')
+  const [docTypes, setDocTypes] = useState(DEFAULT_DOC_TYPES)
   const [documentStatuses, setDocumentStatuses] = useState({})
   const maxBirthdate = new Date().toISOString().split('T')[0]
 
   const getFirstEnabledDocType = (statuses) => {
-    return DOC_TYPES.find(docType => statuses[docType] !== 'disabled') || DOC_TYPES[0]
+    return docTypes.find(docType => statuses[docType] !== 'disabled') || docTypes[0] || ''
   }
 
   const formatMmDdYyyy = (value) => {
@@ -79,7 +80,36 @@ export default function DocumentRequest(){
   const { user } = useAuth()
 
   useEffect(() => {
-    setDocumentStatuses({})
+    let cancelled = false
+
+    async function loadDocumentTypes(){
+      try {
+        const res = await api.get('/document-types')
+        if(cancelled || !res.data?.success || !Array.isArray(res.data.data)) return
+
+        const names = res.data.data.map(item => item.document_name || item.name).filter(Boolean)
+        const statuses = {}
+        res.data.data.forEach(item => {
+          const name = item.document_name || item.name
+          if(name) statuses[name] = item.status === 'disabled' ? 'disabled' : 'enabled'
+        })
+
+        setDocTypes(names.length ? names : DEFAULT_DOC_TYPES)
+        setDocumentStatuses(statuses)
+        const nextType = (names.length ? names : DEFAULT_DOC_TYPES).find(docType => statuses[docType] !== 'disabled') || ''
+        setType(current => statuses[current] === 'disabled' || !current ? nextType : current)
+      } catch {
+        if(!cancelled){
+          setDocTypes(DEFAULT_DOC_TYPES)
+          setDocumentStatuses({})
+        }
+      }
+    }
+
+    loadDocumentTypes()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -366,7 +396,7 @@ export default function DocumentRequest(){
               </label>
               <div className="form-field">
                 <div className={`type-chips ${errors.type ? 'type-chips-error' : ''}`} role="group" aria-label="Document type">
-                  {DOC_TYPES.map(t => {
+                  {docTypes.map(t => {
                     const isDisabled = documentStatuses[t] === 'disabled'
                     return (
                       <button

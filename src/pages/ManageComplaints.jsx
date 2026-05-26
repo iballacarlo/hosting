@@ -27,6 +27,29 @@ export default function ManageComplaints(){
     return new URL(url, api.defaults.baseURL).toString()
   }
 
+  const parseServerDate = (value) => {
+    if(!value) return null
+    const text = String(value)
+    const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(text)
+    const normalized = text.includes(' ') ? text.replace(' ', 'T') : text
+    return new Date(hasTimezone ? normalized : `${normalized}Z`)
+  }
+
+  const formatDate = (value) => {
+    const date = parseServerDate(value)
+    return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('en-US') : 'N/A'
+  }
+
+  const formatTime = (value) => {
+    const date = parseServerDate(value)
+    return date && !Number.isNaN(date.getTime())
+      ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : 'N/A'
+  }
+
+  const getCategoryName = (record) => record?.category || record?.category_name || record?.category_label || 'General'
+  const getIncidentLocation = (record) => record?.location || record?.incident_location || 'N/A'
+
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -263,19 +286,20 @@ export default function ManageComplaints(){
     y -= 18
 
     const incidentDateRaw = record.date || record.incident_date || record.date_submitted
+    const incidentDate = parseServerDate(incidentDateRaw)
     const incidentDateText = incidentDateRaw
-      ? (isNaN(new Date(incidentDateRaw).getTime())
-        ? incidentDateRaw
-        : new Date(incidentDateRaw).toLocaleDateString('en-US'))
+      ? (incidentDate && !Number.isNaN(incidentDate.getTime())
+        ? incidentDate.toLocaleDateString('en-US')
+        : incidentDateRaw)
       : 'N/A'
 
     const details = [
       `Reference Number: ${record.ref || `C-${record.complaint_id}`}`,
       `Complainant: ${record.anonymous ? 'Anonymous' : (record.resident_name || 'Unknown')}`,
-      `Category: ${record.category || record.category_id || 'General'}`,
-      `Incident Location: ${record.location || 'N/A'}`,
+      `Category: ${getCategoryName(record)}`,
+      `Incident Location: ${getIncidentLocation(record)}`,
       `Date of Incident: ${incidentDateText}`,
-      `Date Submitted: ${new Date().toLocaleDateString('en-US')}`
+      `Date Submitted: ${formatDate(record.date_submitted) !== 'N/A' ? formatDate(record.date_submitted) : new Date().toLocaleDateString('en-US')}`
     ]
 
     details.forEach(detail => {
@@ -475,9 +499,9 @@ export default function ManageComplaints(){
 
     const details = [
       `Reference Number: ${record.ref || `C-${record.complaint_id}`}`,
-      `Category: ${record.category || record.category_id || 'General'}`,
-      `Location: ${record.location || 'N/A'}`,
-      `Date Reported: ${record.date_submitted ? new Date(record.date_submitted).toLocaleDateString('en-US') : 'N/A'}`
+      `Category: ${getCategoryName(record)}`,
+      `Location: ${getIncidentLocation(record)}`,
+      `Date Reported: ${formatDate(record.date_submitted)}`
     ]
 
     details.forEach(detail => {
@@ -739,15 +763,15 @@ export default function ManageComplaints(){
                       <td>{it.complaint_id}</td>
                       <td>{it.title || it.description?.slice(0,60) || '—'}</td>
                       <td>{it.resident_name || it.name || it.resident_id || '—'}</td>
-                      <td>{new Date(it.date_submitted || Date.now()).toLocaleDateString('en-US')}</td>
+                      <td>{formatDate(it.date_submitted)}</td>
                       <td>
                         <StatusBadge status={it.status} />
                       </td>
                       <td>
                         <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-                          {new Date(it.date_updated || it.date_submitted || Date.now()).toLocaleDateString('en-US')}
+                          {formatDate(it.date_updated || it.date_submitted)}
                           <div style={{ fontSize: '0.85rem', marginTop: '4px', fontWeight: '700' }}>
-                            {new Date(it.date_updated || it.date_submitted || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatTime(it.date_updated || it.date_submitted)}
                           </div>
                         </div>
                       </td>
@@ -815,7 +839,7 @@ export default function ManageComplaints(){
 
                   <div className="complaint-detail-row">
                     <span className="detail-label">Category:</span>
-                    <span className="detail-value">{selectedComplaint.category || selectedComplaint.category_id || '—'}</span>
+                    <span className="detail-value">{getCategoryName(selectedComplaint)}</span>
                   </div>
 
                   <div className="complaint-detail-row">
@@ -830,17 +854,17 @@ export default function ManageComplaints(){
 
                   <div className="complaint-detail-row">
                     <span className="detail-label">Location:</span>
-                    <span className="detail-value">{selectedComplaint.location || '—'}</span>
+                    <span className="detail-value">{getIncidentLocation(selectedComplaint)}</span>
                   </div>
 
                   <div className="complaint-detail-row">
                     <span className="detail-label">Incident Date:</span>
-                    <span className="detail-value">{selectedComplaint.date ? new Date(selectedComplaint.date).toLocaleDateString('en-US') : selectedComplaint.incident_date ? new Date(selectedComplaint.incident_date).toLocaleDateString('en-US') : '—'}</span>
+                    <span className="detail-value">{formatDate(selectedComplaint.date || selectedComplaint.incident_date)}</span>
                   </div>
 
                   <div className="complaint-detail-row">
                     <span className="detail-label">Submitted:</span>
-                    <span className="detail-value">{selectedComplaint.date_submitted ? new Date(selectedComplaint.date_submitted).toLocaleDateString('en-US') : '—'}</span>
+                    <span className="detail-value">{formatDate(selectedComplaint.date_submitted)}</span>
                   </div>
 
                   <div className="complaint-detail-row">
