@@ -372,6 +372,11 @@ html.high-contrast{
   align-items:center;
 }
 
+.login-layout.single-card{
+  width:min(520px, 100%);
+  display:block;
+}
+
 /* =========================
    Left Info Panel
 ========================= */

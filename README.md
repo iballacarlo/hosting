@@ -93,7 +93,7 @@ Google Apps Script setup:
 3. Paste this code into `Code.gs`:
 
 ```javascript
-const SECRET = 'change-this-long-random-secret';
+const SECRET = 'BRGY-2026-x9Kp72LmQ4vTz88A';
 
 function doGet() {
   return json({
@@ -106,7 +106,7 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents || '{}');
 
-    if (data.secret !== SECRET) {
+    if (String(data.secret || '').trim() !== SECRET) {
       return json({ success: false, message: 'Unauthorized' });
     }
 
@@ -148,6 +148,11 @@ MAIL_API_SECRET=BRGY-2026-x9Kp72LmQ4vTz88A
 MAIL_FROM_NAME=Barangay Mambog II
 ```
 
-- Use the same secret in Apps Script and Railway.
+- Use the exact same secret in Apps Script and Railway. If the app shows
+  `Unable to send OTP email: Unauthorized (HTTP 200)`, your Google Apps Script
+  `SECRET` and Railway `MAIL_API_SECRET` do not match, or the script was not
+  redeployed after editing `Code.gs`.
+- After changing `Code.gs`, click Deploy, then Manage deployments, edit the
+  web app deployment, choose a new version, and deploy again.
 - OTPs can be resent after 30 seconds and expire after 15 minutes.
 - The app creates the `Password_Reset` table automatically if it is missing, but `sql/schema.sql` also includes it for fresh databases.

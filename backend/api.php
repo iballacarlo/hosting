@@ -202,6 +202,9 @@ function sendOtpEmail($toEmail, $code){
   $result = json_decode($response ?: '', true);
   if($status < 200 || $status >= 300 || !is_array($result) || empty($result['success'])){
     $message = is_array($result) && !empty($result['message']) ? $result['message'] : 'Mail API request failed';
+    if(strcasecmp($message, 'Unauthorized') === 0){
+      $message = 'Unauthorized - MAIL_API_SECRET in Railway does not match SECRET in Google Apps Script';
+    }
     if($status) $message .= ' (HTTP ' . $status . ')';
     if(!$response && !empty($http_response_header)){
       $message .= ': ' . implode(' ', array_slice($http_response_header, 0, 2));

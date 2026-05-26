@@ -20,7 +20,6 @@ export default function ForgotPassword(){
   const [email, setEmail] = useState('')
   const [token, setToken] = useState(searchParams.get('token') || '')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
@@ -111,8 +110,6 @@ export default function ForgotPassword(){
     if(!token.trim()) e.token = 'Reset code is required'
     if(token.trim() && token.trim().length !== 6) e.token = 'Enter the 6-digit reset code'
     if(!password.trim()) e.password = 'Password is required'
-    if(!confirmPassword.trim()) e.confirmPassword = 'Confirm password is required'
-    if(password && confirmPassword && password !== confirmPassword) e.confirmPassword = 'Passwords do not match'
     if(password && password.length < 6) e.password = 'Password must be at least 6 characters'
     setErrors(e)
     return Object.keys(e).length === 0
@@ -358,38 +355,7 @@ export default function ForgotPassword(){
       </header>
 
       <main className="login-main">
-        <section className="login-layout">
-          <aside className="login-info" aria-label="System information">
-            <div className="info-badge">Password Recovery</div>
-
-            <h2 className="info-title">
-              Reset your password securely
-            </h2>
-
-            <p className="info-text">
-              Follow the simple steps to recover access to your account.
-              Enter your email address and you'll receive a reset code.
-              Use that code to create a new password.
-            </p>
-
-            <div className="info-points">
-              <div className="info-point">
-                <span className="info-dot" />
-                <span>Enter your registered email address</span>
-              </div>
-
-              <div className="info-point">
-                <span className="info-dot" />
-                <span>Receive your password reset code</span>
-              </div>
-
-              <div className="info-point">
-                <span className="info-dot" />
-                <span>Create a new secure password</span>
-              </div>
-            </div>
-          </aside>
-
+        <section className="login-layout single-card">
           {step === 1 && (
             <form className="login-card" onSubmit={handleRequestReset} aria-labelledby="resetTitle" noValidate>
               <div className="login-body">
@@ -484,17 +450,6 @@ export default function ForgotPassword(){
                   autoComplete="new-password"
                 />
 
-                <InputField
-                  label="Confirm Password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  error={errors.confirmPassword}
-                  allowToggle
-                  placeholder="Confirm new password"
-                  autoComplete="new-password"
-                />
-
                 {successMessage && <div className="success">{successMessage}</div>}
                 {errors.form && <div className="error">{errors.form}</div>}
 
@@ -519,7 +474,6 @@ export default function ForgotPassword(){
                     onClick={() => {
                       setStep(1)
                       setPassword('')
-                      setConfirmPassword('')
                       setErrors({})
                       setSuccessMessage('')
                       setResendSeconds(0)
