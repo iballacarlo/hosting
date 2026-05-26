@@ -144,7 +144,7 @@ function sendOtpEmail($toEmail, $code){
   $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
   $smtpPort = intval(getenv('SMTP_PORT') ?: 587);
   $smtpUser = getenv('SMTP_USER') ?: 'brgy.mambog.ii@gmail.com';
-  $smtpPass = getenv('SMTP_PASS') ?: 'icgo ivis conp gudt';
+  $smtpPass = getenv('SMTP_PASS') ?: '';
   $fromEmail = getenv('SMTP_FROM') ?: $smtpUser;
   $fromName = getenv('SMTP_FROM_NAME') ?: 'Barangay Mambog II';
 

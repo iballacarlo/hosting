@@ -31,6 +31,14 @@ export default function ForgotPassword(){
   
   const panelRef = useRef(null)
 
+  function getApiErrorMessage(err, fallback){
+    const data = err?.response?.data
+    if(data?.message) return data.message
+    if(typeof data === 'string' && data.trim()) return data.trim()
+    if(err?.response?.status) return `${fallback} (HTTP ${err.response.status})`
+    return err?.message || fallback
+  }
+
   useEffect(() => {
     function onDown(e){
       if(!settingsOpen) return
@@ -96,12 +104,12 @@ export default function ForgotPassword(){
         setStep(2)
       } else {
         if(data.retry_after) setResendSeconds(data.retry_after)
-        setErrors({ form: data.message || 'Failed to request reset' })
+        setErrors({ form: data.message || `Failed to request reset${res.status ? ` (HTTP ${res.status})` : ''}` })
       }
     } catch(err){
       const data = err?.response?.data
       if(data?.retry_after) setResendSeconds(data.retry_after)
-      setErrors({ form: data?.message || err.message || 'Network error' })
+      setErrors({ form: getApiErrorMessage(err, 'Failed to request reset') })
     } finally {
       setLoading(false)
     }
@@ -133,10 +141,10 @@ export default function ForgotPassword(){
         setExpiresAt(null)
         setTimeout(() => navigate('/login'), 2000)
       } else {
-        setErrors({ form: data.message || 'Failed to reset password' })
+        setErrors({ form: data.message || `Failed to reset password${res.status ? ` (HTTP ${res.status})` : ''}` })
       }
     } catch(err){
-      setErrors({ form: err?.response?.data?.message || err.message || 'Network error' })
+      setErrors({ form: getApiErrorMessage(err, 'Failed to reset password') })
     } finally {
       setLoading(false)
     }
