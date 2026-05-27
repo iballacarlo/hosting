@@ -120,20 +120,12 @@ export default function DocumentHistory(){
     setIsEditingDocument(false)
     setEditFormData({})
     setEditTimeExceeded(false)
-    checkIfCanEdit(doc)
-  }
-
-  const checkIfCanEdit = (doc) => {
-    const requestedTime = new Date(doc.date_requested).getTime()
-    const currentTime = new Date().getTime()
-    const minutesElapsed = (currentTime - requestedTime) / (1000 * 60)
-    setEditTimeExceeded(minutesElapsed > 15)
   }
 
   const isProcessStatus = (st) => {
     if(!st) return false
     const s = String(st).toLowerCase()
-    return ['pending', 'in process', 'inprocess', 'resolved', 'closed', 'released', 'received'].some(p => s.includes(p))
+    return s !== 'submitted'
   }
 
   const closeModal = () => {
@@ -213,16 +205,20 @@ export default function DocumentHistory(){
     }
 
     try {
-      await api.patch(`/docs/${selectedDocument.request_id}`, editFormData)
+      await api.patch(`/docs/${getDocumentId(selectedDocument)}`, editFormData)
       const saved = { ...selectedDocument, ...editFormData, full_name: editFormData.name, birth_date: editFormData.birthdate }
       const updatedData = data.map(d => 
-        d.request_id === selectedDocument.request_id ? saved : d
+        documentIdToString(getDocumentId(d)) === documentIdToString(getDocumentId(selectedDocument)) ? saved : d
       )
       setData(updatedData)
       setSelectedDocument(saved)
       setIsEditingDocument(false)
     } catch(err){
-      alert(err?.response?.data?.message || 'Failed to update document')
+      const message = err?.response?.data?.message || 'Failed to update document'
+      if(message.toLowerCase().includes('15 minutes')){
+        setEditTimeExceeded(true)
+      }
+      alert(message)
     }
   }
 

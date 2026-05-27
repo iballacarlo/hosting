@@ -1830,7 +1830,7 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
   $id = intval($m[1]);
-  $stmt = $pdo->prepare('SELECT resident_id, status, reference_number, document_type FROM Document_Request WHERE request_id = ?');
+  $stmt = $pdo->prepare('SELECT resident_id, status, reference_number, document_type, date_requested FROM Document_Request WHERE request_id = ?');
   $stmt->execute([$id]);
   $request = $stmt->fetch();
   if(!$request) json(['success'=>false,'message'=>'Document request not found'], 404);
@@ -1854,21 +1854,32 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
     json(['success'=>true]);
   }
 
-  $data = json_decode(file_get_contents('php://input'), true);
+  $data = json_decode(file_get_contents('php://input'), true) ?: [];
   $residentMarksReceived = $isOwner
     && count($data) === 1
     && isset($data['status'])
     && strcasecmp($data['status'], 'Received') === 0
     && strcasecmp($request['status'] ?? '', 'Released') === 0;
 
-  if($user['role'] !== 'staff' && !$residentMarksReceived) json(['success'=>false,'message'=>'Forbidden']);
+  if($user['role'] !== 'staff' && !$residentMarksReceived){
+    if(!$isOwner) json(['success'=>false,'message'=>'Forbidden'], 403);
+    if(strcasecmp($request['status'] ?? '', 'Submitted') !== 0){
+      json(['success'=>false,'message'=>'Cannot edit a document request that is already in process or completed.'], 403);
+    }
+    $editWindowStmt = $pdo->prepare('SELECT TIMESTAMPDIFF(SECOND, date_requested, NOW()) AS elapsed_seconds FROM Document_Request WHERE request_id = ?');
+    $editWindowStmt->execute([$id]);
+    $editWindow = $editWindowStmt->fetch();
+    if($editWindow && intval($editWindow['elapsed_seconds']) > 15 * 60){
+      json(['success'=>false,'message'=>'Cannot edit - 15 minutes have passed since request'], 403);
+    }
+  }
 
   $fields = [];
   $vals = [];
   $statusUpdate = false;
   $newStatus = null;
-  if(isset($data['status'])){ $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status']; }
-  if(isset($data['processed_by'])){ $fields[] = 'processed_by = ?'; $vals[] = $data['processed_by']; }
+  if(($user['role'] === 'staff' || $residentMarksReceived) && isset($data['status'])){ $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status']; }
+  if($user['role'] === 'staff' && isset($data['processed_by'])){ $fields[] = 'processed_by = ?'; $vals[] = $data['processed_by']; }
   if(isset($data['name'])){ $fields[] = 'full_name = ?'; $vals[] = $data['name']; }
   if(isset($data['full_name'])){ $fields[] = 'full_name = ?'; $vals[] = $data['full_name']; }
   if(isset($data['birthdate'])){ $fields[] = 'birth_date = ?'; $vals[] = $data['birthdate'] ?: null; }

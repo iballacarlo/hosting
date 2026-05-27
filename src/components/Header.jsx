@@ -327,10 +327,6 @@ export default function Header(){
     if(next && isMobile()){
       const count = await loadNotifications()
       setUnreadCount(count)
-      setNotifications(current => {
-        markNotificationsPanelOpened(current)
-        return current
-      })
     }
   }
 
