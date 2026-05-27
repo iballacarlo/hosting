@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSettings } from '../context/SettingsContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
+import { playNotificationSound } from '../utils/notificationSound'
 import './header.css'
 
 export default function Header(){
@@ -21,6 +22,7 @@ export default function Header(){
   const notificationsRef = useRef(null)
   const notificationFilterRef = useRef(null)
   const mobileNotificationFilterRef = useRef(null)
+  const lastUnreadCountRef = useRef(null)
 
   // Close dropdowns on outside click + Esc
   useEffect(() => {
@@ -113,6 +115,10 @@ export default function Header(){
       if(res.data && res.data.success){
         const list = Array.isArray(res.data.data) ? res.data.data : []
         const count = getBadgeCount(list)
+        if(lastUnreadCountRef.current !== null && count > lastUnreadCountRef.current){
+          playNotificationSound()
+        }
+        lastUnreadCountRef.current = count
         setNotifications(list)
         setUnreadCount(count)
         return count
@@ -120,6 +126,7 @@ export default function Header(){
     } catch (error) {
       setNotifications([])
       setUnreadCount(0)
+      lastUnreadCountRef.current = 0
     }
     return 0
   }
@@ -131,6 +138,9 @@ export default function Header(){
       await loadNotifications()
     }
     init()
+    const notificationTimer = window.setInterval(() => {
+      loadNotifications()
+    }, 20000)
 
     const handleStorage = (e) => {
       if(!e.key){
@@ -140,6 +150,7 @@ export default function Header(){
     window.addEventListener('storage', handleStorage)
     return () => {
       isMounted = false
+      window.clearInterval(notificationTimer)
       window.removeEventListener('storage', handleStorage)
     }
   }, [user])
@@ -179,6 +190,7 @@ export default function Header(){
     if(!user) return
 
     setNotifications(prev => prev.map(item => ({ ...item, read: true, is_read: true })))
+    lastUnreadCountRef.current = 0
 
     try {
       await api.post('/notifications/mark-all-read')
@@ -200,14 +212,18 @@ export default function Header(){
 
     const previous = notifications
     const next = previous.filter(item => (item.id || item.notification_id) !== notificationId)
+    const nextUnreadCount = getBadgeCount(next)
     setNotifications(next)
-    setUnreadCount(getBadgeCount(next))
+    setUnreadCount(nextUnreadCount)
+    lastUnreadCountRef.current = nextUnreadCount
 
     try {
       await api.delete(`/notifications/${notificationId}`)
     } catch (error) {
       setNotifications(previous)
-      setUnreadCount(getBadgeCount(previous))
+      const previousUnreadCount = getBadgeCount(previous)
+      setUnreadCount(previousUnreadCount)
+      lastUnreadCountRef.current = previousUnreadCount
     }
   }
 
@@ -217,6 +233,7 @@ export default function Header(){
     const previous = notifications
     setNotifications([])
     setUnreadCount(0)
+    lastUnreadCountRef.current = 0
 
     try {
       await api.delete('/notifications')
@@ -264,6 +281,9 @@ export default function Header(){
         return id === notificationId ? { ...item, read: true, is_read: true } : item
       }))
       setUnreadCount(prev => Math.max(0, prev - (wasUnread ? 1 : 0)))
+      if(wasUnread){
+        lastUnreadCountRef.current = Math.max(0, (lastUnreadCountRef.current || 0) - 1)
+      }
       markNotificationRead(notificationId)
         .then(() => loadNotifications())
         .catch(() => loadNotifications())
