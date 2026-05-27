@@ -583,13 +583,22 @@ html.dark .table-action-danger:hover{
   }
 
   .document-detail-actions .modal-action-preview{
-    font-size: 0;
-  }
-
-  .document-detail-actions .modal-action-preview::after{
-    content: 'View Preview';
     font-size: 0.78rem;
     line-height: 1.15;
+  }
+}
+
+@media(min-width:701px){
+  .document-preview-modal .resident-doc-preview-shell{
+    --desktop-preview-scale: min(1, calc((100vh - 190px) / 842), calc((100vw - 96px) / 595));
+    height:calc(842px * var(--desktop-preview-scale));
+  }
+
+  .document-preview-modal .resident-doc-preview-page{
+    width:595px;
+    flex:0 0 auto;
+    transform:scale(var(--desktop-preview-scale));
+    transform-origin:top center;
   }
 }
 
