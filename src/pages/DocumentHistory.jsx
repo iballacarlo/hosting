@@ -297,8 +297,10 @@ export default function DocumentHistory(){
           ) : (
             <>
             {activeList.length > 0 && (
-              <div className="table-wrap">
-                <table>
+              <section className="active-section">
+                <h2 className="section-title">Active Document Requests</h2>
+                <div className="table-wrap">
+                  <table>
                   <thead>
                     <tr>
                       <th>Reference</th>
@@ -336,8 +338,9 @@ export default function DocumentHistory(){
                       </tr>
                     ))}
                   </tbody>
-                </table>
-              </div>
+                  </table>
+                </div>
+              </section>
             )}
             {completedList.length > 0 && (
               <section className="completed-section">
