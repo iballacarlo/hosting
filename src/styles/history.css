@@ -590,7 +590,7 @@ html.dark .table-action-danger:hover{
 
 @media(min-width:701px){
   .document-preview-modal .resident-doc-preview-shell{
-    --desktop-preview-scale: min(1, calc((100vh - 190px) / 842), calc((100vw - 96px) / 595));
+    --desktop-preview-scale: min(1, calc((100vh - 250px) / 842), calc((100vw - 112px) / 595));
     height:calc(842px * var(--desktop-preview-scale));
   }
 
@@ -609,22 +609,22 @@ html.dark .table-action-danger:hover{
   }
 
   .document-detail-actions .modal-action-edit:not(.modal-action-preview){
-    order: 1;
-    grid-column: span 2;
-  }
-
-  .document-detail-actions .modal-action-delete{
-    order: 2;
-    grid-column: span 2;
-  }
-
-  .document-detail-actions .modal-action-close{
     order: 3;
     grid-column: span 2;
   }
 
-  .document-detail-actions .modal-action-preview{
+  .document-detail-actions .modal-action-delete{
     order: 4;
+    grid-column: span 2;
+  }
+
+  .document-detail-actions .modal-action-close{
+    order: 5;
+    grid-column: span 2;
+  }
+
+  .document-detail-actions .modal-action-preview{
+    order: 1;
     grid-column: span 3;
   }
 
@@ -633,7 +633,7 @@ html.dark .table-action-danger:hover{
   }
 
   .document-detail-actions .modal-action-received{
-    order: 5;
+    order: 2;
     grid-column: span 3;
   }
 

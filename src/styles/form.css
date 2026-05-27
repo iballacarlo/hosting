@@ -1077,6 +1077,19 @@ html.dark .font-chip.active{
   max-width: 430px;
 }
 
+@media (min-width: 901px) {
+  .document-preview-shell-a4 .resident-doc-preview-shell{
+    --process-preview-scale: min(1, calc((100vh - 230px) / 842), calc((100vw - 540px) / 595));
+    height: calc(842px * var(--process-preview-scale));
+  }
+
+  .document-preview-shell-a4 .resident-doc-preview-page{
+    flex: 0 0 auto;
+    transform: scale(var(--process-preview-scale));
+    transform-origin: top center;
+  }
+}
+
 @media (max-width: 900px) and (orientation: portrait) {
   .process-modal-grid-single{
     grid-template-columns: 1fr;
