@@ -159,6 +159,25 @@ function ensureLoginAttemptTable($pdo){
   $ready = true;
 }
 
+function ensureAuthTokenTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Auth_Token (
+    token_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_role VARCHAR(20) NOT NULL,
+    user_id INT NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_auth_token_token (token),
+    INDEX idx_auth_token_user (user_role, user_id),
+    INDEX idx_auth_token_last_used (last_used_at)
+  )');
+
+  $ready = true;
+}
+
 function ensureComplaintAttachmentTable($pdo){
   static $ready = false;
   if($ready) return;
@@ -1116,6 +1135,36 @@ function getHttpHeaderValue($headers, $name){
 
 function findUserByToken($pdo, $token){
   if(!$token) return null;
+  ensureAuthTokenTable($pdo);
+
+  $stmt = $pdo->prepare('SELECT user_role, user_id FROM Auth_Token WHERE token = ?');
+  $stmt->execute([$token]);
+  $tokenRow = $stmt->fetch();
+  if($tokenRow){
+    if($tokenRow['user_role'] === 'resident' && tableExists($pdo, 'Resident')){
+      $stmt = $pdo->prepare('SELECT resident_id as id, first_name, middle_name, last_name, birth_date, address, email, account_status, suspension_end_date, "resident" as role FROM Resident WHERE resident_id = ?');
+      $stmt->execute([$tokenRow['user_id']]);
+      $r = $stmt->fetch();
+      if($r){
+        $restriction = getAccountRestriction($pdo, 'Resident', 'resident_id', $r['id'], $r['account_status'] ?? '', $r['suspension_end_date'] ?? null);
+        if($restriction) return null;
+        $pdo->prepare('UPDATE Auth_Token SET last_used_at = NOW() WHERE token = ?')->execute([$token]);
+        return $r;
+      }
+    }
+    if($tokenRow['user_role'] === 'staff' && tableExists($pdo, 'Staff')){
+      $stmt = $pdo->prepare('SELECT staff_id as id, full_name as first_name, email, account_status, suspension_end_date, "staff" as role FROM Staff WHERE staff_id = ?');
+      $stmt->execute([$tokenRow['user_id']]);
+      $s = $stmt->fetch();
+      if($s){
+        $restriction = getAccountRestriction($pdo, 'Staff', 'staff_id', $s['id'], $s['account_status'] ?? '', $s['suspension_end_date'] ?? null);
+        if($restriction) return null;
+        $pdo->prepare('UPDATE Auth_Token SET last_used_at = NOW() WHERE token = ?')->execute([$token]);
+        return $s;
+      }
+    }
+  }
+
   // check residents
   if(tableExists($pdo, 'Resident')){
     $stmt = $pdo->prepare('SELECT resident_id as id, first_name, middle_name, last_name, birth_date, address, email, account_status, suspension_end_date, "resident" as role FROM Resident WHERE api_token = ?');
@@ -1181,6 +1230,32 @@ function getAccountRestriction($pdo, $table, $keyColumn, $id, $status, $suspensi
 }
 
 function updateUserApiToken($pdo, $role, $id, $token){
+  ensureAuthTokenTable($pdo);
+  $normalizedRole = $role === 'staff' ? 'staff' : 'resident';
+
+  if($normalizedRole === 'staff' && tableExists($pdo, 'Staff')){
+    $stmt = $pdo->prepare('SELECT api_token FROM Staff WHERE staff_id = ?');
+    $stmt->execute([$id]);
+    $existing = $stmt->fetch();
+    if(!empty($existing['api_token'])){
+      $pdo->prepare('INSERT IGNORE INTO Auth_Token (user_role, user_id, token, created_at, last_used_at) VALUES (?, ?, ?, NOW(), NOW())')
+        ->execute([$normalizedRole, intval($id), $existing['api_token']]);
+    }
+  }
+
+  if($normalizedRole === 'resident' && tableExists($pdo, 'Resident')){
+    $stmt = $pdo->prepare('SELECT api_token FROM Resident WHERE resident_id = ?');
+    $stmt->execute([$id]);
+    $existing = $stmt->fetch();
+    if(!empty($existing['api_token'])){
+      $pdo->prepare('INSERT IGNORE INTO Auth_Token (user_role, user_id, token, created_at, last_used_at) VALUES (?, ?, ?, NOW(), NOW())')
+        ->execute([$normalizedRole, intval($id), $existing['api_token']]);
+    }
+  }
+
+  $pdo->prepare('INSERT INTO Auth_Token (user_role, user_id, token, created_at, last_used_at) VALUES (?, ?, ?, NOW(), NOW())')
+    ->execute([$normalizedRole, intval($id), $token]);
+
   if($role === 'staff'){
     if(tableExists($pdo, 'Staff')){
       $pdo->prepare('UPDATE Staff SET api_token = ? WHERE staff_id = ?')->execute([$token, $id]);
@@ -1193,6 +1268,10 @@ function updateUserApiToken($pdo, $role, $id, $token){
 }
 
 function updateUserPassword($pdo, $role, $id, $hash){
+  ensureAuthTokenTable($pdo);
+  $normalizedRole = $role === 'staff' ? 'staff' : 'resident';
+  $pdo->prepare('DELETE FROM Auth_Token WHERE user_role = ? AND user_id = ?')->execute([$normalizedRole, intval($id)]);
+
   if($role === 'staff'){
     if(tableExists($pdo, 'Staff')){
       $pdo->prepare('UPDATE Staff SET password = ?, api_token = NULL WHERE staff_id = ?')->execute([$hash, $id]);
@@ -1374,7 +1453,8 @@ if($uri === '/register' && $method === 'POST'){
   $stmt->execute([$data['first_name'] ?? '', $data['middle_name'] ?? '', $data['last_name'] ?? '', $data['birth_date'] ?? null, $data['gender'] ?? null, $data['address'] ?? null, $email, $hash]);
   $id = $pdo->lastInsertId();
   $token = bin2hex(random_bytes(16));
-  $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $id]);  $residentName = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')) ?: $data['email'];
+  updateUserApiToken($pdo, 'resident', $id, $token);
+  $residentName = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')) ?: $data['email'];
   deleteRegistrationOtp($pdo, $email);
   createNotification($pdo, null, 'New resident registration: ' . $residentName, 'registration');  json(['success'=>true,'token'=>$token,'user'=>['id'=>$id,'email'=>$email,'role'=>'resident']]);
 }
@@ -1406,7 +1486,7 @@ if($uri === '/login' && $method === 'POST'){
         json(array_merge(['success'=>false], $restriction));
       }
       $token = bin2hex(random_bytes(16));
-      $pdo->prepare('UPDATE Staff SET api_token = ? WHERE staff_id = ?')->execute([$token, $s['staff_id']]);
+      updateUserApiToken($pdo, 'staff', $s['staff_id'], $token);
       clearLoginAttempt($pdo, $loginIdentifier);
       json(['success'=>true,'token'=>$token,'user'=>['id'=>$s['staff_id'],'name'=>$s['full_name'],'role'=>'staff']]);
     }
@@ -1422,7 +1502,7 @@ if($uri === '/login' && $method === 'POST'){
         json(array_merge(['success'=>false], $restriction));
       }
       $token = bin2hex(random_bytes(16));
-      $pdo->prepare('UPDATE Resident SET api_token = ? WHERE resident_id = ?')->execute([$token, $r['resident_id']]);
+      updateUserApiToken($pdo, 'resident', $r['resident_id'], $token);
       clearLoginAttempt($pdo, $loginIdentifier);
       json(['success'=>true,'token'=>$token,'user'=>['id'=>$r['resident_id'],'name'=>($r['first_name'].' '.$r['last_name']),'role'=>'resident','account_status'=>$r['account_status'],'suspension_end_date'=>$r['suspension_end_date']]]);
     }
@@ -2458,6 +2538,8 @@ if(preg_match('#^/residents/(\d+)$#', $uri, $m) && in_array($method, ['PATCH','P
     }
     if(strcasecmp($status, 'Active') !== 0){
       $fields[] = 'api_token = NULL';
+      ensureAuthTokenTable($pdo);
+      $pdo->prepare('DELETE FROM Auth_Token WHERE user_role = "resident" AND user_id = ?')->execute([$id]);
     }
   }
   if(isset($data['first_name'])){ $fields[] = 'first_name = ?'; $vals[] = $data['first_name']; }

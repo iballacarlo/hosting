@@ -292,6 +292,23 @@ CREATE TABLE IF NOT EXISTS Login_Attempt (
 );
 
 
+CREATE TABLE IF NOT EXISTS Auth_Token (
+  token_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  user_role VARCHAR(20) NOT NULL,
+  user_id INT NOT NULL,
+
+  token VARCHAR(255) NOT NULL,
+
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  last_used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uq_auth_token_token (token),
+  INDEX idx_auth_token_user (user_role, user_id),
+  INDEX idx_auth_token_last_used (last_used_at)
+);
+
+
 CREATE TABLE IF NOT EXISTS Archive_Item (
   archive_id INT AUTO_INCREMENT PRIMARY KEY,
   item_type VARCHAR(50) NOT NULL,

@@ -590,7 +590,7 @@ html.dark .table-action-danger:hover{
 
 @media(min-width:701px){
   .document-preview-modal .resident-doc-preview-shell{
-    --desktop-preview-scale: min(1, calc((100vh - 250px) / 842), calc((100vw - 112px) / 595));
+    --desktop-preview-scale: min(1, calc((100vh - 340px) / 842), calc((100vw - 128px) / 595));
     height:calc(842px * var(--desktop-preview-scale));
   }
 
