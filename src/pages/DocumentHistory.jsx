@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import '../styles/history.css'
 import api from '../api/axios'
 import StatusBadge from '../components/StatusBadge'
+import DocumentPreview from '../components/DocumentPreview'
 import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
@@ -27,14 +28,20 @@ export default function DocumentHistory(){
   const [editTimeExceeded, setEditTimeExceeded] = useState(false)
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({show: false, docId: null, doc: null})
   const [receivedConfirmModal, setReceivedConfirmModal] = useState({show: false})
+  const [previewDocument, setPreviewDocument] = useState(null)
   const selectedDocumentRef = useRef(null)
   const deleteConfirmRef = useRef(null)
   const receivedConfirmRef = useRef(null)
+  const previewDocumentRef = useRef(null)
   const { user: authUser, loading: authLoading } = useAuth()
   const currentUser = authUser
   const maxBirthdate = new Date().toISOString().split('T')[0]
 
   const isCompletedDocument = (status = '') => ['released', 'received', 'rejected', 'denied'].includes(String(status).toLowerCase())
+  const isReadyForPickup = (status = '') => {
+    const value = String(status || '').toLowerCase()
+    return value.includes('ready') || value.includes('released')
+  }
   const list = data.filter(item => {
     const itemStatus = String(item.status || '').toLowerCase()
     const searchQuery = q.trim().toLowerCase()
@@ -133,6 +140,11 @@ export default function DocumentHistory(){
     setIsEditingDocument(false)
   }
 
+  const openDocumentPreview = (doc = selectedDocument) => {
+    if(!doc || !isReadyForPickup(doc.status)) return
+    setPreviewDocument(doc)
+  }
+
   const handleDeleteDocument = (doc) => {
     const docId = getDocumentId(doc)
     if(!docId) return
@@ -169,6 +181,7 @@ export default function DocumentHistory(){
   useCloseOnEscape(Boolean(selectedDocument), closeModal, selectedDocumentRef)
   useCloseOnEscape(deleteConfirmModal.show, cancelDeleteDocument, deleteConfirmRef)
   useCloseOnEscape(receivedConfirmModal.show, () => setReceivedConfirmModal({show: false}), receivedConfirmRef)
+  useCloseOnEscape(Boolean(previewDocument), () => setPreviewDocument(null), previewDocumentRef)
 
   const handleEditClick = () => {
     const status = selectedDocument?.status || ''
@@ -474,6 +487,16 @@ export default function DocumentHistory(){
                     )}
 
                     <div className="modal-actions">
+                      {isReadyForPickup(selectedDocument.status) && (
+                        <button
+                          className="modal-action-btn modal-action-edit"
+                          onClick={() => openDocumentPreview(selectedDocument)}
+                          type="button"
+                        >
+                          View Document Preview
+                        </button>
+                      )}
+
                       {String(selectedDocument.status || '').toLowerCase().includes('released') && (
                         <button
                           className="modal-action-btn modal-action-received mobile-checkmark"
@@ -603,6 +626,38 @@ export default function DocumentHistory(){
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* DOCUMENT PREVIEW MODAL */}
+          {previewDocument && (
+            <div
+              className="modal-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Document preview"
+              onClick={() => setPreviewDocument(null)}
+            >
+              <div className="modal-card complaint-details-modal" ref={previewDocumentRef} onClick={(e) => e.stopPropagation()}>
+                <button
+                  className="modal-close-btn"
+                  onClick={() => setPreviewDocument(null)}
+                  type="button"
+                >
+                  &times;
+                </button>
+                <h2 className="modal-title">Document Preview</h2>
+                <DocumentPreview document={previewDocument} />
+                <div className="modal-actions">
+                  <button
+                    className="modal-action-btn"
+                    onClick={() => setPreviewDocument(null)}
+                    type="button"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           )}

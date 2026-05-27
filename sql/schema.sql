@@ -187,6 +187,28 @@ CREATE TABLE IF NOT EXISTS Notification (
 );
 
 
+CREATE TABLE IF NOT EXISTS Chat_Message (
+  chat_message_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  resident_id INT NOT NULL,
+
+  sender_role VARCHAR(20) NOT NULL,
+  sender_id INT NOT NULL,
+
+  message TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+
+  date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX idx_chat_resident_date (resident_id, date_created),
+
+  CONSTRAINT fk_chat_resident
+    FOREIGN KEY (resident_id)
+    REFERENCES Resident(resident_id)
+    ON DELETE CASCADE
+);
+
+
 CREATE TABLE IF NOT EXISTS Password_Reset (
   reset_id INT AUTO_INCREMENT PRIMARY KEY,
 

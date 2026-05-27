@@ -234,6 +234,28 @@ function ensureArchiveTable($pdo){
   $ready = true;
 }
 
+function ensureChatMessageTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Chat_Message (
+    chat_message_id INT AUTO_INCREMENT PRIMARY KEY,
+    resident_id INT NOT NULL,
+    sender_role VARCHAR(20) NOT NULL,
+    sender_id INT NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_chat_resident_date (resident_id, date_created),
+    CONSTRAINT fk_chat_resident
+      FOREIGN KEY (resident_id)
+      REFERENCES Resident(resident_id)
+      ON DELETE CASCADE
+  )');
+
+  $ready = true;
+}
+
 function purgeExpiredArchiveItems($pdo){
   ensureArchiveTable($pdo);
   $pdo->exec('DELETE FROM Archive_Item WHERE expires_at <= NOW()');
@@ -2023,6 +2045,104 @@ if((preg_match('#^/notifications/(\d+)$#', $uri, $m) && $method === 'DELETE') ||
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
   $deleted = deleteNotificationForUser($pdo, $user, intval($m[1]));
   json(['success'=>true,'deleted'=>$deleted]);
+}
+
+// Route: /chat/conversations - staff inbox list, resident own thread summary
+if($uri === '/chat/conversations' && $method === 'GET'){
+  ensureChatMessageTable($pdo);
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+
+  if($user['role'] === 'staff'){
+    $stmt = $pdo->query('SELECT
+        r.resident_id,
+        CONCAT_WS(" ", r.first_name, r.middle_name, r.last_name) AS resident_name,
+        r.email,
+        latest.message AS last_message,
+        latest.date_created AS last_message_at,
+        COALESCE(unread.unread_count, 0) AS unread_count
+      FROM Resident r
+      LEFT JOIN (
+        SELECT cm1.resident_id, cm1.message, cm1.date_created
+        FROM Chat_Message cm1
+        INNER JOIN (
+          SELECT resident_id, MAX(date_created) AS max_date
+          FROM Chat_Message
+          GROUP BY resident_id
+        ) cm2 ON cm1.resident_id = cm2.resident_id AND cm1.date_created = cm2.max_date
+      ) latest ON latest.resident_id = r.resident_id
+      LEFT JOIN (
+        SELECT resident_id, COUNT(*) AS unread_count
+        FROM Chat_Message
+        WHERE sender_role = "resident" AND is_read = FALSE
+        GROUP BY resident_id
+      ) unread ON unread.resident_id = r.resident_id
+      ORDER BY COALESCE(latest.date_created, r.registration_date) DESC
+      LIMIT 200');
+    json(['success'=>true,'data'=>$stmt->fetchAll()]);
+  }
+
+  $stmt = $pdo->prepare('SELECT
+      ? AS resident_id,
+      CONCAT_WS(" ", first_name, middle_name, last_name) AS resident_name,
+      email,
+      (SELECT message FROM Chat_Message WHERE resident_id = ? ORDER BY date_created DESC LIMIT 1) AS last_message,
+      (SELECT date_created FROM Chat_Message WHERE resident_id = ? ORDER BY date_created DESC LIMIT 1) AS last_message_at,
+      (SELECT COUNT(*) FROM Chat_Message WHERE resident_id = ? AND sender_role = "staff" AND is_read = FALSE) AS unread_count
+    FROM Resident
+    WHERE resident_id = ?');
+  $stmt->execute([$user['id'], $user['id'], $user['id'], $user['id'], $user['id']]);
+  json(['success'=>true,'data'=>$stmt->fetchAll()]);
+}
+
+// Route: /chat/messages - get or send chat messages
+if($uri === '/chat/messages' && in_array($method, ['GET','POST'])){
+  ensureChatMessageTable($pdo);
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+
+  if($method === 'GET'){
+    $residentId = $user['role'] === 'staff'
+      ? intval($_GET['resident_id'] ?? 0)
+      : intval($user['id']);
+    if($residentId <= 0) json(['success'=>false,'message'=>'Resident is required'], 400);
+
+    if($user['role'] === 'staff'){
+      $pdo->prepare('UPDATE Chat_Message SET is_read = TRUE WHERE resident_id = ? AND sender_role = "resident"')->execute([$residentId]);
+    } else {
+      $pdo->prepare('UPDATE Chat_Message SET is_read = TRUE WHERE resident_id = ? AND sender_role = "staff"')->execute([$residentId]);
+    }
+
+    $stmt = $pdo->prepare('SELECT chat_message_id, resident_id, sender_role, sender_id, message, is_read, date_created
+      FROM Chat_Message
+      WHERE resident_id = ?
+      ORDER BY date_created ASC
+      LIMIT 300');
+    $stmt->execute([$residentId]);
+    json(['success'=>true,'data'=>$stmt->fetchAll()]);
+  }
+
+  $data = json_decode(file_get_contents('php://input'), true) ?: [];
+  $message = trim($data['message'] ?? '');
+  if($message === '') json(['success'=>false,'message'=>'Message is required'], 400);
+  if(strlen($message) > 1000) json(['success'=>false,'message'=>'Message must be 1000 characters or fewer'], 400);
+
+  $residentId = $user['role'] === 'staff'
+    ? intval($data['resident_id'] ?? 0)
+    : intval($user['id']);
+  if($residentId <= 0) json(['success'=>false,'message'=>'Resident is required'], 400);
+
+  $residentStmt = $pdo->prepare('SELECT resident_id FROM Resident WHERE resident_id = ?');
+  $residentStmt->execute([$residentId]);
+  if(!$residentStmt->fetch()) json(['success'=>false,'message'=>'Resident not found'], 404);
+
+  $senderRole = $user['role'] === 'staff' ? 'staff' : 'resident';
+  $stmt = $pdo->prepare('INSERT INTO Chat_Message (resident_id, sender_role, sender_id, message, is_read, date_created)
+    VALUES (?, ?, ?, ?, FALSE, NOW())');
+  $stmt->execute([$residentId, $senderRole, intval($user['id']), $message]);
+  json(['success'=>true,'id'=>$pdo->lastInsertId()]);
 }
 
 // Route: /residents GET - list residents (admin)
