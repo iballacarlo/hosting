@@ -545,6 +545,21 @@ html.dark .table-action-danger:hover{
   white-space: normal;
 }
 
+.document-preview-modal{
+  width: min(760px, calc(100vw - 32px));
+  max-height: 92vh;
+  overflow: hidden;
+}
+
+.document-preview-modal .modal-title{
+  margin-bottom: 10px;
+}
+
+.document-preview-modal .modal-actions{
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
 .mobile-checkmark{
   display: inline-flex;
   align-items: center;
@@ -569,6 +584,32 @@ html.dark .table-action-danger:hover{
 
   .modal-actions{
     grid-template-columns: 1fr;
+  }
+
+  .modal-action-edit:not(.modal-action-preview){
+    order: 1;
+  }
+
+  .modal-action-delete{
+    order: 2;
+  }
+
+  .modal-action-close{
+    order: 3;
+  }
+
+  .modal-action-preview{
+    order: 4;
+  }
+
+  .modal-action-received{
+    order: 5;
+  }
+
+  .document-preview-modal{
+    width: min(420px, calc(100vw - 20px));
+    max-height: calc(100vh - 18px);
+    padding: 14px;
   }
 }
 

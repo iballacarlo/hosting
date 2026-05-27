@@ -443,7 +443,7 @@
 .message-menu{
   position:absolute;
   top:34px;
-  min-width:122px;
+  min-width:174px;
   padding:6px;
   border:1px solid var(--border-color);
   border-radius:8px;
@@ -477,6 +477,65 @@
 
 .message-menu button:hover{
   background:var(--surface-2);
+}
+
+.reaction-picker{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  padding:4px;
+  margin-bottom:4px;
+  border-bottom:1px solid var(--border-color);
+}
+
+.message-menu .reaction-picker button{
+  width:28px;
+  height:28px;
+  flex:0 0 28px;
+  padding:0;
+  border-radius:999px;
+  justify-content:center;
+  font-size:1rem;
+  line-height:1;
+}
+
+.message-menu .reaction-picker button.active{
+  background:var(--primary-soft);
+  box-shadow:0 0 0 1px var(--primary-color);
+}
+
+.message-reactions{
+  margin-top:-2px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+}
+
+.chat-message.mine .message-reactions{
+  justify-content:flex-end;
+}
+
+.message-reactions button{
+  min-height:24px;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  border:1px solid var(--border-color);
+  border-radius:999px;
+  background:var(--card-bg);
+  color:var(--text-color);
+  padding:2px 7px;
+  cursor:pointer;
+  font-size:0.78rem;
+}
+
+.message-reactions button.active{
+  border-color:var(--primary-color);
+  background:var(--primary-soft);
+}
+
+.message-reactions strong{
+  font-size:0.72rem;
 }
 
 .edit-message-form{

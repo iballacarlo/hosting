@@ -489,7 +489,7 @@ export default function DocumentHistory(){
                     <div className="modal-actions">
                       {isReadyForPickup(selectedDocument.status) && (
                         <button
-                          className="modal-action-btn modal-action-edit"
+                          className="modal-action-btn modal-action-edit modal-action-preview"
                           onClick={() => openDocumentPreview(selectedDocument)}
                           type="button"
                         >
@@ -527,7 +527,7 @@ export default function DocumentHistory(){
                         </button>
                       )}
                       <button 
-                        className="modal-action-btn"
+                        className="modal-action-btn modal-action-close"
                         onClick={closeModal}
                         type="button"
                       >
@@ -639,7 +639,7 @@ export default function DocumentHistory(){
               aria-label="Document preview"
               onClick={() => setPreviewDocument(null)}
             >
-              <div className="modal-card complaint-details-modal" ref={previewDocumentRef} onClick={(e) => e.stopPropagation()}>
+              <div className="modal-card complaint-details-modal document-preview-modal" ref={previewDocumentRef} onClick={(e) => e.stopPropagation()}>
                 <button
                   className="modal-close-btn"
                   onClick={() => setPreviewDocument(null)}

@@ -88,7 +88,8 @@ export default function ChatWidget(){
 
   const isAdmin = user?.role === 'admin' || user?.role === 'staff'
   const selectedConversation = useMemo(() => {
-    return conversations.find(item => Number(item.resident_id) === Number(selectedResidentId))
+    if(isAdmin) return conversations.find(item => Number(item.resident_id) === Number(selectedResidentId))
+    return conversations[0] || null
   }, [conversations, selectedResidentId])
   const unreadTotal = conversations.reduce((sum, item) => sum + Number(item.unread_count || 0), 0)
   const normalizedSearch = searchQuery.trim().toLowerCase()
@@ -127,9 +128,10 @@ export default function ChatWidget(){
       }
     }
     function onPointerDown(e){
-      if(activeMenuId && panelRef.current && !panelRef.current.contains(e.target)){
-        setActiveMenuId(null)
-      }
+      if(!activeMenuId) return
+      const target = e.target
+      if(target.closest?.('.message-menu') || target.closest?.('.chat-message-more')) return
+      setActiveMenuId(null)
     }
     document.addEventListener('keydown', onKeyDown)
     document.addEventListener('pointerdown', onPointerDown)
@@ -262,6 +264,10 @@ export default function ChatWidget(){
   }
 
   const messageIsMine = (message) => isAdmin ? message.sender_role === 'staff' : message.sender_role === 'resident'
+  const lastOwnMessageId = useMemo(() => {
+    const ownMessages = messages.filter(item => messageIsMine(item) && !isDeleted(item))
+    return ownMessages.length > 0 ? ownMessages[ownMessages.length - 1].chat_message_id : null
+  }, [messages, isAdmin])
   const canEditMessage = (message) => {
     if(!messageIsMine(message) || isDeleted(message)) return false
     const createdAt = new Date(message.date_created).getTime()
@@ -554,7 +560,7 @@ export default function ChatWidget(){
                               <div className="chat-time">
                                 <span>{item.date_created ? new Date(item.date_created).toLocaleString() : ''}</span>
                                 {item.edited_at && !isDeleted(item) && <span>Edited</span>}
-                                {mine && (
+                                {mine && item.chat_message_id === lastOwnMessageId && (
                                   <span className="seen-state">
                                     <CheckCheck size={13} /> {item.is_read ? 'Seen' : 'Sent'}
                                   </span>
