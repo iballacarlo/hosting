@@ -203,7 +203,7 @@ export default function ComplaintForm(){
     payload.append('resident_name', residentName)
 
     form.images.forEach(file => {
-      payload.append('attachments[]', file)
+      payload.append('attachments[]', file, file.name)
     })
 
     return api.post('/complaints', payload, {

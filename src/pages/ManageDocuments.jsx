@@ -12,6 +12,7 @@ import BacoorLogo from '../assets/Bacoor.png'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { withAllFirst } from '../utils/sortOptions'
 import { formatResidentId, getDocumentReference } from '../utils/idFormat'
+import { downloadTimestamp, safeDownloadPart } from '../utils/downloadNames'
 
 const REQUEST_DOC_TYPES = [
   'Barangay Clearance',
@@ -327,9 +328,9 @@ export default function ManageDocuments(){
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    const name = (getDocumentReference(processingRequest) || 'document').toString().replace(/[^a-zA-Z0-9-_]/g, '_')
+    const name = safeDownloadPart(getDocumentReference(processingRequest), 'document')
     const template = getTemplateForType(processingRequest.document_type || processingRequest.type)
-    link.download = `${name}_${template.replace(/\s+/g, '_')}.pdf`
+    link.download = `${name}_${safeDownloadPart(template)}_${downloadTimestamp()}.pdf`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -363,6 +364,18 @@ export default function ManageDocuments(){
   }
 
   const processingTemplate = processingRequest ? getTemplateForType(processingRequest.document_type || processingRequest.type) : 'Barangay Clearance'
+  const activeStatuses = ['Submitted', 'Requested', 'Processing', 'Ready']
+  const isCompletedDocument = (status = '') => ['released', 'received'].includes(String(status).toLowerCase())
+  const getVisibleDocuments = () => items.filter(item => {
+    if(isCompletedDocument(item.status)) return false
+    const matchesStatus = filterStatus === 'All' || item.status === filterStatus
+    const matchesSearch = searchQuery === '' ||
+      (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
+      getDocumentReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.name || item.full_name || formatResidentId(item.resident_id) || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesSearch
+  })
 
   return(
     <div className="app-shell">
@@ -387,7 +400,7 @@ export default function ManageDocuments(){
                   value={filterStatus}
                   onChange={e => setFilterStatus(e.target.value)}
                 >
-                  {withAllFirst(['Requested', 'Processing', 'Ready', 'Released', 'Received']).map(option => (
+                  {withAllFirst(activeStatuses).map(option => (
                     <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
                   ))}
                 </select>
@@ -415,16 +428,7 @@ export default function ManageDocuments(){
                 </thead>
 
                 <tbody>
-                  {items
-                    .filter(item => {
-                      const matchesStatus = filterStatus === 'All' || item.status === filterStatus
-                      const matchesSearch = searchQuery === '' ||
-                        (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
-                        getDocumentReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (item.name || item.full_name || formatResidentId(item.resident_id) || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
-                      return matchesStatus && matchesSearch
-                    })
+                  {getVisibleDocuments()
                     .map(it=>(
                     <tr
                       key={it.request_id}
@@ -453,16 +457,7 @@ export default function ManageDocuments(){
               </table>
             </div>
 
-            {items.length > 0 && items
-              .filter(item => {
-                const matchesStatus = filterStatus === 'All' || item.status === filterStatus
-                const matchesSearch = searchQuery === '' ||
-                  (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
-                  getDocumentReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (item.name || item.full_name || formatResidentId(item.resident_id) || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
-                return matchesStatus && matchesSearch
-              }).length === 0 && (
+            {items.length > 0 && getVisibleDocuments().length === 0 && (
               <div className="empty-state">No document requests match your search criteria.</div>
             )}
 

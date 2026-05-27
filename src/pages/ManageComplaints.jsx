@@ -10,6 +10,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
 import { formatResidentId, getComplaintReference } from '../utils/idFormat'
+import { downloadTimestamp, safeDownloadPart } from '../utils/downloadNames'
 
 export default function ManageComplaints(){
   const location = useLocation()
@@ -105,6 +106,19 @@ export default function ManageComplaints(){
   }, [highlightedComplaintId, items])
 
   const statusOptions = sortTextAsc(['Submitted', 'Pending', 'Resolved', 'Closed'])
+  const activeStatuses = ['Submitted', 'Pending']
+  const isCompletedComplaint = (status = '') => ['resolved', 'closed'].includes(String(status).toLowerCase())
+  const getVisibleComplaints = () => items.filter(item => {
+    if(isCompletedComplaint(item.status)) return false
+    const matchesStatus = filterStatus === 'All' || item.status === filterStatus
+    const matchesSearch = searchQuery === '' ||
+      String(item.complaint_id).includes(searchQuery) ||
+      getComplaintReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.resident_name || item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesSearch
+  })
+
   async function handleUpdate(id, status){
     const item = items.find(i => i.complaint_id === id)
     if(!item) return
@@ -693,8 +707,8 @@ export default function ManageComplaints(){
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      const fileNameText = getComplaintReference(record).replace(/[^a-zA-Z0-9-_]/g, '_')
-      link.download = `${fileNameText}_${fileType}.pdf`
+      const fileNameText = safeDownloadPart(getComplaintReference(record), 'complaint')
+      link.download = `${fileNameText}_${fileType}_${downloadTimestamp()}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -727,7 +741,7 @@ export default function ManageComplaints(){
                   value={filterStatus}
                   onChange={e => setFilterStatus(e.target.value)}
                 >
-                  {withAllFirst(['Submitted', 'Pending', 'Resolved', 'Closed']).map(option => (
+                  {withAllFirst(activeStatuses).map(option => (
                     <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
                   ))}
                 </select>
@@ -756,16 +770,7 @@ export default function ManageComplaints(){
                 </thead>
 
                 <tbody>
-                  {items
-                    .filter(item => {
-                      const matchesStatus = filterStatus === 'All' || item.status === filterStatus
-                      const matchesSearch = searchQuery === '' ||
-                        String(item.complaint_id).includes(searchQuery) ||
-                        getComplaintReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (item.resident_name || item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-                      return matchesStatus && matchesSearch
-                    })
+                  {getVisibleComplaints()
                     .map(it => (
                     <tr
                       key={it.complaint_id}
@@ -818,16 +823,7 @@ export default function ManageComplaints(){
               </table>
             </div>
 
-            {items.length > 0 && items
-              .filter(item => {
-                const matchesStatus = filterStatus === 'All' || item.status === filterStatus
-                const matchesSearch = searchQuery === '' ||
-                  String(item.complaint_id).includes(searchQuery) ||
-                  getComplaintReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (item.resident_name || item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-                return matchesStatus && matchesSearch
-              }).length === 0 && (
+            {items.length > 0 && getVisibleComplaints().length === 0 && (
               <div className="empty-state">No complaints match your search criteria.</div>
             )}
 
@@ -892,11 +888,11 @@ export default function ManageComplaints(){
                     </div>
                   )}
 
-                  {Array.isArray(selectedComplaint.images) && selectedComplaint.images.length > 0 && (
+                  {normalizeComplaintMedia(selectedComplaint.images || selectedComplaint.attachments).length > 0 && (
                     <div className="complaint-detail-row full-width">
                       <span className="detail-label">Attached Media:</span>
                       <div className="complaint-media-grid">
-                        {normalizeComplaintMedia(selectedComplaint.images).map((media, index) => (
+                        {normalizeComplaintMedia(selectedComplaint.images || selectedComplaint.attachments).map((media, index) => (
                           <button
                             key={index}
                             type="button"
@@ -915,12 +911,14 @@ export default function ManageComplaints(){
                     </div>
                   )}
 
-                  <button className="modal-action-btn" type="button" onClick={() => handleDownloadPdf(selectedComplaint)}>
-                    Download Complaint PDF
-                  </button>
-                  <button className="modal-action-btn" type="button" onClick={closeModal}>
-                    Close
-                  </button>
+                  <div className="modal-actions">
+                    <button className="modal-action-btn" type="button" onClick={() => handleDownloadPdf(selectedComplaint)}>
+                      Download Complaint PDF
+                    </button>
+                    <button className="modal-action-btn" type="button" onClick={closeModal}>
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

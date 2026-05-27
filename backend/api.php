@@ -264,6 +264,7 @@ function createArchiveItem($pdo, $type, $originalId, $ownerResidentId, $label, $
 }
 
 function restoreComplaintFromArchive($pdo, $snapshot){
+  ensureComplaintExtraColumns($pdo);
   $row = $snapshot['record'] ?? [];
   if(empty($row)) return false;
 
@@ -283,8 +284,8 @@ function restoreComplaintFromArchive($pdo, $snapshot){
     if(!$stmt->fetch()) $row['assigned_staff_id'] = null;
   }
 
-  $stmt = $pdo->prepare('INSERT INTO Complaint (complaint_id, resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, anonymous, respondent_name, respondent_contact, status, resolution_notes, date_submitted, date_resolved)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  $stmt = $pdo->prepare('INSERT INTO Complaint (complaint_id, resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, anonymous, respondent_name, respondent_contact, status, resolution_notes, date_submitted, date_updated, date_resolved)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
   $stmt->execute([
     $row['complaint_id'] ?? null,
     $row['resident_id'] ?? null,
@@ -300,6 +301,7 @@ function restoreComplaintFromArchive($pdo, $snapshot){
     $row['status'] ?? 'Submitted',
     $row['resolution_notes'] ?? null,
     $row['date_submitted'] ?? date('Y-m-d H:i:s'),
+    $row['date_updated'] ?? $row['date_submitted'] ?? date('Y-m-d H:i:s'),
     $row['date_resolved'] ?? null
   ]);
 
@@ -403,6 +405,7 @@ function ensureComplaintExtraColumns($pdo){
     'anonymous' => 'BOOLEAN DEFAULT FALSE',
     'respondent_name' => 'VARCHAR(255) DEFAULT NULL',
     'respondent_contact' => 'VARCHAR(255) DEFAULT NULL',
+    'date_updated' => 'DATETIME DEFAULT CURRENT_TIMESTAMP',
   ] as $column => $definition){
     if(!tableColumnExists($pdo, 'Complaint', $column)){
       $pdo->exec('ALTER TABLE Complaint ADD COLUMN ' . $column . ' ' . $definition);
@@ -610,14 +613,25 @@ function attachComplaintMedia($pdo, $rows){
 
 function saveComplaintUploads($pdo, $complaintId){
   ensureComplaintAttachmentTable($pdo);
-  if(empty($_FILES['attachments'])) return;
+  $files = $_FILES['attachments'] ?? ($_FILES['attachments[]'] ?? null);
+  if(empty($files)) return;
 
-  $files = $_FILES['attachments'];
+  $uploadedFiles = [];
   $names = is_array($files['name']) ? $files['name'] : [$files['name']];
   $types = is_array($files['type']) ? $files['type'] : [$files['type']];
   $tmpNames = is_array($files['tmp_name']) ? $files['tmp_name'] : [$files['tmp_name']];
   $errors = is_array($files['error']) ? $files['error'] : [$files['error']];
   $sizes = is_array($files['size']) ? $files['size'] : [$files['size']];
+
+  foreach($names as $index => $name){
+    $uploadedFiles[] = [
+      'name' => $name,
+      'type' => $types[$index] ?? '',
+      'tmp_name' => $tmpNames[$index] ?? '',
+      'error' => $errors[$index] ?? UPLOAD_ERR_NO_FILE,
+      'size' => $sizes[$index] ?? 0,
+    ];
+  }
 
   $uploadDir = __DIR__ . '/uploads/complaints';
   if(!is_dir($uploadDir)){
@@ -628,12 +642,13 @@ function saveComplaintUploads($pdo, $complaintId){
   $maxSize = 10 * 1024 * 1024;
   $stmt = $pdo->prepare('INSERT INTO Complaint_Attachment (complaint_id, file_path, file_name, file_type, file_size, upload_date) VALUES (?, ?, ?, ?, ?, NOW())');
 
-  foreach($names as $index => $originalName){
-    if(($errors[$index] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
-    $tmpName = $tmpNames[$index] ?? '';
+  foreach($uploadedFiles as $file){
+    $originalName = $file['name'] ?? '';
+    if(($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
+    $tmpName = $file['tmp_name'] ?? '';
     if(!is_uploaded_file($tmpName)) continue;
 
-    $fileType = $types[$index] ?? mime_content_type($tmpName);
+    $fileType = $file['type'] ?: mime_content_type($tmpName);
     $allowed = false;
     foreach($allowedPrefixes as $prefix){
       if(strpos($fileType, $prefix) === 0){
@@ -641,7 +656,7 @@ function saveComplaintUploads($pdo, $complaintId){
         break;
       }
     }
-    if(!$allowed || intval($sizes[$index] ?? 0) > $maxSize) continue;
+    if(!$allowed || intval($file['size'] ?? 0) > $maxSize) continue;
 
     $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
     $safeExtension = preg_match('/^[a-z0-9]{1,8}$/', $extension) ? $extension : 'bin';
@@ -650,7 +665,7 @@ function saveComplaintUploads($pdo, $complaintId){
 
     if(move_uploaded_file($tmpName, $targetPath)){
       $publicPath = '/uploads/complaints/' . $fileName;
-      $stmt->execute([$complaintId, $publicPath, $originalName, $fileType, intval($sizes[$index] ?? 0)]);
+      $stmt->execute([$complaintId, $publicPath, $originalName, $fileType, intval($file['size'] ?? 0)]);
     }
   }
 }
@@ -1632,7 +1647,7 @@ if($uri === '/complaints'){
     } else {
       $data = json_decode(file_get_contents('php://input'), true) ?: [];
     }
-    $stmt = $pdo->prepare('INSERT INTO Complaint (resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, anonymous, respondent_name, status, date_submitted) VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, "Submitted", NOW())');
+    $stmt = $pdo->prepare('INSERT INTO Complaint (resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, anonymous, respondent_name, status, date_submitted, date_updated) VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, "Submitted", NOW(), NOW())');
     $stmt->execute([$user['id'], $data['category_id'] ?? null, $data['title'] ?? '', $data['description'] ?? '', $data['incident_location'] ?? '', $data['incident_date'] ?? null, !empty($data['anonymous']) ? 1 : 0, $data['respondent_name'] ?? null]);
     $complaintId = $pdo->lastInsertId();
     saveComplaintUploads($pdo, $complaintId);
@@ -1700,8 +1715,15 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
     if(is_array($decodedIds)) $removedAttachmentIds = $decodedIds;
   }
 
-  $hasUploads = !empty($_FILES['attachments']);
+  $hasUploads = !empty($_FILES['attachments']) || !empty($_FILES['attachments[]']);
   if(count($fields) === 0 && count($removedAttachmentIds) === 0 && !$hasUploads) json(['success'=>false,'message'=>'Nothing to update']);
+
+  if(count($fields) > 0 || count($removedAttachmentIds) > 0 || $hasUploads){
+    $fields[] = 'date_updated = NOW()';
+    if($statusUpdate && in_array(strtolower($newStatus ?? ''), ['resolved', 'closed'], true)){
+      $fields[] = 'date_resolved = NOW()';
+    }
+  }
 
   if($statusUpdate){
     $complaint = $existingComplaint;
@@ -1856,6 +1878,14 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   if(isset($data['purpose'])){ $fields[] = 'purpose = ?'; $vals[] = $data['purpose']; }
   if(isset($data['business_name']) && tableColumnExists($pdo, 'Document_Request', 'business_name')){ $fields[] = 'business_name = ?'; $vals[] = $data['business_name']; }
   if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update']);
+
+  if($statusUpdate){
+    if(strcasecmp($newStatus, 'Released') === 0){
+      $fields[] = 'date_released = NOW()';
+    } elseif(strcasecmp($newStatus, 'Received') === 0){
+      $fields[] = 'date_released = COALESCE(date_released, NOW())';
+    }
+  }
 
   if($statusUpdate){
     if($request && !empty($request['resident_id'])){

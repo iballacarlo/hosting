@@ -324,7 +324,7 @@ export default function ComplaintHistory(){
       payload.append('removed_attachment_ids', JSON.stringify(editRemovedAttachmentIds))
       editMediaPreviews
         .filter(media => media?.isNew && media?.file)
-        .forEach(media => payload.append('attachments[]', media.file))
+        .forEach(media => payload.append('attachments[]', media.file, media.file.name))
 
       const res = await api.post(`/complaints/${selectedComplaint.complaint_id}`, payload, {
         headers: { 'Content-Type': 'multipart/form-data' }

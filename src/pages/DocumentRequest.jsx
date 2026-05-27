@@ -10,6 +10,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { addressData } from '../data/addressData'
 import { useNavigate } from 'react-router-dom'
 import { sortTextAsc } from '../utils/sortOptions'
+import { downloadTimestamp, safeDownloadPart } from '../utils/downloadNames'
 
 const DEFAULT_DOC_TYPES = sortTextAsc([
   'Barangay Clearance',
@@ -269,8 +270,8 @@ export default function DocumentRequest(){
     const link = document.createElement('a')
     link.href = url
 
-    const fileNameText = submittedRequest.type.replace(/\s+/g, '_').toLowerCase()
-    link.download = `${fileNameText}_request.pdf`
+    const fileNameText = safeDownloadPart(submittedRequest.type, 'document_request').toLowerCase()
+    link.download = `${fileNameText}_request_${downloadTimestamp()}.pdf`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

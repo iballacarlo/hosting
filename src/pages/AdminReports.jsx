@@ -5,6 +5,7 @@ import Button from '../components/Button'
 import '../styles/dashboard.css'
 import api from '../api/axios'
 import { getComplaintReference, getDocumentReference } from '../utils/idFormat'
+import { downloadTimestamp } from '../utils/downloadNames'
 import {
   BarChart3,
   Download,
@@ -388,7 +389,7 @@ export default function AdminReports(){
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `reports-${now.getFullYear()}.csv`
+    a.download = `reports-${now.getFullYear()}-${downloadTimestamp(now)}.csv`
     document.body.appendChild(a)
     a.click()
     a.remove()
