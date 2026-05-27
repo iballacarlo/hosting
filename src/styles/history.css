@@ -33,7 +33,7 @@
 
 .resident-filter-row{
   display: grid;
-  grid-template-columns: minmax(180px, 1.2fr) minmax(150px, 180px) minmax(120px, 140px) minmax(120px, 150px) minmax(150px, 1fr) minmax(90px, 110px);
+  grid-template-columns: minmax(180px, 1.2fr) minmax(120px, 140px) minmax(120px, 150px) minmax(150px, 1fr) minmax(58px, 70px) minmax(150px, 180px);
   align-items: center;
   gap: 10px;
 }

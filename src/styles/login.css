@@ -1209,7 +1209,13 @@ html.high-contrast .switch input:checked + .slider{
   }
 
   .brand-kicker{
-    display:none;
+    display:block;
+    font-size:0.66rem;
+    letter-spacing:0.06em;
+  }
+
+  .brand-name{
+    font-size:0.9rem;
   }
 
   .card-title{
