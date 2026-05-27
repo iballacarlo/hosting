@@ -1080,7 +1080,7 @@ html.dark .font-chip.active{
 @media (min-width: 901px) {
   .document-preview-shell-a4 .resident-doc-preview-shell{
     --process-preview-scale: min(1, calc((100vh - 390px) / 842), calc((100vw - 560px) / 595));
-    height: calc(842px * var(--process-preview-scale));
+    height: calc(300px * var(--process-preview-scale));
   }
 
   .document-preview-shell-a4 .resident-doc-preview-page{
