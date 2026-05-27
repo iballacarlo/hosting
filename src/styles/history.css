@@ -531,9 +531,9 @@ html.dark .table-action-danger:hover{
 }
 
 .complaint-media-grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 10px;
 }
 
@@ -546,7 +546,7 @@ html.dark .table-action-danger:hover{
   flex-direction: column;
   align-items: stretch;
   min-height: 100px;
-  max-width: 120px;
+  width: 110px;
 }
 
 .complaint-media-card img,
@@ -612,6 +612,7 @@ html.dark .modal-actions{
   flex-direction: column;
   align-items: stretch;
   min-height: 130px;
+  width: 120px;
 }
 
 .complaint-media-card img,
@@ -644,7 +645,18 @@ html.dark .modal-actions{
 }
 
 .complaint-edit-media-grid{
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 6px;
+}
+
+.completed-section{
+  margin-top: 24px;
+}
+
+.section-title{
+  font-size: 1.05rem;
+  font-weight: 900;
+  margin: 0 0 12px;
+  color: var(--text, #111827);
 }
 
 .complaint-media-edit-card{

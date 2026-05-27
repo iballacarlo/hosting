@@ -363,9 +363,21 @@ export default function ManageDocuments(){
     setProcessingRequest(null)
   }
 
+  const handleRejectRequest = async () => {
+    if(!processingRequest) return
+    try {
+      await api.put(`/docs/${processingRequest.request_id}`, { status: 'Rejected' })
+    } catch(err) {
+      alert('Failed to reject document: ' + (err?.response?.data?.message || err.message))
+      return
+    }
+    load()
+    setProcessingRequest(null)
+  }
+
   const processingTemplate = processingRequest ? getTemplateForType(processingRequest.document_type || processingRequest.type) : 'Barangay Clearance'
   const activeStatuses = ['Submitted', 'Requested', 'Processing', 'Ready']
-  const isCompletedDocument = (status = '') => ['released', 'received'].includes(String(status).toLowerCase())
+  const isCompletedDocument = (status = '') => ['released', 'received', 'rejected', 'denied'].includes(String(status).toLowerCase())
   const getVisibleDocuments = () => items.filter(item => {
     if(isCompletedDocument(item.status)) return false
     const matchesStatus = filterStatus === 'All' || item.status === filterStatus
@@ -375,6 +387,15 @@ export default function ManageDocuments(){
       (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.name || item.full_name || formatResidentId(item.resident_id) || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
+  })
+  const getCompletedDocuments = () => items.filter(item => {
+    if(!isCompletedDocument(item.status)) return false
+    const matchesSearch = searchQuery === '' ||
+      (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
+      getDocumentReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.document_type || item.document || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.name || item.full_name || formatResidentId(item.resident_id) || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesSearch
   })
 
   return(
@@ -459,6 +480,36 @@ export default function ManageDocuments(){
 
             {items.length > 0 && getVisibleDocuments().length === 0 && (
               <div className="empty-state">No document requests match your search criteria.</div>
+            )}
+
+            {getCompletedDocuments().length > 0 && (
+              <section className="completed-section">
+                <h2 className="section-title">Released, Received, and Rejected Requests</h2>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Ref</th>
+                        <th>Type</th>
+                        <th>Resident</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getCompletedDocuments().map(it => (
+                        <tr key={`completed-${it.request_id}`}>
+                          <td>{getDocumentReference(it)}</td>
+                          <td>{it.document_type || it.document}</td>
+                          <td>{it.name || it.full_name || formatResidentId(it.resident_id) || '—'}</td>
+                          <td>{new Date(it.date_requested || Date.now()).toLocaleDateString('en-US')}</td>
+                          <td><StatusBadge status={it.status}/></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
             )}
 
             {processingRequest && (
@@ -573,6 +624,7 @@ export default function ManageDocuments(){
                           <Button variant="secondary" onClick={closeProcessingModal} style={{ flex: 1 }}>Cancel</Button>
                           <Button variant="secondary" onClick={handlePrintPdf} style={{ flex: 1 }}>Print</Button>
                           <Button variant="secondary" onClick={handleDownloadPdf} style={{ flex: 1 }}>Download</Button>
+                          <Button variant="danger" onClick={handleRejectRequest} style={{ flex: 1 }}>Reject</Button>
                           <Button onClick={handleFinalizeRequest} style={{ flex: 1 }}>Finalize</Button>
                         </div>
                       </div>

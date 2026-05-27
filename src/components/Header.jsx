@@ -52,39 +52,8 @@ export default function Header(){
   }, [menuOpen, settingsOpen, notificationsOpen])
 
   const isNotificationRead = (notification) => notification?.is_read ?? notification?.read ?? false
-  const getNotificationStorageKey = () => {
-    const userKey = user?.id || user?.user_id || user?.email || user?.username || 'guest'
-    return `notifications_last_opened_${userKey}`
-  }
-
-  const getNotificationTime = (notification) => {
-    const rawDate = notification?.created_at || notification?.date_created || notification?.createdAt
-    const date = rawDate ? new Date(rawDate) : null
-    return date && !Number.isNaN(date.getTime()) ? date.getTime() : 0
-  }
-
-  const getLastOpenedNotificationsAt = () => {
-    if(typeof window === 'undefined' || !user) return 0
-    return Number(localStorage.getItem(getNotificationStorageKey()) || 0)
-  }
-
-  const getLatestNotificationTime = (list) => {
-    return list.reduce((latest, notification) => Math.max(latest, getNotificationTime(notification)), 0)
-  }
-
   const getBadgeCount = (list) => {
-    const lastOpenedAt = getLastOpenedNotificationsAt()
-    if(lastOpenedAt > 0){
-      return list.filter(notification => getNotificationTime(notification) > lastOpenedAt).length
-    }
     return list.filter(notification => !isNotificationRead(notification)).length
-  }
-
-  const markNotificationsPanelOpened = (list) => {
-    if(typeof window === 'undefined' || !user) return
-    const latestTime = getLatestNotificationTime(list)
-    localStorage.setItem(getNotificationStorageKey(), String(Math.max(Date.now(), latestTime)))
-    setUnreadCount(0)
   }
 
   const getNotificationKind = (notification) => {
@@ -294,6 +263,7 @@ export default function Header(){
         const id = item.id || item.notification_id
         return id === notificationId ? { ...item, read: true, is_read: true } : item
       }))
+      setUnreadCount(prev => Math.max(0, prev - (wasUnread ? 1 : 0)))
       markNotificationRead(notificationId)
         .then(() => loadNotifications())
         .catch(() => loadNotifications())
@@ -346,10 +316,6 @@ export default function Header(){
     if(next){
       const count = await loadNotifications()
       setUnreadCount(count)
-      setNotifications(current => {
-        markNotificationsPanelOpened(current)
-        return current
-      })
     }
     setMenuOpen(false)
     setSettingsOpen(false)

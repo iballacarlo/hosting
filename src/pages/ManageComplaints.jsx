@@ -8,7 +8,7 @@ import '../styles/history.css'
 import api from '../api/axios'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
-import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
+import { withAllFirst } from '../utils/sortOptions'
 import { formatResidentId, getComplaintReference } from '../utils/idFormat'
 import { downloadTimestamp, safeDownloadPart } from '../utils/downloadNames'
 
@@ -105,7 +105,7 @@ export default function ManageComplaints(){
     }
   }, [highlightedComplaintId, items])
 
-  const statusOptions = sortTextAsc(['Submitted', 'Pending', 'Resolved', 'Closed'])
+  const statusOptions = ['Submitted', 'Pending', 'Resolved', 'Closed']
   const activeStatuses = ['Submitted', 'Pending']
   const isCompletedComplaint = (status = '') => ['resolved', 'closed'].includes(String(status).toLowerCase())
   const getVisibleComplaints = () => items.filter(item => {
@@ -117,6 +117,15 @@ export default function ManageComplaints(){
       (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.resident_name || item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
+  })
+  const getCompletedComplaints = () => items.filter(item => {
+    if(!isCompletedComplaint(item.status)) return false
+    const matchesSearch = searchQuery === '' ||
+      String(item.complaint_id).includes(searchQuery) ||
+      getComplaintReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.resident_name || item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesSearch
   })
 
   async function handleUpdate(id, status){
@@ -825,6 +834,56 @@ export default function ManageComplaints(){
 
             {items.length > 0 && getVisibleComplaints().length === 0 && (
               <div className="empty-state">No complaints match your search criteria.</div>
+            )}
+
+            {getCompletedComplaints().length > 0 && (
+              <section className="completed-section">
+                <h2 className="section-title">Resolved and Closed Complaints</h2>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Resident</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getCompletedComplaints().map(it => (
+                        <tr key={`completed-${it.complaint_id}`}>
+                          <td>{getComplaintReference(it)}</td>
+                          <td>{it.title || it.description?.slice(0,60) || '—'}</td>
+                          <td>{it.resident_name || it.name || formatResidentId(it.resident_id) || '—'}</td>
+                          <td>{formatDate(it.date_submitted)}</td>
+                          <td><StatusBadge status={it.status} /></td>
+                          <td>
+                            <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+                              {formatDate(it.date_updated || it.date_submitted)}
+                              <div style={{ fontSize: '0.85rem', marginTop: '4px', fontWeight: '700' }}>
+                                {formatTime(it.date_updated || it.date_submitted)}
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="table-actions-inline">
+                              <button type="button" className="table-action" onClick={() => handleViewComplaint(it)}>
+                                View
+                              </button>
+                              <button type="button" className="table-action" onClick={() => handleDownloadPdf(it)}>
+                                Download PDF
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
             )}
 
             {selectedComplaint && (
