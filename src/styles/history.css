@@ -47,6 +47,48 @@
   min-width: 0;
 }
 
+.sort-dropdown{
+  position: relative;
+  min-width: 0;
+}
+
+.sort-dropdown-btn{
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sort-dropdown-menu{
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  width: 100%;
+  min-width: 160px;
+  padding: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.sort-dropdown-item{
+  width: 100%;
+  border: 0;
+  border-radius: 9px;
+  padding: 9px 10px;
+  background: transparent;
+  color: var(--text-color);
+  text-align: left;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sort-dropdown-item:hover,
+.sort-dropdown-item.active{
+  background: var(--surface-2);
+}
+
 @media(max-width: 900px){
   .resident-filter-row{
     grid-template-columns: 1fr 1fr;

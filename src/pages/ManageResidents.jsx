@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import Button from '../components/Button'
@@ -18,13 +18,16 @@ export default function ManageResidents(){
   const [searchTerm, setSearchTerm] = useState('')
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const [sortBy, setSortBy] = useState('last_name_asc')
+  const [sortField, setSortField] = useState('id')
+  const [sortDirection, setSortDirection] = useState('asc')
+  const [sortOpen, setSortOpen] = useState(false)
   const [addressPhase, setAddressPhase] = useState('')
   const [addressStreet, setAddressStreet] = useState('')
   const [addressBlock, setAddressBlock] = useState('')
   const [selectedResident, setSelectedResident] = useState(null)
   const [selectedForDelete, setSelectedForDelete] = useState(null)
   const [selectedForStatus, setSelectedForStatus] = useState(null)
+  const sortRef = useRef(null)
 
   async function load(){
     setLoading(true)
@@ -43,18 +46,11 @@ export default function ManageResidents(){
   useEffect(()=>{ load() }, [])
 
   const statusOptions = sortTextAsc(['Active', 'Suspended', 'Banned'])
-  const sortOptions = [
-    { value: 'last_name_asc', label: 'Last Name ↑' },
-    { value: 'last_name_desc', label: 'Last Name ↓' },
-    { value: 'first_name_asc', label: 'First Name ↑' },
-    { value: 'first_name_desc', label: 'First Name ↓' },
-    { value: 'id_asc', label: 'ID ↑' },
-    { value: 'id_desc', label: 'ID ↓' },
-    { value: 'email_asc', label: 'Email ↑' },
-    { value: 'email_desc', label: 'Email ↓' },
-    { value: 'status_asc', label: 'Status ↑' },
-    { value: 'registered_newest', label: 'Registered ↓' },
-    { value: 'registered_oldest', label: 'Registered ↑' }
+  const sortFields = [
+    { value: 'id', label: 'ID' },
+    { value: 'last_name', label: 'Last Name' },
+    { value: 'first_name', label: 'First Name' },
+    { value: 'email', label: 'Email' }
   ]
   const phaseOptions = sortTextAsc(Object.keys(addressData))
   const streetOptions = useMemo(() => {
@@ -85,11 +81,26 @@ export default function ManageResidents(){
 
   const compareText = (a, b) => String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' })
   const compareNumber = (a, b) => Number(a || 0) - Number(b || 0)
-  const compareDate = (a, b) => {
-    const aTime = a ? new Date(a).getTime() : 0
-    const bTime = b ? new Date(b).getTime() : 0
-    return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime)
+  const sortArrow = sortDirection === 'asc' ? '↑' : '↓'
+  const selectedSortLabel = sortFields.find(field => field.value === sortField)?.label || 'ID'
+  const getNextSortDirection = (field) => field === sortField && sortDirection === 'asc' ? 'desc' : 'asc'
+  const getSortArrow = (field) => getNextSortDirection(field) === 'asc' ? '↑' : '↓'
+
+  const handleSortSelect = (field) => {
+    setSortField(field)
+    setSortDirection(getNextSortDirection(field))
+    setSortOpen(false)
   }
+
+  useEffect(() => {
+    function handleDown(e){
+      if(sortRef.current && !sortRef.current.contains(e.target)){
+        setSortOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleDown)
+    return () => document.removeEventListener('mousedown', handleDown)
+  }, [sortRef])
 
   const handleSearch = () => {
     setQuery(searchTerm.trim())
@@ -133,35 +144,27 @@ export default function ManageResidents(){
 
   const sortedItems = useMemo(() => {
     const residents = [...filteredItems]
+    const direction = sortDirection === 'desc' ? -1 : 1
     residents.sort((a, b) => {
-      switch(sortBy){
-        case 'first_name_asc':
-          return compareText(a.first_name, b.first_name) || compareText(a.last_name, b.last_name) || compareNumber(a.resident_id, b.resident_id)
-        case 'first_name_desc':
-          return compareText(b.first_name, a.first_name) || compareText(b.last_name, a.last_name) || compareNumber(a.resident_id, b.resident_id)
-        case 'last_name_desc':
-          return compareText(b.last_name, a.last_name) || compareText(b.first_name, a.first_name) || compareNumber(a.resident_id, b.resident_id)
-        case 'id_asc':
-          return compareNumber(a.resident_id, b.resident_id)
-        case 'id_desc':
-          return compareNumber(b.resident_id, a.resident_id)
-        case 'email_asc':
-          return compareText(a.email, b.email) || compareNumber(a.resident_id, b.resident_id)
-        case 'email_desc':
-          return compareText(b.email, a.email) || compareNumber(a.resident_id, b.resident_id)
-        case 'status_asc':
-          return compareText(a.account_status, b.account_status) || compareText(a.last_name, b.last_name) || compareNumber(a.resident_id, b.resident_id)
-        case 'registered_newest':
-          return compareDate(b.registration_date, a.registration_date) || compareNumber(b.resident_id, a.resident_id)
-        case 'registered_oldest':
-          return compareDate(a.registration_date, b.registration_date) || compareNumber(a.resident_id, b.resident_id)
-        case 'last_name_asc':
+      let result
+      switch(sortField){
+        case 'first_name':
+          result = compareText(a.first_name, b.first_name) || compareText(a.last_name, b.last_name) || compareNumber(a.resident_id, b.resident_id)
+          break
+        case 'last_name':
+          result = compareText(a.last_name, b.last_name) || compareText(a.first_name, b.first_name) || compareNumber(a.resident_id, b.resident_id)
+          break
+        case 'email':
+          result = compareText(a.email, b.email) || compareNumber(a.resident_id, b.resident_id)
+          break
+        case 'id':
         default:
-          return compareText(a.last_name, b.last_name) || compareText(a.first_name, b.first_name) || compareNumber(a.resident_id, b.resident_id)
+          result = compareNumber(a.resident_id, b.resident_id)
       }
+      return result * direction
     })
     return residents
-  }, [filteredItems, sortBy])
+  }, [filteredItems, sortField, sortDirection])
 
   async function confirmChangeStatus(id, status, suspensionEndDate = null){
     try{
@@ -231,16 +234,6 @@ export default function ManageResidents(){
               />
               <select
                 className="ui-input"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                aria-label="Sort residents"
-              >
-                {sortOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>Sort: {opt.label}</option>
-                ))}
-              </select>
-              <select
-                className="ui-input"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -273,6 +266,33 @@ export default function ManageResidents(){
                 value={addressBlock}
                 onChange={(e) => setAddressBlock(e.target.value.replace(/\D/g, ''))}
               />
+              <div className="sort-dropdown" ref={sortRef}>
+                <button
+                  type="button"
+                  className="ui-input sort-dropdown-btn"
+                  onClick={() => setSortOpen(open => !open)}
+                  aria-haspopup="listbox"
+                  aria-expanded={sortOpen}
+                >
+                  Sort: {selectedSortLabel} {sortArrow}
+                </button>
+                {sortOpen && (
+                  <div className="sort-dropdown-menu" role="listbox" aria-label="Sort residents">
+                    {sortFields.map(field => (
+                      <button
+                        key={field.value}
+                        type="button"
+                        className={`sort-dropdown-item ${field.value === sortField ? 'active' : ''}`}
+                        onClick={() => handleSortSelect(field.value)}
+                        role="option"
+                        aria-selected={field.value === sortField}
+                      >
+                        {field.label} {getSortArrow(field.value)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
