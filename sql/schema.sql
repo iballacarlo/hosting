@@ -195,8 +195,11 @@ CREATE TABLE IF NOT EXISTS Chat_Message (
   sender_role VARCHAR(20) NOT NULL,
   sender_id INT NOT NULL,
 
+  reply_to_message_id INT DEFAULT NULL,
   message TEXT NOT NULL,
   is_read BOOLEAN DEFAULT FALSE,
+  edited_at DATETIME DEFAULT NULL,
+  deleted_at DATETIME DEFAULT NULL,
 
   date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
 
@@ -205,6 +208,39 @@ CREATE TABLE IF NOT EXISTS Chat_Message (
   CONSTRAINT fk_chat_resident
     FOREIGN KEY (resident_id)
     REFERENCES Resident(resident_id)
+    ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS Chat_Presence (
+  presence_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  user_role VARCHAR(20) NOT NULL,
+  user_id INT NOT NULL,
+
+  last_seen_at DATETIME NOT NULL,
+
+  UNIQUE KEY uq_chat_presence_user (user_role, user_id),
+  INDEX idx_chat_presence_last_seen (last_seen_at)
+);
+
+
+CREATE TABLE IF NOT EXISTS Chat_Reaction (
+  reaction_id INT AUTO_INCREMENT PRIMARY KEY,
+
+  chat_message_id INT NOT NULL,
+  user_role VARCHAR(20) NOT NULL,
+  user_id INT NOT NULL,
+
+  reaction VARCHAR(20) NOT NULL,
+  date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uq_chat_reaction_user (chat_message_id, user_role, user_id),
+  INDEX idx_chat_reaction_message (chat_message_id),
+
+  CONSTRAINT fk_chat_reaction_message
+    FOREIGN KEY (chat_message_id)
+    REFERENCES Chat_Message(chat_message_id)
     ON DELETE CASCADE
 );
 

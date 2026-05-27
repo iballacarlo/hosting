@@ -243,8 +243,11 @@ function ensureChatMessageTable($pdo){
     resident_id INT NOT NULL,
     sender_role VARCHAR(20) NOT NULL,
     sender_id INT NOT NULL,
+    reply_to_message_id INT DEFAULT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
+    edited_at DATETIME DEFAULT NULL,
+    deleted_at DATETIME DEFAULT NULL,
     date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_chat_resident_date (resident_id, date_created),
     CONSTRAINT fk_chat_resident
@@ -253,7 +256,69 @@ function ensureChatMessageTable($pdo){
       ON DELETE CASCADE
   )');
 
+  foreach([
+    'reply_to_message_id' => 'INT DEFAULT NULL',
+    'edited_at' => 'DATETIME DEFAULT NULL',
+    'deleted_at' => 'DATETIME DEFAULT NULL',
+  ] as $column => $definition){
+    if(!tableColumnExists($pdo, 'Chat_Message', $column)){
+      $pdo->exec('ALTER TABLE Chat_Message ADD COLUMN ' . $column . ' ' . $definition);
+    }
+  }
+
+  if(!tableColumnExists($pdo, 'Chat_Message', 'reply_to_message_id')){
+    $pdo->exec('ALTER TABLE Chat_Message ADD COLUMN reply_to_message_id INT DEFAULT NULL');
+  }
+
   $ready = true;
+}
+
+function ensureChatPresenceTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Chat_Presence (
+    presence_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_role VARCHAR(20) NOT NULL,
+    user_id INT NOT NULL,
+    last_seen_at DATETIME NOT NULL,
+    UNIQUE KEY uq_chat_presence_user (user_role, user_id),
+    INDEX idx_chat_presence_last_seen (last_seen_at)
+  )');
+
+  $ready = true;
+}
+
+function ensureChatReactionTable($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  $pdo->exec('CREATE TABLE IF NOT EXISTS Chat_Reaction (
+    reaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    chat_message_id INT NOT NULL,
+    user_role VARCHAR(20) NOT NULL,
+    user_id INT NOT NULL,
+    reaction VARCHAR(20) NOT NULL,
+    date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_chat_reaction_user (chat_message_id, user_role, user_id),
+    INDEX idx_chat_reaction_message (chat_message_id),
+    CONSTRAINT fk_chat_reaction_message
+      FOREIGN KEY (chat_message_id)
+      REFERENCES Chat_Message(chat_message_id)
+      ON DELETE CASCADE
+  )');
+
+  $ready = true;
+}
+
+function touchChatPresence($pdo, $user){
+  if(!$user) return;
+  ensureChatPresenceTable($pdo);
+  $role = ($user['role'] ?? '') === 'staff' ? 'staff' : 'resident';
+  $stmt = $pdo->prepare('INSERT INTO Chat_Presence (user_role, user_id, last_seen_at)
+    VALUES (?, ?, NOW())
+    ON DUPLICATE KEY UPDATE last_seen_at = VALUES(last_seen_at)');
+  $stmt->execute([$role, intval($user['id'])]);
 }
 
 function purgeExpiredArchiveItems($pdo){
@@ -2050,9 +2115,11 @@ if((preg_match('#^/notifications/(\d+)$#', $uri, $m) && $method === 'DELETE') ||
 // Route: /chat/conversations - staff inbox list, resident own thread summary
 if($uri === '/chat/conversations' && $method === 'GET'){
   ensureChatMessageTable($pdo);
+  ensureChatPresenceTable($pdo);
   $token = getBearerToken();
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  touchChatPresence($pdo, $user);
 
   if($user['role'] === 'staff'){
     $stmt = $pdo->query('SELECT
@@ -2060,11 +2127,14 @@ if($uri === '/chat/conversations' && $method === 'GET'){
         CONCAT_WS(" ", r.first_name, r.middle_name, r.last_name) AS resident_name,
         r.email,
         latest.message AS last_message,
+        latest.deleted_at AS last_message_deleted_at,
         latest.date_created AS last_message_at,
+        presence.last_seen_at AS last_seen_at,
+        CASE WHEN presence.last_seen_at >= DATE_SUB(NOW(), INTERVAL 2 MINUTE) THEN 1 ELSE 0 END AS is_online,
         COALESCE(unread.unread_count, 0) AS unread_count
       FROM Resident r
       LEFT JOIN (
-        SELECT cm1.resident_id, cm1.message, cm1.date_created
+        SELECT cm1.resident_id, cm1.message, cm1.deleted_at, cm1.date_created
         FROM Chat_Message cm1
         INNER JOIN (
           SELECT resident_id, MAX(date_created) AS max_date
@@ -2078,6 +2148,7 @@ if($uri === '/chat/conversations' && $method === 'GET'){
         WHERE sender_role = "resident" AND is_read = FALSE
         GROUP BY resident_id
       ) unread ON unread.resident_id = r.resident_id
+      LEFT JOIN Chat_Presence presence ON presence.user_role = "resident" AND presence.user_id = r.resident_id
       ORDER BY COALESCE(latest.date_created, r.registration_date) DESC
       LIMIT 200');
     json(['success'=>true,'data'=>$stmt->fetchAll()]);
@@ -2088,20 +2159,35 @@ if($uri === '/chat/conversations' && $method === 'GET'){
       CONCAT_WS(" ", first_name, middle_name, last_name) AS resident_name,
       email,
       (SELECT message FROM Chat_Message WHERE resident_id = ? ORDER BY date_created DESC LIMIT 1) AS last_message,
+      (SELECT deleted_at FROM Chat_Message WHERE resident_id = ? ORDER BY date_created DESC LIMIT 1) AS last_message_deleted_at,
       (SELECT date_created FROM Chat_Message WHERE resident_id = ? ORDER BY date_created DESC LIMIT 1) AS last_message_at,
-      (SELECT COUNT(*) FROM Chat_Message WHERE resident_id = ? AND sender_role = "staff" AND is_read = FALSE) AS unread_count
+      (SELECT COUNT(*) FROM Chat_Message WHERE resident_id = ? AND sender_role = "staff" AND is_read = FALSE) AS unread_count,
+      (SELECT MAX(last_seen_at) FROM Chat_Presence WHERE user_role = "staff") AS staff_last_seen_at,
+      CASE WHEN (SELECT MAX(last_seen_at) FROM Chat_Presence WHERE user_role = "staff") >= DATE_SUB(NOW(), INTERVAL 2 MINUTE) THEN 1 ELSE 0 END AS staff_is_online
     FROM Resident
     WHERE resident_id = ?');
-  $stmt->execute([$user['id'], $user['id'], $user['id'], $user['id'], $user['id']]);
+  $stmt->execute([$user['id'], $user['id'], $user['id'], $user['id'], $user['id'], $user['id']]);
   json(['success'=>true,'data'=>$stmt->fetchAll()]);
+}
+
+// Route: /chat/presence - update current chat presence
+if($uri === '/chat/presence' && $method === 'POST'){
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  touchChatPresence($pdo, $user);
+  json(['success'=>true]);
 }
 
 // Route: /chat/messages - get or send chat messages
 if($uri === '/chat/messages' && in_array($method, ['GET','POST'])){
   ensureChatMessageTable($pdo);
+  ensureChatPresenceTable($pdo);
+  ensureChatReactionTable($pdo);
   $token = getBearerToken();
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  touchChatPresence($pdo, $user);
 
   if($method === 'GET'){
     $residentId = $user['role'] === 'staff'
@@ -2115,12 +2201,36 @@ if($uri === '/chat/messages' && in_array($method, ['GET','POST'])){
       $pdo->prepare('UPDATE Chat_Message SET is_read = TRUE WHERE resident_id = ? AND sender_role = "staff"')->execute([$residentId]);
     }
 
-    $stmt = $pdo->prepare('SELECT chat_message_id, resident_id, sender_role, sender_id, message, is_read, date_created
-      FROM Chat_Message
-      WHERE resident_id = ?
-      ORDER BY date_created ASC
+    $currentRole = $user['role'] === 'staff' ? 'staff' : 'resident';
+    $stmt = $pdo->prepare('SELECT
+        cm.chat_message_id,
+        cm.resident_id,
+        cm.sender_role,
+        cm.sender_id,
+        cm.reply_to_message_id,
+        cm.message,
+        cm.is_read,
+        cm.edited_at,
+        cm.deleted_at,
+        cm.date_created,
+        reply.message AS reply_message,
+        reply.sender_role AS reply_sender_role,
+        reply.deleted_at AS reply_deleted_at,
+        CONCAT_WS(",",
+          IF((SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "heart") > 0, CONCAT("heart:", (SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "heart")), NULL),
+          IF((SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "like") > 0, CONCAT("like:", (SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "like")), NULL),
+          IF((SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "haha") > 0, CONCAT("haha:", (SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "haha")), NULL),
+          IF((SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "wow") > 0, CONCAT("wow:", (SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "wow")), NULL),
+          IF((SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "sad") > 0, CONCAT("sad:", (SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "sad")), NULL),
+          IF((SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "angry") > 0, CONCAT("angry:", (SELECT COUNT(*) FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND reaction = "angry")), NULL)
+        ) AS reaction_summary,
+        (SELECT reaction FROM Chat_Reaction WHERE chat_message_id = cm.chat_message_id AND user_role = ? AND user_id = ? LIMIT 1) AS my_reaction
+      FROM Chat_Message cm
+      LEFT JOIN Chat_Message reply ON reply.chat_message_id = cm.reply_to_message_id
+      WHERE cm.resident_id = ?
+      ORDER BY cm.date_created ASC
       LIMIT 300');
-    $stmt->execute([$residentId]);
+    $stmt->execute([$currentRole, intval($user['id']), $residentId]);
     json(['success'=>true,'data'=>$stmt->fetchAll()]);
   }
 
@@ -2138,11 +2248,99 @@ if($uri === '/chat/messages' && in_array($method, ['GET','POST'])){
   $residentStmt->execute([$residentId]);
   if(!$residentStmt->fetch()) json(['success'=>false,'message'=>'Resident not found'], 404);
 
+  $replyToMessageId = !empty($data['reply_to_message_id']) ? intval($data['reply_to_message_id']) : null;
+  if($replyToMessageId){
+    $replyStmt = $pdo->prepare('SELECT chat_message_id FROM Chat_Message WHERE chat_message_id = ? AND resident_id = ?');
+    $replyStmt->execute([$replyToMessageId, $residentId]);
+    if(!$replyStmt->fetch()) json(['success'=>false,'message'=>'Reply message not found'], 404);
+  }
+
   $senderRole = $user['role'] === 'staff' ? 'staff' : 'resident';
-  $stmt = $pdo->prepare('INSERT INTO Chat_Message (resident_id, sender_role, sender_id, message, is_read, date_created)
-    VALUES (?, ?, ?, ?, FALSE, NOW())');
-  $stmt->execute([$residentId, $senderRole, intval($user['id']), $message]);
+  $stmt = $pdo->prepare('INSERT INTO Chat_Message (resident_id, sender_role, sender_id, reply_to_message_id, message, is_read, date_created)
+    VALUES (?, ?, ?, ?, ?, FALSE, NOW())');
+  $stmt->execute([$residentId, $senderRole, intval($user['id']), $replyToMessageId, $message]);
   json(['success'=>true,'id'=>$pdo->lastInsertId()]);
+}
+
+// Route: /chat/messages/{id}/reaction - set or remove current user's reaction
+if(preg_match('#^/chat/messages/(\d+)/reaction$#', $uri, $m) && in_array($method, ['POST','DELETE'])){
+  ensureChatMessageTable($pdo);
+  ensureChatReactionTable($pdo);
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  touchChatPresence($pdo, $user);
+
+  $messageId = intval($m[1]);
+  $stmt = $pdo->prepare('SELECT chat_message_id, deleted_at FROM Chat_Message WHERE chat_message_id = ?');
+  $stmt->execute([$messageId]);
+  $messageRow = $stmt->fetch();
+  if(!$messageRow) json(['success'=>false,'message'=>'Message not found'], 404);
+  if(!empty($messageRow['deleted_at'])) json(['success'=>false,'message'=>'Cannot react to a deleted message'], 400);
+
+  $role = $user['role'] === 'staff' ? 'staff' : 'resident';
+
+  if($method === 'DELETE'){
+    $deleteStmt = $pdo->prepare('DELETE FROM Chat_Reaction WHERE chat_message_id = ? AND user_role = ? AND user_id = ?');
+    $deleteStmt->execute([$messageId, $role, intval($user['id'])]);
+    json(['success'=>true]);
+  }
+
+  $data = json_decode(file_get_contents('php://input'), true) ?: [];
+  $reaction = trim($data['reaction'] ?? '');
+  $allowedReactions = ['heart', 'like', 'haha', 'wow', 'sad', 'angry'];
+  if(!in_array($reaction, $allowedReactions, true)){
+    json(['success'=>false,'message'=>'Invalid reaction'], 400);
+  }
+
+  $reactionStmt = $pdo->prepare('INSERT INTO Chat_Reaction (chat_message_id, user_role, user_id, reaction, date_created)
+    VALUES (?, ?, ?, ?, NOW())
+    ON DUPLICATE KEY UPDATE reaction = VALUES(reaction), date_created = VALUES(date_created)');
+  $reactionStmt->execute([$messageId, $role, intval($user['id']), $reaction]);
+  json(['success'=>true]);
+}
+
+// Route: /chat/messages/{id} - edit or delete own message
+if(preg_match('#^/chat/messages/(\d+)$#', $uri, $m) && in_array($method, ['PATCH','PUT','DELETE'])){
+  ensureChatMessageTable($pdo);
+  $token = getBearerToken();
+  $user = findUserByToken($pdo, $token);
+  if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
+  touchChatPresence($pdo, $user);
+
+  $messageId = intval($m[1]);
+  $stmt = $pdo->prepare('SELECT * FROM Chat_Message WHERE chat_message_id = ?');
+  $stmt->execute([$messageId]);
+  $messageRow = $stmt->fetch();
+  if(!$messageRow) json(['success'=>false,'message'=>'Message not found'], 404);
+
+  $senderRole = $user['role'] === 'staff' ? 'staff' : 'resident';
+  if($messageRow['sender_role'] !== $senderRole || intval($messageRow['sender_id']) !== intval($user['id'])){
+    json(['success'=>false,'message'=>'Forbidden'], 403);
+  }
+  if(!empty($messageRow['deleted_at'])){
+    json(['success'=>false,'message'=>'Message already deleted'], 400);
+  }
+
+  if($method === 'DELETE'){
+    $pdo->prepare('UPDATE Chat_Message SET deleted_at = NOW(), message = "" WHERE chat_message_id = ?')->execute([$messageId]);
+    json(['success'=>true]);
+  }
+
+  $editWindowStmt = $pdo->prepare('SELECT TIMESTAMPDIFF(SECOND, date_created, NOW()) AS elapsed_seconds FROM Chat_Message WHERE chat_message_id = ?');
+  $editWindowStmt->execute([$messageId]);
+  $editWindow = $editWindowStmt->fetch();
+  if($editWindow && intval($editWindow['elapsed_seconds']) > 5 * 60){
+    json(['success'=>false,'message'=>'Messages can only be edited within 5 minutes.'], 403);
+  }
+
+  $data = json_decode(file_get_contents('php://input'), true) ?: [];
+  $newMessage = trim($data['message'] ?? '');
+  if($newMessage === '') json(['success'=>false,'message'=>'Message is required'], 400);
+  if(strlen($newMessage) > 1000) json(['success'=>false,'message'=>'Message must be 1000 characters or fewer'], 400);
+
+  $pdo->prepare('UPDATE Chat_Message SET message = ?, edited_at = NOW() WHERE chat_message_id = ?')->execute([$newMessage, $messageId]);
+  json(['success'=>true]);
 }
 
 // Route: /residents GET - list residents (admin)
