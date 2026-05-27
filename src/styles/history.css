@@ -579,31 +579,51 @@ html.dark .table-action-danger:hover{
   }
 
   .mobile-checkmark .mobile-label{
-    display: none;
+    display: inline;
   }
 
   .modal-actions{
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .modal-action-edit:not(.modal-action-preview){
     order: 1;
+    grid-column: span 2;
   }
 
   .modal-action-delete{
     order: 2;
+    grid-column: span 2;
   }
 
   .modal-action-close{
     order: 3;
+    grid-column: span 2;
   }
 
   .modal-action-preview{
     order: 4;
+    grid-column: span 3;
+  }
+
+  .modal-action-preview:only-child{
+    grid-column: 1 / -1;
   }
 
   .modal-action-received{
     order: 5;
+    grid-column: span 3;
+  }
+
+  .document-detail-actions{
+    gap: 8px;
+  }
+
+  .document-detail-actions .modal-action-btn{
+    min-height: 42px;
+    padding: 9px 8px;
+    font-size: 0.78rem;
+    line-height: 1.15;
   }
 
   .document-preview-modal{
