@@ -1058,6 +1058,20 @@ html.dark .font-chip.active{
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  min-width: 0;
+}
+
+.document-preview-shell-a4 .resident-doc-preview-shell{
+  width: 100%;
+}
+
+.document-preview-shell-a4 .resident-doc-preview-page{
+  width: min(100%, 380px);
+}
+
+.document-preview-shell-a4 .resident-doc-preview-watermark{
+  width: 68%;
+  max-width: 360px;
 }
 
 @media (max-width: 900px) and (orientation: portrait) {
@@ -1070,9 +1084,8 @@ html.dark .font-chip.active{
     width: 100%;
   }
 
-  .document-preview-a4{
-    max-width: 100%;
-    background-size: 220px auto;
+  .document-preview-shell-a4 .resident-doc-preview-page{
+    width: min(100%, 420px);
   }
 }
 

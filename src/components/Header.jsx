@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSettings } from '../context/SettingsContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
-import { playNotificationSound } from '../utils/notificationSound'
+import { playAlertNotificationSound } from '../utils/notificationSound'
 import './header.css'
 
 export default function Header(){
@@ -116,7 +116,7 @@ export default function Header(){
         const list = Array.isArray(res.data.data) ? res.data.data : []
         const count = getBadgeCount(list)
         if(lastUnreadCountRef.current !== null && count > lastUnreadCountRef.current){
-          playNotificationSound()
+          playAlertNotificationSound()
         }
         lastUnreadCountRef.current = count
         setNotifications(list)

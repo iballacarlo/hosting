@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import Button from '../components/Button'
 import StatusBadge from '../components/StatusBadge'
+import DocumentPreview from '../components/DocumentPreview'
 import '../styles/history.css'
 import '../styles/form.css'
 import api from '../api/axios'
@@ -201,22 +202,24 @@ export default function ManageDocuments(){
   useCloseOnEscape(rejectConfirm.show, () => setRejectConfirm({ show: false, request: null }), rejectConfirmRef)
   useCloseOnEscape(deleteConfirm.show, () => setDeleteConfirm({ show: false, request: null }), deleteConfirmRef)
 
-  const wrapText = (text, maxChars = 72) => {
+  const wrapTextToWidth = (text, font, size, maxWidth) => {
     return String(text || '').split('\n').flatMap(line => {
-      if(line.length <= maxChars) return [line]
       const words = line.split(' ')
       const lines = []
       let current = ''
+
       words.forEach(word => {
-        if((current + ' ' + word).trim().length > maxChars){
-          lines.push(current.trim())
+        const next = (current + ' ' + word).trim()
+        if(current && font.widthOfTextAtSize(next, size) > maxWidth){
+          lines.push(current)
           current = word
         } else {
-          current = (current + ' ' + word).trim()
+          current = next
         }
       })
-      if(current) lines.push(current.trim())
-      return lines
+
+      if(current) lines.push(current)
+      return lines.length ? lines : ['']
     })
   }
 
@@ -233,11 +236,6 @@ export default function ManageDocuments(){
 
     const logoBytes = await fetch(BacoorLogo).then((res) => res.arrayBuffer())
     const logoImage = await pdfDoc.embedPng(logoBytes)
-
-    const cardX = 48
-    const cardY = 80
-    const cardWidth = width - cardX * 2
-    const cardHeight = height - cardY * 2
 
     const paragraphs = [
       template === 'Barangay Clearance' ? [
@@ -258,8 +256,6 @@ export default function ManageDocuments(){
       ] : null
     ].filter(Boolean).flat()
 
-    const cardInnerLeft = cardX + 24
-    const cardInnerRight = cardX + cardWidth - 24
     let y = height - 120
 
     const drawCentered = (text, size, font, y) => {
@@ -273,12 +269,14 @@ export default function ManageDocuments(){
       })
     }
 
-    const drawCenteredBlock = (text, y, size = 12, font = normalFont, lineHeight = 18, maxWidth = cardWidth - 48) => {
-      const lines = wrapText(text, Math.floor((maxWidth / size) * 1.5))
+    const bodyX = 96
+    const bodyWidth = width - bodyX * 2
+
+    const drawLeftBlock = (text, y, size = 12, font = normalFont, lineHeight = 18, maxWidth = bodyWidth) => {
+      const lines = wrapTextToWidth(text, font, size, maxWidth)
       lines.forEach(line => {
-        const lineWidth = font.widthOfTextAtSize(line, size)
         page.drawText(line, {
-          x: (width - lineWidth) / 2,
+          x: bodyX,
           y,
           size,
           font,
@@ -288,6 +286,18 @@ export default function ManageDocuments(){
       })
       return y
     }
+
+    const logoWidth = 430
+    const logoHeight = (logoImage.height / logoImage.width) * logoWidth
+    const logoX = (width - logoWidth) / 2
+    const logoY = (height / 2) - (logoHeight / 2) + 20
+    page.drawImage(logoImage, {
+      x: logoX,
+      y: logoY,
+      width: logoWidth,
+      height: logoHeight,
+      opacity: 0.16
+    })
 
     drawCentered('Republic of the Philippines', 16, boldFont, y)
     y -= 26
@@ -299,21 +309,9 @@ export default function ManageDocuments(){
     const titleY = y
     drawCentered(template, 18, titleFont, titleY)
 
-    const logoWidth = 560
-    const logoHeight = (logoImage.height / logoImage.width) * logoWidth
-    const logoX = (width - logoWidth) / 2
-    const logoY = (height / 2) - (logoHeight / 2) + 20
-    page.drawImage(logoImage, {
-      x: logoX,
-      y: logoY,
-      width: logoWidth,
-      height: logoHeight,
-      opacity: 0.2
-    })
-
     let bodyY = titleY - 72
     paragraphs.forEach(paragraph => {
-      bodyY = drawCenteredBlock(paragraph, bodyY, 18, normalFont, 24, cardWidth - 96)
+      bodyY = drawLeftBlock(paragraph, bodyY, 18, normalFont, 24, bodyWidth)
       bodyY -= 24
     })
 
@@ -567,52 +565,10 @@ export default function ManageDocuments(){
 
                   <div className="form-card process-modal-grid-single">
                     <div className="document-preview-shell-a4">
-                      <div className="document-preview-a4">
-                        <div className="document-preview-header">
-                          <div style={{ fontSize: '9px', fontWeight: '700', marginBottom: '1px' }}>Republic of the Philippines</div>
-                          <div style={{ fontSize: '8px', fontWeight: '700', marginBottom: '1px' }}>Province of Cavite</div>
-                          <div style={{ fontSize: '8px', fontWeight: '700' }}>Barangay Mambog II</div>
-                        </div>
-
-                        <div className="document-preview-body">
-                          <div className="document-preview-title">{processingTemplate}</div>
-
-                          <div style={{ marginTop: '6px', fontSize: '10px', lineHeight: '1.3' }}>
-                            {processingTemplate === 'Barangay Clearance' && (
-                              <>
-                                <p>This is to certify that <strong>{documentFields.name || '[Name]'}</strong> of legal age, {documentFields.address ? `a resident of ${documentFields.address}` : '[Address]'}, and a bonafide resident of this barangay.</p>
-                                <p>This certification is issued upon the request of the above-named person for {documentFields.purpose || 'official purposes'}.</p>
-                              </>
-                            )}
-                            {processingTemplate === 'Certificate of Residency' && (
-                              <>
-                                <p>This is to certify that <strong>{documentFields.name || '[Name]'}</strong> is a bonafide resident of {documentFields.address || '[Address]'}, Barangay Mambog II, Cavite.</p>
-                                <p>This certificate is issued for the purpose of {documentFields.purpose || 'official use'}.</p>
-                              </>
-                            )}
-                            {processingTemplate === 'Certificate of Indigency' && (
-                              <>
-                                <p>This is to certify that <strong>{documentFields.name || '[Name]'}</strong> is a bonafide resident of {documentFields.address || '[Address]'}, Barangay Mambog II, Cavite, and is considered indigent.</p>
-                                <p>This certificate is issued for the purpose of {documentFields.purpose || 'supporting indigency assistance'}.</p>
-                              </>
-                            )}
-                            {processingTemplate === 'Business Permit' && (
-                              <>
-                                <p>This is to certify that <strong>{documentFields.business_name || '[Business Name]'}</strong>, owned and operated by <strong>{documentFields.name || '[Owner Name]'}</strong>, is located at {documentFields.address || '[Business Address]'}, Barangay Mambog II, Cavite.</p>
-                                <p>This certificate is issued for the purpose of {documentFields.purpose || 'business operation'}.</p>
-                              </>
-                            )}
-                          </div>
-
-                          <div className="document-preview-footer">
-                            <div style={{ marginTop: '8px', fontSize: '9px' }}>Date Issued: {new Date().toLocaleDateString('en-US')}</div>
-                            <div style={{ marginTop: '10px', textAlign: 'center', fontSize: '9px' }}>
-                              <div>_________________________</div>
-                              <div style={{ marginTop: '2px' }}>Barangay Captain</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <DocumentPreview
+                        document={{ ...processingRequest, document_type: processingTemplate }}
+                        fields={documentFields}
+                      />
                     </div>
 
                     <div className="document-edit-sidebar">
