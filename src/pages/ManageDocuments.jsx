@@ -37,7 +37,9 @@ export default function ManageDocuments(){
     { name: 'Residency Certificate', status: 'Disabled' }
   ])
   const [processingRequest, setProcessingRequest] = useState(null)
+  const [rejectConfirm, setRejectConfirm] = useState({ show: false, request: null })
   const processingModalRef = useRef(null)
+  const rejectConfirmRef = useRef(null)
   const [documentFields, setDocumentFields] = useState({
     name: '',
     birthdate: '',
@@ -194,6 +196,7 @@ export default function ManageDocuments(){
   }
 
   useCloseOnEscape(Boolean(processingRequest), closeProcessingModal, processingModalRef)
+  useCloseOnEscape(rejectConfirm.show, () => setRejectConfirm({ show: false, request: null }), rejectConfirmRef)
 
   const wrapText = (text, maxChars = 72) => {
     return String(text || '').split('\n').flatMap(line => {
@@ -363,19 +366,21 @@ export default function ManageDocuments(){
     setProcessingRequest(null)
   }
 
-  const handleRejectRequest = async () => {
-    if(!processingRequest) return
+  const handleRejectRequest = async (request = processingRequest) => {
+    if(!request) return
     try {
-      await api.put(`/docs/${processingRequest.request_id}`, { status: 'Rejected' })
+      await api.put(`/docs/${request.request_id}`, { status: 'Rejected' })
     } catch(err) {
       alert('Failed to reject document: ' + (err?.response?.data?.message || err.message))
       return
     }
     load()
-    setProcessingRequest(null)
+    setProcessingRequest(current => current?.request_id === request.request_id ? null : current)
+    setRejectConfirm({ show: false, request: null })
   }
 
   const processingTemplate = processingRequest ? getTemplateForType(processingRequest.document_type || processingRequest.type) : 'Barangay Clearance'
+  const documentStatusOptions = ['Submitted', 'Requested', 'Processing', 'Ready', 'Released', 'Received', 'Rejected']
   const activeStatuses = ['Submitted', 'Requested', 'Processing', 'Ready']
   const isCompletedDocument = (status = '') => ['released', 'received', 'rejected', 'denied'].includes(String(status).toLowerCase())
   const getVisibleDocuments = () => items.filter(item => {
@@ -390,6 +395,8 @@ export default function ManageDocuments(){
   })
   const getCompletedDocuments = () => items.filter(item => {
     if(!isCompletedDocument(item.status)) return false
+    const matchesStatus = filterStatus === 'All' || item.status === filterStatus
+    if(!matchesStatus) return false
     const matchesSearch = searchQuery === '' ||
       (item.reference_number || item.request_id || '').toString().includes(searchQuery) ||
       getDocumentReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -421,7 +428,7 @@ export default function ManageDocuments(){
                   value={filterStatus}
                   onChange={e => setFilterStatus(e.target.value)}
                 >
-                  {withAllFirst(activeStatuses).map(option => (
+                  {withAllFirst(documentStatusOptions).map(option => (
                     <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
                   ))}
                 </select>
@@ -469,6 +476,12 @@ export default function ManageDocuments(){
                           >
                             Process
                           </Button>
+                          <Button
+                            variant="danger"
+                            onClick={() => setRejectConfirm({ show: true, request: it })}
+                          >
+                            Reject
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -478,7 +491,7 @@ export default function ManageDocuments(){
               </table>
             </div>
 
-            {items.length > 0 && getVisibleDocuments().length === 0 && (
+            {items.length > 0 && getVisibleDocuments().length === 0 && getCompletedDocuments().length === 0 && (
               <div className="empty-state">No document requests match your search criteria.</div>
             )}
 
@@ -624,11 +637,42 @@ export default function ManageDocuments(){
                           <Button variant="secondary" onClick={closeProcessingModal} style={{ flex: 1 }}>Cancel</Button>
                           <Button variant="secondary" onClick={handlePrintPdf} style={{ flex: 1 }}>Print</Button>
                           <Button variant="secondary" onClick={handleDownloadPdf} style={{ flex: 1 }}>Download</Button>
-                          <Button variant="danger" onClick={handleRejectRequest} style={{ flex: 1 }}>Reject</Button>
                           <Button onClick={handleFinalizeRequest} style={{ flex: 1 }}>Finalize</Button>
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {rejectConfirm.show && (
+              <div
+                className="modal-overlay"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Confirm reject document request"
+                onClick={() => setRejectConfirm({ show: false, request: null })}
+              >
+                <div className="modal-card confirm-delete-modal" ref={rejectConfirmRef} onClick={e => e.stopPropagation()}>
+                  <h2 className="modal-title">Reject Document Request?</h2>
+                  <p className="delete-modal-message">
+                    Do you want to reject this document request? The resident will be notified.
+                  </p>
+                  <div className="modal-actions confirm-actions">
+                    <button
+                      type="button"
+                      className="modal-action-btn modal-action-cancel"
+                      onClick={() => setRejectConfirm({ show: false, request: null })}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="modal-action-btn modal-action-delete"
+                      onClick={() => handleRejectRequest(rejectConfirm.request)}
+                    >
+                      Reject
+                    </button>
                   </div>
                 </div>
               </div>

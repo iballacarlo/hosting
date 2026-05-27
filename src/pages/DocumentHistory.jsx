@@ -34,6 +34,7 @@ export default function DocumentHistory(){
   const currentUser = authUser
   const maxBirthdate = new Date().toISOString().split('T')[0]
 
+  const isCompletedDocument = (status = '') => ['released', 'received', 'rejected', 'denied'].includes(String(status).toLowerCase())
   const list = data.filter(item => {
     const itemStatus = String(item.status || '').toLowerCase()
     const searchQuery = q.trim().toLowerCase()
@@ -54,6 +55,8 @@ export default function DocumentHistory(){
     return [reference, type, name, purpose, status, address, business, notes]
       .some(field => field.toLowerCase().includes(searchQuery))
   })
+  const activeList = list.filter(item => !isCompletedDocument(item.status))
+  const completedList = list.filter(item => isCompletedDocument(item.status))
 
   const getOwnerId = (item) => {
     if(!item) return null
@@ -277,7 +280,7 @@ export default function DocumentHistory(){
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
               >
-                {withAllFirst(['Submitted', 'Requested', 'Processing', 'Ready', 'Released', 'Received']).map(option => (
+                {withAllFirst(['Submitted', 'Requested', 'Processing', 'Ready', 'Released', 'Received', 'Rejected']).map(option => (
                   <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
                 ))}
               </select>
@@ -296,7 +299,9 @@ export default function DocumentHistory(){
           ) : list.length === 0 ? (
             <div className="empty-state">No document requests found.</div>
           ) : (
-            <div className="table-wrap">
+            <>
+            {activeList.length > 0 && (
+              <div className="table-wrap">
                 <table>
                   <thead>
                     <tr>
@@ -309,7 +314,7 @@ export default function DocumentHistory(){
                     </tr>
                   </thead>
                   <tbody>
-                    {list.map(d => (
+                    {activeList.map(d => (
                       <tr key={documentIdToString(getDocumentId(d)) || d.reference_number || d.id}>
                         <td>{getDocumentReference(d)}</td>
                         <td>{d.name || d.full_name || formatResidentId(d.resident_id) || '—'}</td>
@@ -336,7 +341,47 @@ export default function DocumentHistory(){
                     ))}
                   </tbody>
                 </table>
-            </div>
+              </div>
+            )}
+            {completedList.length > 0 && (
+              <section className="completed-section">
+                <h2 className="section-title">Released, Received, and Rejected Requests</h2>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Reference</th>
+                        <th>Resident</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {completedList.map(d => (
+                        <tr key={`completed-${documentIdToString(getDocumentId(d)) || d.reference_number || d.id}`}>
+                          <td>{getDocumentReference(d)}</td>
+                          <td>{d.name || d.full_name || formatResidentId(d.resident_id) || '—'}</td>
+                          <td>{d.document_type}</td>
+                          <td>{new Date(d.date_requested).toLocaleDateString('en-US')}</td>
+                          <td><StatusBadge status={d.status} /></td>
+                          <td>
+                            <button
+                              className="table-action"
+                              onClick={() => handleViewDocument(d)}
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+            </>
           )}
 
           {/* DOCUMENT DETAILS MODAL */}

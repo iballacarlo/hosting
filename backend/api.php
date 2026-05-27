@@ -1893,9 +1893,13 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
       if(strcasecmp($newStatus, 'Received') === 0){
         createNotification($pdo, null, 'Document request "' . $label . '" has been marked as received by the resident.', 'document_received');
       } else {
-        $message = strcasecmp($newStatus, 'Released') === 0
-          ? 'Your document request "' . $label . '" has been released and is ready for pickup at the barangay.'
-          : 'Your document request "' . $label . '" status is now ' . $newStatus . '.';
+        if(strcasecmp($newStatus, 'Released') === 0){
+          $message = 'Your document request "' . $label . '" has been released and is ready for pickup at the barangay.';
+        } elseif(in_array(strtolower($newStatus), ['rejected', 'denied'], true)){
+          $message = 'Your document request "' . $label . '" has been rejected.';
+        } else {
+          $message = 'Your document request "' . $label . '" status is now ' . $newStatus . '.';
+        }
         createNotification($pdo, intval($request['resident_id']), $message, 'document_status');
       }
     }

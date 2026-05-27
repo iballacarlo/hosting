@@ -120,6 +120,8 @@ export default function ManageComplaints(){
   })
   const getCompletedComplaints = () => items.filter(item => {
     if(!isCompletedComplaint(item.status)) return false
+    const matchesStatus = filterStatus === 'All' || item.status === filterStatus
+    if(!matchesStatus) return false
     const matchesSearch = searchQuery === '' ||
       String(item.complaint_id).includes(searchQuery) ||
       getComplaintReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -750,7 +752,7 @@ export default function ManageComplaints(){
                   value={filterStatus}
                   onChange={e => setFilterStatus(e.target.value)}
                 >
-                  {withAllFirst(activeStatuses).map(option => (
+                  {withAllFirst(statusOptions).map(option => (
                     <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
                   ))}
                 </select>
@@ -832,7 +834,7 @@ export default function ManageComplaints(){
               </table>
             </div>
 
-            {items.length > 0 && getVisibleComplaints().length === 0 && (
+            {items.length > 0 && getVisibleComplaints().length === 0 && getCompletedComplaints().length === 0 && (
               <div className="empty-state">No complaints match your search criteria.</div>
             )}
 

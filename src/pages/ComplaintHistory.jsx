@@ -416,10 +416,13 @@ export default function ComplaintHistory(){
     )
   }
 
+  const isCompletedComplaint = (status = '') => ['resolved', 'closed'].includes(String(status).toLowerCase())
   const list = data.filter(item =>
     (filter === 'All' || item.status === filter) &&
     doesComplaintMatchQuery(item, q)
   )
+  const activeList = list.filter(item => !isCompletedComplaint(item.status))
+  const completedList = list.filter(item => isCompletedComplaint(item.status))
 
   return (
     <div className="app-shell">
@@ -456,7 +459,9 @@ export default function ComplaintHistory(){
           ) : list.length === 0 ? (
             <div className="empty-state">No complaints found.</div>
           ) : (
-            <div className="table-wrap">
+            <>
+            {activeList.length > 0 && (
+              <div className="table-wrap">
                 <table>
                   <thead>
                     <tr>
@@ -469,7 +474,7 @@ export default function ComplaintHistory(){
                     </tr>
                   </thead>
                   <tbody>
-                    {list.map(r => (
+                    {activeList.map(r => (
                       <tr key={complaintIdToString(getComplaintId(r)) || r.ref || r.id}>
                         <td>{getComplaintReference(r)}</td>
                         <td>{r.resident_name || r.name || formatResidentId(r.resident_id) || '—'}</td>
@@ -496,7 +501,47 @@ export default function ComplaintHistory(){
                     ))}
                   </tbody>
                 </table>
-            </div>
+              </div>
+            )}
+            {completedList.length > 0 && (
+              <section className="completed-section">
+                <h2 className="section-title">Resolved and Closed Complaints</h2>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Reference</th>
+                        <th>Resident</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {completedList.map(r => (
+                        <tr key={`completed-${complaintIdToString(getComplaintId(r)) || r.ref || r.id}`}>
+                          <td>{getComplaintReference(r)}</td>
+                          <td>{r.resident_name || r.name || formatResidentId(r.resident_id) || '—'}</td>
+                          <td>{r.category || r.category_name || r.category_id || '—'}</td>
+                          <td>{r.date_submitted ? parseServerDate(r.date_submitted).toLocaleDateString('en-US') : '—'}</td>
+                          <td><StatusBadge status={r.status} /></td>
+                          <td>
+                            <button
+                              className="table-action"
+                              onClick={() => handleViewComplaint(r)}
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+            </>
           )}
 
           {/* COMPLAINT DETAILS MODAL */}
