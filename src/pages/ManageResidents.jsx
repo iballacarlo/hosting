@@ -18,6 +18,7 @@ export default function ManageResidents(){
   const [searchTerm, setSearchTerm] = useState('')
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [sortBy, setSortBy] = useState('last_name_asc')
   const [addressPhase, setAddressPhase] = useState('')
   const [addressStreet, setAddressStreet] = useState('')
   const [addressBlock, setAddressBlock] = useState('')
@@ -42,6 +43,19 @@ export default function ManageResidents(){
   useEffect(()=>{ load() }, [])
 
   const statusOptions = sortTextAsc(['Active', 'Suspended', 'Banned'])
+  const sortOptions = [
+    { value: 'last_name_asc', label: 'Last Name ↑' },
+    { value: 'last_name_desc', label: 'Last Name ↓' },
+    { value: 'first_name_asc', label: 'First Name ↑' },
+    { value: 'first_name_desc', label: 'First Name ↓' },
+    { value: 'id_asc', label: 'ID ↑' },
+    { value: 'id_desc', label: 'ID ↓' },
+    { value: 'email_asc', label: 'Email ↑' },
+    { value: 'email_desc', label: 'Email ↓' },
+    { value: 'status_asc', label: 'Status ↑' },
+    { value: 'registered_newest', label: 'Registered ↓' },
+    { value: 'registered_oldest', label: 'Registered ↑' }
+  ]
   const phaseOptions = sortTextAsc(Object.keys(addressData))
   const streetOptions = useMemo(() => {
     if(!addressPhase) return []
@@ -68,6 +82,14 @@ export default function ManageResidents(){
   }
 
   const getResidentName = (item) => [item.first_name, item.middle_name, item.last_name].filter(Boolean).join(' ')
+
+  const compareText = (a, b) => String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' })
+  const compareNumber = (a, b) => Number(a || 0) - Number(b || 0)
+  const compareDate = (a, b) => {
+    const aTime = a ? new Date(a).getTime() : 0
+    const bTime = b ? new Date(b).getTime() : 0
+    return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime)
+  }
 
   const handleSearch = () => {
     setQuery(searchTerm.trim())
@@ -108,6 +130,38 @@ export default function ManageResidents(){
       (item.last_name || '')
     ].some(value => String(value).toLowerCase().includes(normalizedQuery))
   })
+
+  const sortedItems = useMemo(() => {
+    const residents = [...filteredItems]
+    residents.sort((a, b) => {
+      switch(sortBy){
+        case 'first_name_asc':
+          return compareText(a.first_name, b.first_name) || compareText(a.last_name, b.last_name) || compareNumber(a.resident_id, b.resident_id)
+        case 'first_name_desc':
+          return compareText(b.first_name, a.first_name) || compareText(b.last_name, a.last_name) || compareNumber(a.resident_id, b.resident_id)
+        case 'last_name_desc':
+          return compareText(b.last_name, a.last_name) || compareText(b.first_name, a.first_name) || compareNumber(a.resident_id, b.resident_id)
+        case 'id_asc':
+          return compareNumber(a.resident_id, b.resident_id)
+        case 'id_desc':
+          return compareNumber(b.resident_id, a.resident_id)
+        case 'email_asc':
+          return compareText(a.email, b.email) || compareNumber(a.resident_id, b.resident_id)
+        case 'email_desc':
+          return compareText(b.email, a.email) || compareNumber(a.resident_id, b.resident_id)
+        case 'status_asc':
+          return compareText(a.account_status, b.account_status) || compareText(a.last_name, b.last_name) || compareNumber(a.resident_id, b.resident_id)
+        case 'registered_newest':
+          return compareDate(b.registration_date, a.registration_date) || compareNumber(b.resident_id, a.resident_id)
+        case 'registered_oldest':
+          return compareDate(a.registration_date, b.registration_date) || compareNumber(a.resident_id, b.resident_id)
+        case 'last_name_asc':
+        default:
+          return compareText(a.last_name, b.last_name) || compareText(a.first_name, b.first_name) || compareNumber(a.resident_id, b.resident_id)
+      }
+    })
+    return residents
+  }, [filteredItems, sortBy])
 
   async function confirmChangeStatus(id, status, suspensionEndDate = null){
     try{
@@ -177,6 +231,16 @@ export default function ManageResidents(){
               />
               <select
                 className="ui-input"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort residents"
+              >
+                {sortOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>Sort: {opt.label}</option>
+                ))}
+              </select>
+              <select
+                className="ui-input"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -218,7 +282,7 @@ export default function ManageResidents(){
             <div className="empty-state">Loading residents...</div>
           ) : (
             <>
-              {filteredItems.length === 0 ? (
+              {sortedItems.length === 0 ? (
                 <div className="empty-state">No residents match the current search or filter.</div>
               ) : (
                 <div className="table-wrap">
@@ -234,7 +298,7 @@ export default function ManageResidents(){
                     </thead>
 
                     <tbody>
-                      {filteredItems.map(it=>(
+                      {sortedItems.map(it=>(
                     <tr key={it.resident_id}>
                       <td>{formatResidentId(it.resident_id)}</td>
                       <td>{getResidentName(it)}</td>
