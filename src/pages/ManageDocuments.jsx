@@ -38,8 +38,10 @@ export default function ManageDocuments(){
   ])
   const [processingRequest, setProcessingRequest] = useState(null)
   const [rejectConfirm, setRejectConfirm] = useState({ show: false, request: null })
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, request: null })
   const processingModalRef = useRef(null)
   const rejectConfirmRef = useRef(null)
+  const deleteConfirmRef = useRef(null)
   const [documentFields, setDocumentFields] = useState({
     name: '',
     birthdate: '',
@@ -197,6 +199,7 @@ export default function ManageDocuments(){
 
   useCloseOnEscape(Boolean(processingRequest), closeProcessingModal, processingModalRef)
   useCloseOnEscape(rejectConfirm.show, () => setRejectConfirm({ show: false, request: null }), rejectConfirmRef)
+  useCloseOnEscape(deleteConfirm.show, () => setDeleteConfirm({ show: false, request: null }), deleteConfirmRef)
 
   const wrapText = (text, maxChars = 72) => {
     return String(text || '').split('\n').flatMap(line => {
@@ -379,6 +382,19 @@ export default function ManageDocuments(){
     setRejectConfirm({ show: false, request: null })
   }
 
+  const handleDeleteRequest = async (request) => {
+    if(!request?.request_id) return
+
+    try {
+      await api.delete(`/docs/${request.request_id}`)
+      setDeleteConfirm({ show: false, request: null })
+      setProcessingRequest(current => current?.request_id === request.request_id ? null : current)
+      load()
+    } catch(err) {
+      alert('Failed to delete document request: ' + (err?.response?.data?.message || err.message))
+    }
+  }
+
   const processingTemplate = processingRequest ? getTemplateForType(processingRequest.document_type || processingRequest.type) : 'Barangay Clearance'
   const documentStatusOptions = ['Submitted', 'Requested', 'Processing', 'Ready', 'Released', 'Received', 'Rejected']
   const activeStatuses = ['Submitted', 'Requested', 'Processing', 'Ready']
@@ -507,6 +523,7 @@ export default function ManageDocuments(){
                         <th>Resident</th>
                         <th>Date</th>
                         <th>Status</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -517,6 +534,15 @@ export default function ManageDocuments(){
                           <td>{it.name || it.full_name || formatResidentId(it.resident_id) || '—'}</td>
                           <td>{new Date(it.date_requested || Date.now()).toLocaleDateString('en-US')}</td>
                           <td><StatusBadge status={it.status}/></td>
+                          <td>
+                            <button
+                              type="button"
+                              className="table-action table-action-danger"
+                              onClick={() => setDeleteConfirm({ show: true, request: it })}
+                            >
+                              Delete
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -672,6 +698,38 @@ export default function ManageDocuments(){
                       onClick={() => handleRejectRequest(rejectConfirm.request)}
                     >
                       Reject
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {deleteConfirm.show && (
+              <div
+                className="modal-overlay"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Confirm delete document request"
+                onClick={() => setDeleteConfirm({ show: false, request: null })}
+              >
+                <div className="modal-card confirm-delete-modal" ref={deleteConfirmRef} onClick={e => e.stopPropagation()}>
+                  <h2 className="modal-title">Delete Document Request?</h2>
+                  <p className="delete-modal-message">
+                    Do you want to delete this completed document request? It will be moved to Archive.
+                  </p>
+                  <div className="modal-actions confirm-actions">
+                    <button
+                      type="button"
+                      className="modal-action-btn modal-action-cancel"
+                      onClick={() => setDeleteConfirm({ show: false, request: null })}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="modal-action-btn modal-action-delete"
+                      onClick={() => handleDeleteRequest(deleteConfirm.request)}
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>

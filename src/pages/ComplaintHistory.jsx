@@ -533,6 +533,14 @@ export default function ComplaintHistory(){
                             >
                               View
                             </button>
+                            {canDeleteComplaint(r) && (
+                              <button
+                                className="table-action table-action-danger"
+                                onClick={() => handleDeleteComplaint(r)}
+                              >
+                                Delete
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}

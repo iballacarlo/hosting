@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
@@ -23,6 +23,8 @@ export default function ManageComplaints(){
   const [selectedMediaPreview, setSelectedMediaPreview] = useState(null)
   const [selectedForStatus, setSelectedForStatus] = useState(null)
   const [highlightedComplaintId, setHighlightedComplaintId] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, complaint: null })
+  const deleteConfirmRef = useRef(null)
 
   const resolveMediaUrl = (url) => {
     if(!url) return ''
@@ -156,6 +158,19 @@ export default function ManageComplaints(){
     }
   }
 
+  async function handleDeleteComplaint(complaint){
+    if(!complaint?.complaint_id) return
+
+    try{
+      await api.delete(`/complaints/${complaint.complaint_id}`)
+      setDeleteConfirm({ show: false, complaint: null })
+      setSelectedComplaint(current => current?.complaint_id === complaint.complaint_id ? null : current)
+      load()
+    }catch(err){
+      alert('Delete failed: ' + (err?.response?.data?.message || err?.message || 'Unknown error'))
+    }
+  }
+
   const normalizeComplaintMedia = (images = []) => {
     if(!Array.isArray(images)) return []
     return images.map((media) => {
@@ -204,6 +219,7 @@ export default function ManageComplaints(){
 
   useCloseOnEscape(Boolean(selectedComplaint), closeModal)
   useCloseOnEscape(Boolean(selectedForStatus), () => setSelectedForStatus(null))
+  useCloseOnEscape(deleteConfirm.show, () => setDeleteConfirm({ show: false, complaint: null }), deleteConfirmRef)
 
   const wrapText = (text, maxChars = 72) => {
     return String(text || '').split('\n').flatMap(line => {
@@ -878,6 +894,13 @@ export default function ManageComplaints(){
                               <button type="button" className="table-action" onClick={() => handleDownloadPdf(it)}>
                                 Download PDF
                               </button>
+                              <button
+                                type="button"
+                                className="table-action table-action-danger"
+                                onClick={() => setDeleteConfirm({ show: true, complaint: it })}
+                              >
+                                Delete
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1023,6 +1046,38 @@ export default function ManageComplaints(){
 
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 12 }}>
                       <Button type="button" variant="secondary" onClick={() => setSelectedForStatus(null)} disabled={selectedForStatus.loading}>Close</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {deleteConfirm.show && (
+                <div
+                  className="modal-overlay"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Confirm delete complaint"
+                  onClick={() => setDeleteConfirm({ show: false, complaint: null })}
+                >
+                  <div className="modal-card confirm-delete-modal" ref={deleteConfirmRef} onClick={e => e.stopPropagation()}>
+                    <h2 className="modal-title">Delete Complaint?</h2>
+                    <p className="delete-modal-message">
+                      Do you want to delete this completed complaint? It will be moved to Archive.
+                    </p>
+                    <div className="modal-actions confirm-actions">
+                      <button
+                        type="button"
+                        className="modal-action-btn modal-action-cancel"
+                        onClick={() => setDeleteConfirm({ show: false, complaint: null })}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="modal-action-btn modal-action-delete"
+                        onClick={() => handleDeleteComplaint(deleteConfirm.complaint)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 </div>

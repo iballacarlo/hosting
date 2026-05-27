@@ -1760,8 +1760,9 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && $method === 'DELETE'){
   $complaint = $stmt->fetch();
   if(!$complaint) json(['success'=>false,'message'=>'Complaint not found']);
 
-  $isOwner = ($user['role'] !== 'staff' && intval($complaint['resident_id']) === intval($user['id']));
-  if($user['role'] !== 'staff' && !$isOwner) json(['success'=>false,'message'=>'Forbidden']);
+  $isStaffUser = in_array($user['role'] ?? '', ['staff', 'admin'], true);
+  $isOwner = (!$isStaffUser && intval($complaint['resident_id']) === intval($user['id']));
+  if(!$isStaffUser && !$isOwner) json(['success'=>false,'message'=>'Forbidden']);
 
   ensureComplaintAttachmentTable($pdo);
   $attachmentsStmt = $pdo->prepare('SELECT * FROM Complaint_Attachment WHERE complaint_id = ? ORDER BY upload_date ASC');
@@ -1834,10 +1835,11 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   $stmt->execute([$id]);
   $request = $stmt->fetch();
   if(!$request) json(['success'=>false,'message'=>'Document request not found'], 404);
-  $isOwner = $user['role'] !== 'staff' && intval($request['resident_id']) === intval($user['id']);
+  $isStaffUser = in_array($user['role'] ?? '', ['staff', 'admin'], true);
+  $isOwner = !$isStaffUser && intval($request['resident_id']) === intval($user['id']);
 
   if($method === 'DELETE'){
-    if($user['role'] !== 'staff' && !$isOwner) json(['success'=>false,'message'=>'Forbidden']);
+    if(!$isStaffUser && !$isOwner) json(['success'=>false,'message'=>'Forbidden']);
     $fullStmt = $pdo->prepare('SELECT * FROM Document_Request WHERE request_id = ?');
     $fullStmt->execute([$id]);
     $fullRequest = $fullStmt->fetch();

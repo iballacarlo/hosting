@@ -369,6 +369,14 @@ export default function DocumentHistory(){
                             >
                               View
                             </button>
+                            {canDeleteDocument(d) && (
+                              <button
+                                className="table-action table-action-danger"
+                                onClick={() => handleDeleteDocument(d)}
+                              >
+                                Delete
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
