@@ -16,7 +16,7 @@
   color:#111827;
   border:1px solid rgba(15,23,42,0.16);
   box-shadow:0 16px 38px rgba(15,23,42,0.16);
-  padding:0 clamp(28px, 16.1%, 96px);
+  padding:0 96px;
   overflow:hidden;
 }
 
@@ -43,28 +43,28 @@
 }
 
 .resident-doc-preview-republic{
-  font-size:clamp(10px, 2.7vw, 16px);
+  font-size:16px;
   font-weight:800;
   margin-bottom:1.2%;
 }
 
 .resident-doc-preview-province,
 .resident-doc-preview-barangay{
-  font-size:clamp(9px, 2.55vw, 15px);
+  font-size:15px;
   font-weight:800;
   margin-bottom:1.1%;
 }
 
 .resident-doc-preview-title{
   margin-top:7%;
-  font-size:clamp(11px, 3vw, 18px);
+  font-size:18px;
   font-weight:900;
   text-transform:none;
 }
 
 .resident-doc-preview-copy{
   margin-top:8.55%;
-  font-size:clamp(10px, 2.95vw, 18px);
+  font-size:18px;
   line-height:1.35;
   text-align:left;
 }
@@ -77,7 +77,7 @@
 
 .resident-doc-preview-footer{
   margin-top:2.15%;
-  font-size:clamp(8px, 2.35vw, 14px);
+  font-size:14px;
   text-align:center;
   color:#111827;
 }
@@ -106,6 +106,28 @@ html.high-contrast .resident-doc-preview-page *{
   }
 
   .resident-doc-preview-page{
+    padding:0 clamp(28px, 16.1%, 96px);
     box-shadow:0 10px 24px rgba(15,23,42,0.14);
+  }
+
+  .resident-doc-preview-republic{
+    font-size:clamp(10px, 2.7vw, 16px);
+  }
+
+  .resident-doc-preview-province,
+  .resident-doc-preview-barangay{
+    font-size:clamp(9px, 2.55vw, 15px);
+  }
+
+  .resident-doc-preview-title{
+    font-size:clamp(11px, 3vw, 18px);
+  }
+
+  .resident-doc-preview-copy{
+    font-size:clamp(10px, 2.95vw, 18px);
+  }
+
+  .resident-doc-preview-footer{
+    font-size:clamp(8px, 2.35vw, 14px);
   }
 }

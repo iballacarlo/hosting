@@ -573,20 +573,20 @@ html.dark .table-action-danger:hover{
 
 @media(max-width:480px){
   .mobile-checkmark .mobile-icon{
-    display: inline;
-    font-size: 1rem;
-    line-height: 1;
-  }
-
-  .mobile-checkmark .mobile-label{
     display: none;
   }
 
-  .modal-action-preview{
+  .mobile-checkmark .mobile-label{
+    display: inline;
+    font-size: 0.78rem;
+    line-height: 1.15;
+  }
+
+  .document-detail-actions .modal-action-preview{
     font-size: 0;
   }
 
-  .modal-action-preview::after{
+  .document-detail-actions .modal-action-preview::after{
     content: 'View Preview';
     font-size: 0.78rem;
     line-height: 1.15;
@@ -639,17 +639,6 @@ html.dark .table-action-danger:hover{
     width: min(420px, calc(100vw - 20px));
     max-height: calc(100vh - 18px);
     padding: 12px;
-  }
-}
-
-@media(max-width:480px){
-  .document-detail-actions .modal-action-preview{
-    font-size: 0;
-  }
-
-  .document-detail-actions .modal-action-preview::after{
-    font-size: 0.78rem;
-    line-height: 1.15;
   }
 }
 

@@ -825,6 +825,10 @@ html.high-contrast .file-upload-btn-small:focus-visible {
   max-width: 100%;
 }
 
+.modal-card.process-document-modal{
+  width: min(1320px, calc(100vw - 60px));
+}
+
 .modal-card h3{
   margin:0 0 8px 0;
   font-weight:900;
@@ -1048,7 +1052,7 @@ html.dark .font-chip.active{
 /* A4 Document Preview Styles */
 .process-modal-grid-single{
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(595px, 1.25fr) minmax(320px, 0.85fr);
   gap: 16px;
   align-items: start;
   margin-bottom: 0;
@@ -1066,12 +1070,12 @@ html.dark .font-chip.active{
 }
 
 .document-preview-shell-a4 .resident-doc-preview-page{
-  width: min(100%, 380px);
+  width: 595px;
 }
 
 .document-preview-shell-a4 .resident-doc-preview-watermark{
-  width: 68%;
-  max-width: 360px;
+  width: 72%;
+  max-width: 430px;
 }
 
 @media (max-width: 900px) and (orientation: portrait) {
@@ -1087,6 +1091,10 @@ html.dark .font-chip.active{
   .document-preview-shell-a4 .resident-doc-preview-page{
     width: min(100%, 420px);
   }
+
+  .modal-card.process-document-modal{
+    width: min(420px, calc(100vw - 20px));
+  }
 }
 
 @media (max-width: 900px) and (orientation: landscape) {
@@ -1094,8 +1102,8 @@ html.dark .font-chip.active{
     grid-template-columns: 1fr 1fr;
   }
 
-  .document-preview-a4{
-    max-width: 100%;
+  .document-preview-shell-a4 .resident-doc-preview-page{
+    width: min(100%, 420px);
   }
 }
 

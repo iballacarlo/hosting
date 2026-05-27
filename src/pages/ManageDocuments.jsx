@@ -556,7 +556,7 @@ export default function ManageDocuments(){
 
             {processingRequest && (
               <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Process document request" onClick={closeProcessingModal}>
-                <div className="modal-card complaint-details-modal" ref={processingModalRef} onClick={e => e.stopPropagation()}>
+                <div className="modal-card complaint-details-modal process-document-modal" ref={processingModalRef} onClick={e => e.stopPropagation()}>
                   <button className="modal-close-btn" type="button" onClick={closeProcessingModal}>
                     ✕
                   </button>
