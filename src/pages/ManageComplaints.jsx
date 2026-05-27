@@ -782,8 +782,11 @@ export default function ManageComplaints(){
                 />
               </div>
             </div>
-            <div className="table-wrap">
-              <table>
+            {getVisibleComplaints().length > 0 && (
+              <section className="active-section">
+                <h2 className="section-title">Active Complaints</h2>
+                <div className="table-wrap">
+                  <table>
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -847,8 +850,10 @@ export default function ManageComplaints(){
                   ))}
                 </tbody>
 
-              </table>
-            </div>
+                  </table>
+                </div>
+              </section>
+            )}
 
             {items.length > 0 && getVisibleComplaints().length === 0 && getCompletedComplaints().length === 0 && (
               <div className="empty-state">No complaints match your search criteria.</div>

@@ -458,8 +458,11 @@ export default function ManageDocuments(){
                 />
               </div>
             </div>
-            <div className="table-wrap">
-              <table>
+            {getVisibleDocuments().length > 0 && (
+              <section className="active-section">
+                <h2 className="section-title">Active Document Requests</h2>
+                <div className="table-wrap">
+                  <table>
                 <thead>
                   <tr>
                     <th>Ref</th>
@@ -504,8 +507,10 @@ export default function ManageDocuments(){
                   ))}
                 </tbody>
 
-              </table>
-            </div>
+                  </table>
+                </div>
+              </section>
+            )}
 
             {items.length > 0 && getVisibleDocuments().length === 0 && getCompletedDocuments().length === 0 && (
               <div className="empty-state">No document requests match your search criteria.</div>

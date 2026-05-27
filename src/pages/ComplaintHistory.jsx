@@ -461,8 +461,10 @@ export default function ComplaintHistory(){
           ) : (
             <>
             {activeList.length > 0 && (
-              <div className="table-wrap">
-                <table>
+              <section className="active-section">
+                <h2 className="section-title">Active Complaints</h2>
+                <div className="table-wrap">
+                  <table>
                   <thead>
                     <tr>
                       <th>Reference</th>
@@ -500,8 +502,9 @@ export default function ComplaintHistory(){
                       </tr>
                     ))}
                   </tbody>
-                </table>
-              </div>
+                  </table>
+                </div>
+              </section>
             )}
             {completedList.length > 0 && (
               <section className="completed-section">
