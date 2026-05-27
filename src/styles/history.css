@@ -548,7 +548,7 @@ html.dark .table-action-danger:hover{
 .document-preview-modal{
   width: min(760px, calc(100vw - 32px));
   max-height: 92vh;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .document-preview-modal .modal-title{
@@ -581,42 +581,41 @@ html.dark .table-action-danger:hover{
   .mobile-checkmark .mobile-label{
     display: inline;
   }
+}
 
-  .modal-actions{
+@media(max-width:700px){
+  .document-detail-actions{
     grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
   }
 
-  .modal-action-edit:not(.modal-action-preview){
+  .document-detail-actions .modal-action-edit:not(.modal-action-preview){
     order: 1;
     grid-column: span 2;
   }
 
-  .modal-action-delete{
+  .document-detail-actions .modal-action-delete{
     order: 2;
     grid-column: span 2;
   }
 
-  .modal-action-close{
+  .document-detail-actions .modal-action-close{
     order: 3;
     grid-column: span 2;
   }
 
-  .modal-action-preview{
+  .document-detail-actions .modal-action-preview{
     order: 4;
     grid-column: span 3;
   }
 
-  .modal-action-preview:only-child{
+  .document-detail-actions .modal-action-preview:only-child{
     grid-column: 1 / -1;
   }
 
-  .modal-action-received{
+  .document-detail-actions .modal-action-received{
     order: 5;
     grid-column: span 3;
-  }
-
-  .document-detail-actions{
-    gap: 8px;
   }
 
   .document-detail-actions .modal-action-btn{
@@ -629,7 +628,7 @@ html.dark .table-action-danger:hover{
   .document-preview-modal{
     width: min(420px, calc(100vw - 20px));
     max-height: calc(100vh - 18px);
-    padding: 14px;
+    padding: 12px;
   }
 }
 

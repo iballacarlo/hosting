@@ -486,7 +486,7 @@ export default function DocumentHistory(){
                       </div>
                     )}
 
-                    <div className="modal-actions">
+                    <div className="modal-actions document-detail-actions">
                       {isReadyForPickup(selectedDocument.status) && (
                         <button
                           className="modal-action-btn modal-action-edit modal-action-preview"
