@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -20,8 +20,15 @@ import Profile from './pages/Profile'
 import Archive from './pages/Archive'
 import ProtectedRoute from './components/ProtectedRoute'
 import ChatWidget from './components/ChatWidget'
+import { useAuth } from './context/AuthContext'
+
+const publicAuthRoutes = ['/login', '/register', '/forgot-password']
 
 export default function App(){
+  const { user, loading } = useAuth()
+  const location = useLocation()
+  const showChatWidget = Boolean(user) && !loading && !publicAuthRoutes.includes(location.pathname)
+
   return (
     <>
       <Routes>
@@ -48,7 +55,7 @@ export default function App(){
 
         <Route path="*" element={<NotFound/>} />
       </Routes>
-      <ChatWidget />
+      {showChatWidget && <ChatWidget />}
     </>
   )
 }
