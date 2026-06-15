@@ -1,0 +1,2936 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Length 4322 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (BARANGAY SERVICE AND COMPLAINT MANAGEMENT) Tj
+-50 -14 Td
+50 776 Td (SYSTEM FOR BARANGAY MAMBOG II) Tj
+-50 -14 Td
+50 762 Td (A Quantitative Research) Tj
+-50 -14 Td
+50 748 Td (Submitted to the Faculty of the) Tj
+-50 -14 Td
+50 734 Td (Department of Computer Studies) Tj
+-50 -14 Td
+50 720 Td (Cavite State University) Tj
+-50 -14 Td
+50 706 Td (Imus City, Cavite) Tj
+-50 -14 Td
+50 692 Td (In partial fulfillment) Tj
+-50 -14 Td
+50 678 Td (of the requirements of the degree) Tj
+-50 -14 Td
+50 664 Td (Bachelor of Science in Information Technology) Tj
+-50 -14 Td
+50 650 Td (under the subject of ITEC 95) Tj
+-50 -14 Td
+50 636 Td (JEMUEL B. ACIBAR) Tj
+-50 -14 Td
+50 622 Td (CARLO B. IBALLA) Tj
+-50 -14 Td
+50 608 Td (MALACHI N. LAMA) Tj
+-50 -14 Td
+50 594 Td (JHUDEL B. MORATA) Tj
+-50 -14 Td
+50 580 Td (A Quantitative Research outline submitted to the faculty of the Department of Computer) Tj
+-50 -14 Td
+50 566 Td (Studies, Cavite State University, Imus, Cavite in partial fulfillment of the requirements) Tj
+-50 -14 Td
+50 552 Td (for the degree of Bachelor of Information Technology for the subject in ITEC 95. Prepared) Tj
+-50 -14 Td
+50 538 Td (under the supervision of Mr. Vlademir Pagtakhan.) Tj
+-50 -14 Td
+50 524 Td (INTRODUCTION) Tj
+-50 -14 Td
+50 510 Td (Barangay offices play an important role in providing basic public services, handling) Tj
+-50 -14 Td
+50 496 Td (resident concerns, processing document requests, and managing complaints within the) Tj
+-50 -14 Td
+50 482 Td (community. In Barangay Mambog II, residents rely on the barangay office for services such as) Tj
+-50 -14 Td
+50 468 Td (complaint filing, document requests, and access to important barangay-related information.) Tj
+-50 -14 Td
+50 454 Td (However, when these processes are handled manually, residents may experience delays, long) Tj
+-50 -14 Td
+50 440 Td (waiting times, misplaced records, and difficulty in tracking the status of their concerns or) Tj
+-50 -14 Td
+50 426 Td (requests.) Tj
+-50 -14 Td
+50 412 Td (Traditional barangay service and complaint management often involves paper-based forms,) Tj
+-50 -14 Td
+50 398 Td (face-to-face transactions, and manual recordkeeping. While these methods are commonly used,) Tj
+-50 -14 Td
+50 384 Td (they may become inefficient as the number of residents and service requests increases.) Tj
+-50 -14 Td
+50 370 Td (Barangay staff may also encounter challenges in organizing complaints, monitoring pending) Tj
+-50 -14 Td
+50 356 Td (requests, updating records, and generating accurate reports. These issues can affect the) Tj
+-50 -14 Td
+50 342 Td (speed, reliability, and quality of services delivered to residents.) Tj
+-50 -14 Td
+50 328 Td (With the continuous development of information technology, digital systems can help improve) Tj
+-50 -14 Td
+50 314 Td (the delivery of barangay services. A web-based barangay service and complaint management) Tj
+-50 -14 Td
+50 300 Td (system can provide a more organized, accessible, and efficient platform for residents and) Tj
+-50 -14 Td
+50 286 Td (barangay personnel. Through features such as online complaint submission, document request) Tj
+-50 -14 Td
+50 272 Td (management, status tracking, dashboards, secure login, and accessibility options, the system) Tj
+-50 -14 Td
+50 258 Td (can reduce manual workload and improve the overall service experience.) Tj
+-50 -14 Td
+50 244 Td (Recognizing these needs, this study proposes the development of the Barangay Service and) Tj
+-50 -14 Td
+50 230 Td (Complaint Management System for Barangay Mambog II. The system is designed to assist) Tj
+-50 -14 Td
+50 216 Td (residents in submitting complaints and requesting barangay documents through an online) Tj
+-50 -14 Td
+50 202 Td (platform. It also helps barangay personnel manage records, monitor requests, update) Tj
+-50 -14 Td
+50 188 Td (complaint statuses, and view accurate information through a dashboard. The system includes) Tj
+-50 -14 Td
+50 174 Td (accessibility features such as dark mode, font size adjustment, and screen reader mode to) Tj
+-50 -14 Td
+50 160 Td (support different types of users.) Tj
+-50 -14 Td
+50 146 Td (This study focuses on evaluating the acceptability of the system based on the ISO/IEC 25010) Tj
+-50 -14 Td
+50 132 Td (Software Quality Model, specifically in terms of functionality, reliability, usability,) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+4 0 obj
+<< /Length 4810 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (performance efficiency, compatibility, security, maintainability, and portability. Through) Tj
+-50 -14 Td
+50 776 Td (this system, Barangay Mambog II can improve service delivery, enhance record management,) Tj
+-50 -14 Td
+50 762 Td (protect user information, and provide residents with a more convenient way to access) Tj
+-50 -14 Td
+50 748 Td (barangay services.) Tj
+-50 -14 Td
+50 734 Td (Purpose of the study) Tj
+-50 -14 Td
+50 720 Td (The purpose of this study is to develop and evaluate the Barangay Service and Complaint) Tj
+-50 -14 Td
+50 706 Td (Management System for Barangay Mambog II, a web-based system designed to improve the) Tj
+-50 -14 Td
+50 692 Td (management of barangay complaints and document requests. The system aims to provide) Tj
+-50 -14 Td
+50 678 Td (residents with a faster, more convenient, and more accessible way to submit complaints,) Tj
+-50 -14 Td
+50 664 Td (request documents, and monitor their transactions with the barangay.) Tj
+-50 -14 Td
+50 650 Td (This study also aims to assist barangay personnel in managing complaints, organizing) Tj
+-50 -14 Td
+50 636 Td (document requests, updating records, monitoring service status, and viewing important) Tj
+-50 -14 Td
+50 622 Td (information through a dashboard. By replacing or reducing manual processes, the system helps) Tj
+-50 -14 Td
+50 608 Td (improve efficiency, accuracy, and reliability in barangay service delivery.) Tj
+-50 -14 Td
+50 594 Td (The study focuses on the evaluation of the system in terms of functionality, reliability,) Tj
+-50 -14 Td
+50 580 Td (usability, performance efficiency, compatibility, security, maintainability, and portability) Tj
+-50 -14 Td
+50 566 Td (based on the ISO/IEC 25010 Software Quality Model.) Tj
+-50 -14 Td
+50 552 Td (This study will benefit the following:) Tj
+-50 -14 Td
+50 538 Td (Residents of Barangay Mambog II. The system will provide residents with an easier and faster) Tj
+-50 -14 Td
+50 524 Td (way to submit complaints and request barangay documents without relying only on manual or) Tj
+-50 -14 Td
+50 510 Td (face-to-face transactions.) Tj
+-50 -14 Td
+50 496 Td (Barangay Officials and Staff. The system will help barangay personnel manage complaints,) Tj
+-50 -14 Td
+50 482 Td (document requests, resident records, and service updates in a more organized and efficient) Tj
+-50 -14 Td
+50 468 Td (manner.) Tj
+-50 -14 Td
+50 454 Td (Barangay Mambog II. The system will support improved public service delivery by promoting) Tj
+-50 -14 Td
+50 440 Td (faster transactions, accurate records, secure information management, and better monitoring) Tj
+-50 -14 Td
+50 426 Td (of community concerns.) Tj
+-50 -14 Td
+50 412 Td (Students and Researchers. This study may serve as a reference for students and researchers) Tj
+-50 -14 Td
+50 398 Td (who will develop similar barangay management systems or community-based information systems.) Tj
+-50 -14 Td
+50 384 Td (Future Researchers. The study may provide useful insights for improving future systems) Tj
+-50 -14 Td
+50 370 Td (related to local governance, public service management, complaint handling, and digital) Tj
+-50 -14 Td
+50 356 Td (transformation in barangay operations.) Tj
+-50 -14 Td
+50 342 Td (By improving access to barangay services, enhancing complaint management, and promoting) Tj
+-50 -14 Td
+50 328 Td (efficient use of technology in local governance, the system supports SDG 9: Industry,) Tj
+-50 -14 Td
+50 314 Td (Innovation, and Infrastructure and SDG 16: Peace, Justice, and Strong Institutions.) Tj
+-50 -14 Td
+50 300 Td (Research Questions) Tj
+-50 -14 Td
+50 286 Td (Roberts \(2004\) stated that research questions guide the study and provide the structure for) Tj
+-50 -14 Td
+50 272 Td (presenting the results of the research. This study aims to determine the acceptability of) Tj
+-50 -14 Td
+50 258 Td (the Barangay Service and Complaint Management System for Barangay Mambog II based on the) Tj
+-50 -14 Td
+50 244 Td (ISO/IEC 25010 Software Quality Model.) Tj
+-50 -14 Td
+50 230 Td (Specifically, this study seeks to answer the following questions:) Tj
+-50 -14 Td
+50 216 Td (Is the functionality of the Barangay Service and Complaint Management System acceptable to) Tj
+-50 -14 Td
+50 202 Td (the respondents in terms of complaint submission, document request management, and dashboard) Tj
+-50 -14 Td
+50 188 Td (features?) Tj
+-50 -14 Td
+50 174 Td (Is the reliability of the system acceptable to the respondents in terms of consistent) Tj
+-50 -14 Td
+50 160 Td (performance, proper saving of submitted complaints and requests, and system accessibility?) Tj
+-50 -14 Td
+50 146 Td (Is the usability of the system acceptable to the respondents in terms of ease of navigation,) Tj
+-50 -14 Td
+50 132 Td (user-friendly complaint and document request processes, and accessibility features such as) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 4665 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (dark mode, font size adjustment, and screen reader mode?) Tj
+-50 -14 Td
+50 776 Td (Is the performance efficiency of the system acceptable to the respondents in terms of) Tj
+-50 -14 Td
+50 762 Td (response time, page loading, file upload efficiency, and continuous system use?) Tj
+-50 -14 Td
+50 748 Td (Is the compatibility of the system acceptable to the respondents in terms of its ability to) Tj
+-50 -14 Td
+50 734 Td (work properly on different browsers, devices, and alongside other applications?) Tj
+-50 -14 Td
+50 720 Td (Is the security of the system acceptable to the respondents in terms of login and) Tj
+-50 -14 Td
+50 706 Td (authentication, protection of user information and complaints, and authorized access to) Tj
+-50 -14 Td
+50 692 Td (records?) Tj
+-50 -14 Td
+50 678 Td (Is the maintainability of the system acceptable to the respondents in terms of organized) Tj
+-50 -14 Td
+50 664 Td (structure, consistent features, and ease of improvement or update?) Tj
+-50 -14 Td
+50 650 Td (Is the portability of the system acceptable to the respondents in terms of adaptability to) Tj
+-50 -14 Td
+50 636 Td (different devices and environments and functionality after updates or configuration changes?) Tj
+-50 -14 Td
+50 622 Td (What is the overall acceptability of the Barangay Service and Complaint Management System) Tj
+-50 -14 Td
+50 608 Td (for Barangay Mambog II based on the ISO/IEC 25010 Software Quality Model?) Tj
+-50 -14 Td
+50 594 Td (STATISTICAL DATA) Tj
+-50 -14 Td
+50 580 Td (Research Design) Tj
+-50 -14 Td
+50 566 Td (This study utilized a quantitative research design to evaluate the acceptability of the) Tj
+-50 -14 Td
+50 552 Td (Barangay Service and Complaint Management System for Barangay Mambog II. Quantitative) Tj
+-50 -14 Td
+50 538 Td (research involves the collection and analysis of numerical data to identify patterns,) Tj
+-50 -14 Td
+50 524 Td (measure responses, and interpret statistical results. This design was used because the study) Tj
+-50 -14 Td
+50 510 Td (focuses on measuring the respondents' evaluation of the developed system using survey) Tj
+-50 -14 Td
+50 496 Td (questionnaires and statistical treatment.) Tj
+-50 -14 Td
+50 482 Td (The system was evaluated based on the ISO/IEC 25010 Software Quality Model, specifically in) Tj
+-50 -14 Td
+50 468 Td (terms of functionality, reliability, usability, performance efficiency, compatibility,) Tj
+-50 -14 Td
+50 454 Td (security, maintainability, and portability.) Tj
+-50 -14 Td
+50 440 Td (The researchers followed the following steps in conducting the study:) Tj
+-50 -14 Td
+50 426 Td (Identification of the Problem) Tj
+-50 -14 Td
+50 412 Td (The researchers identified the challenges experienced by Barangay Mambog II residents and) Tj
+-50 -14 Td
+50 398 Td (personnel in handling barangay complaints, document requests, record management, and service) Tj
+-50 -14 Td
+50 384 Td (monitoring through manual processes.) Tj
+-50 -14 Td
+50 370 Td (Gathering of Related Literature and Studies) Tj
+-50 -14 Td
+50 356 Td (Related literature and studies about barangay information systems, complaint management) Tj
+-50 -14 Td
+50 342 Td (systems, document request systems, public service delivery, and ISO/IEC 25010 software) Tj
+-50 -14 Td
+50 328 Td (quality standards were gathered to support the development of the study.) Tj
+-50 -14 Td
+50 314 Td (System Design and Development) Tj
+-50 -14 Td
+50 300 Td (The researchers designed and developed the Barangay Service and Complaint Management System) Tj
+-50 -14 Td
+50 286 Td (for Barangay Mambog II. The system includes features such as complaint submission, document) Tj
+-50 -14 Td
+50 272 Td (request management, dashboard monitoring, user login and authentication, record management,) Tj
+-50 -14 Td
+50 258 Td (status updates, and accessibility features such as dark mode, font size adjustment, and) Tj
+-50 -14 Td
+50 244 Td (screen reader mode.) Tj
+-50 -14 Td
+50 230 Td (Construction of the Survey Questionnaire) Tj
+-50 -14 Td
+50 216 Td (A survey questionnaire based on the ISO/IEC 25010 Software Quality Model was constructed to) Tj
+-50 -14 Td
+50 202 Td (evaluate the developed system in terms of functionality, reliability, usability, performance) Tj
+-50 -14 Td
+50 188 Td (efficiency, compatibility, security, maintainability, and portability.) Tj
+-50 -14 Td
+50 174 Td (Selection of Respondents) Tj
+-50 -14 Td
+50 160 Td (The researchers selected sixty \(60\) respondents composed of IT respondents and Non-IT) Tj
+-50 -14 Td
+50 146 Td (respondents using purposive sampling. These respondents were chosen to provide both) Tj
+-50 -14 Td
+50 132 Td (technical and general user perspectives regarding the system.) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 4392 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Data Gathering Procedure) Tj
+-50 -14 Td
+50 776 Td (The respondents were asked to use and evaluate the developed system using the prepared) Tj
+-50 -14 Td
+50 762 Td (survey questionnaire. Their responses were collected and analyzed to determine the) Tj
+-50 -14 Td
+50 748 Td (acceptability of the system.) Tj
+-50 -14 Td
+50 734 Td (Statistical Analysis of Data) Tj
+-50 -14 Td
+50 720 Td (The gathered data were analyzed using weighted mean and descriptive interpretation based on) Tj
+-50 -14 Td
+50 706 Td (the Likert scale. These statistical tools were used to determine the respondents' evaluation) Tj
+-50 -14 Td
+50 692 Td (of the system.) Tj
+-50 -14 Td
+50 678 Td (Interpretation of Results) Tj
+-50 -14 Td
+50 664 Td (The results of the statistical analysis were interpreted to determine the acceptability of) Tj
+-50 -14 Td
+50 650 Td (the Barangay Service and Complaint Management System for Barangay Mambog II based on the) Tj
+-50 -14 Td
+50 636 Td (ISO/IEC 25010 Software Quality Model.) Tj
+-50 -14 Td
+50 622 Td (Sampling Technique) Tj
+-50 -14 Td
+50 608 Td (In selecting the respondents who evaluated the system, the researchers used purposive) Tj
+-50 -14 Td
+50 594 Td (sampling. Purposive sampling is a non-probability sampling technique where the researchers) Tj
+-50 -14 Td
+50 580 Td (intentionally select respondents who possess characteristics relevant to the study. This) Tj
+-50 -14 Td
+50 566 Td (technique was used because the study required respondents who could evaluate the system) Tj
+-50 -14 Td
+50 552 Td (based on its usability, accessibility, functionality, and overall performance.) Tj
+-50 -14 Td
+50 538 Td (The researchers used a survey questionnaire derived from the ISO/IEC 25010 Software Quality) Tj
+-50 -14 Td
+50 524 Td (Model. The questionnaire included the following software quality characteristics:) Tj
+-50 -14 Td
+50 510 Td (Functionality evaluates whether the system provides the necessary features for complaint and) Tj
+-50 -14 Td
+50 496 Td (document management. It also determines if the complaint submission, document request) Tj
+-50 -14 Td
+50 482 Td (features, and dashboard work properly. Reliability evaluates whether the system performs) Tj
+-50 -14 Td
+50 468 Td (consistently without errors or crashes. It also determines if submitted complaints and) Tj
+-50 -14 Td
+50 454 Td (requests are saved properly and if the system is accessible whenever needed. Usability) Tj
+-50 -14 Td
+50 440 Td (evaluates whether the system is easy to understand and navigate. It also measures whether) Tj
+-50 -14 Td
+50 426 Td (the complaint and document request processes are user-friendly and whether accessibility) Tj
+-50 -14 Td
+50 412 Td (features such as dark mode, font size adjustment, and screen reader mode are useful.) Tj
+-50 -14 Td
+50 398 Td (Performance Efficiency evaluates whether the system responds quickly when performing tasks.) Tj
+-50 -14 Td
+50 384 Td (It also measures page loading, file upload efficiency, and the system's performance during) Tj
+-50 -14 Td
+50 370 Td (continuous use. Compatibility evaluates whether the system works properly on different) Tj
+-50 -14 Td
+50 356 Td (browsers and devices. It also determines if the system performs well alongside other) Tj
+-50 -14 Td
+50 342 Td (applications. Security evaluates whether the login and authentication features properly) Tj
+-50 -14 Td
+50 328 Td (secure user accounts. It also determines whether the system protects the confidentiality of) Tj
+-50 -14 Td
+50 314 Td (user information and complaints, and whether only authorized users can access and manage) Tj
+-50 -14 Td
+50 300 Td (records. Maintainability evaluates whether the system structure and features are organized) Tj
+-50 -14 Td
+50 286 Td (and consistent. It also determines if the system can easily be improved or updated when) Tj
+-50 -14 Td
+50 272 Td (necessary. Portability evaluates whether the system can adapt to different devices and) Tj
+-50 -14 Td
+50 258 Td (environments. It also determines if the system remains functional after updates or) Tj
+-50 -14 Td
+50 244 Td (configuration changes.) Tj
+-50 -14 Td
+50 230 Td (Appendix Table 1:) Tj
+-50 -14 Td
+50 216 Td (GROUP OF RESPONDENTS) Tj
+-50 -14 Td
+50 202 Td (FREQUENCY) Tj
+-50 -14 Td
+50 188 Td (PERCENTAGE) Tj
+-50 -14 Td
+50 174 Td (IT respondent) Tj
+-50 -14 Td
+50 160 Td (30) Tj
+-50 -14 Td
+50 146 Td (50%) Tj
+-50 -14 Td
+50 132 Td (Non-IT respondent) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 2870 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (30) Tj
+-50 -14 Td
+50 776 Td (50%) Tj
+-50 -14 Td
+50 762 Td (TOTAL) Tj
+-50 -14 Td
+50 748 Td (60) Tj
+-50 -14 Td
+50 734 Td (100%) Tj
+-50 -14 Td
+50 720 Td (The respondents of this study consisted of sixty \(60\) individuals selected as the sample) Tj
+-50 -14 Td
+50 706 Td (size of the study. The respondents were divided into two groups: thirty \(30\) Information) Tj
+-50 -14 Td
+50 692 Td (Technology \(IT\) respondents and thirty \(30\) Non-Information Technology \(Non-IT\) respondents.) Tj
+-50 -14 Td
+50 678 Td (The inclusion of these groups allowed the researchers to gather evaluations from both) Tj
+-50 -14 Td
+50 664 Td (technically knowledgeable users and general users.) Tj
+-50 -14 Td
+50 650 Td (All respondents were asked to use and evaluate the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 636 Td (System for Barangay Mambog II using the same survey questionnaire based on the ISO/IEC 25010) Tj
+-50 -14 Td
+50 622 Td (Software Quality Model. The questionnaire evaluated the system in terms of functionality,) Tj
+-50 -14 Td
+50 608 Td (reliability, usability, performance efficiency, compatibility, security, maintainability,) Tj
+-50 -14 Td
+50 594 Td (and portability.) Tj
+-50 -14 Td
+50 580 Td (The researchers used a survey questionnaire to gather data from the respondents. After the) Tj
+-50 -14 Td
+50 566 Td (draft questionnaire was completed, it was submitted to the adviser for review and) Tj
+-50 -14 Td
+50 552 Td (validation. The researchers used the Likert scale to interpret the data gathered from the) Tj
+-50 -14 Td
+50 538 Td (respondents. The Likert scale is commonly used in survey research to measure the) Tj
+-50 -14 Td
+50 524 Td (respondents' level of agreement or evaluation of a given statement.) Tj
+-50 -14 Td
+50 510 Td (In this study, the respondents rated the acceptability of the system using the following) Tj
+-50 -14 Td
+50 496 Td (scale:) Tj
+-50 -14 Td
+50 482 Td (Table 1. Survey Questionnaire Option.) Tj
+-50 -14 Td
+50 468 Td (Rating Scale) Tj
+-50 -14 Td
+50 454 Td (Equivalent) Tj
+-50 -14 Td
+50 440 Td (5) Tj
+-50 -14 Td
+50 426 Td (Excellent) Tj
+-50 -14 Td
+50 412 Td (4) Tj
+-50 -14 Td
+50 398 Td (Very Good) Tj
+-50 -14 Td
+50 384 Td (3) Tj
+-50 -14 Td
+50 370 Td (Good) Tj
+-50 -14 Td
+50 356 Td (2) Tj
+-50 -14 Td
+50 342 Td (Fair) Tj
+-50 -14 Td
+50 328 Td (1) Tj
+-50 -14 Td
+50 314 Td (Poor) Tj
+-50 -14 Td
+50 300 Td (Table 2. Descriptive interpretation of the Mean.) Tj
+-50 -14 Td
+50 286 Td (NUMERICAL SCALE) Tj
+-50 -14 Td
+50 272 Td (INTERPRETATION) Tj
+-50 -14 Td
+50 258 Td (4.50-5.00) Tj
+-50 -14 Td
+50 244 Td (Excellent) Tj
+-50 -14 Td
+50 230 Td (3.50-4.49) Tj
+-50 -14 Td
+50 216 Td (Very Good) Tj
+-50 -14 Td
+50 202 Td (2.50-3.49) Tj
+-50 -14 Td
+50 188 Td (Good) Tj
+-50 -14 Td
+50 174 Td (1.50-2.49) Tj
+-50 -14 Td
+50 160 Td (Fair) Tj
+-50 -14 Td
+50 146 Td (1.00-1.49) Tj
+-50 -14 Td
+50 132 Td (Poor) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 3338 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Statistical Treatment of Data) Tj
+-50 -14 Td
+50 776 Td (The researchers collected the responses from the survey questionnaires and computed the mean) Tj
+-50 -14 Td
+50 762 Td (score for each indicator. The mean was obtained by adding all the respondents' ratings and) Tj
+-50 -14 Td
+50 748 Td (dividing the total by the number of respondents. The computed mean was then interpreted) Tj
+-50 -14 Td
+50 734 Td (using the Likert scale to determine the acceptability level of the Barangay Service and) Tj
+-50 -14 Td
+50 720 Td (Complaint Management System for Barangay Mambog II.) Tj
+-50 -14 Td
+50 706 Td (The data gathered from the respondents were analyzed to evaluate the system in terms of) Tj
+-50 -14 Td
+50 692 Td (functionality, reliability, usability, performance efficiency, compatibility, security,) Tj
+-50 -14 Td
+50 678 Td (maintainability, and portability based on the ISO/IEC 25010 Software Quality Model.) Tj
+-50 -14 Td
+50 664 Td (Likert Scale Implementation) Tj
+-50 -14 Td
+50 650 Td (The researchers used the Likert scale to measure the respondents' evaluation of the Barangay) Tj
+-50 -14 Td
+50 636 Td (Service and Complaint Management System for Barangay Mambog II. Each respondent rated the) Tj
+-50 -14 Td
+50 622 Td (system using a scale of 5 to 1, where 5 represents Excellent and 1 represents Poor. The) Tj
+-50 -14 Td
+50 608 Td (following formulas were used in the computation of the survey results:) Tj
+-50 -14 Td
+50 594 Td (1. Weighted Mean) Tj
+-50 -14 Td
+50 580 Td (Used to determine the average rating for each survey question.) Tj
+-50 -14 Td
+50 566 Td (WM = \(fx\)/N) Tj
+-50 -14 Td
+50 552 Td (Where:) Tj
+-50 -14 Td
+50 538 Td (WM = Weighted Mean) Tj
+-50 -14 Td
+50 524 Td (= Summation) Tj
+-50 -14 Td
+50 510 Td (f = Frequency of responses) Tj
+-50 -14 Td
+50 496 Td (x = Weight assigned to each response) Tj
+-50 -14 Td
+50 482 Td (N = Total number of respondents) Tj
+-50 -14 Td
+50 468 Td (2. Weighted Mean per Category \(Weighted Mean 2\)) Tj
+-50 -14 Td
+50 454 Td (Used to obtain the average rating of all questions under a specific category \(e.g.,) Tj
+-50 -14 Td
+50 440 Td (Functionality, Usability, Reliability\).) Tj
+-50 -14 Td
+50 426 Td (WM2 = WM/n) Tj
+-50 -14 Td
+50 412 Td (Where:) Tj
+-50 -14 Td
+50 398 Td (WM2 = Category Weighted Mean) Tj
+-50 -14 Td
+50 384 Td (WM = Sum of all weighted means in the category) Tj
+-50 -14 Td
+50 370 Td (n = Number of questions in the category) Tj
+-50 -14 Td
+50 356 Td (3. Overall Mean) Tj
+-50 -14 Td
+50 342 Td (Used to determine the overall evaluation of the system based on all categories.) Tj
+-50 -14 Td
+50 328 Td (OM = WM2/k) Tj
+-50 -14 Td
+50 314 Td (Where:) Tj
+-50 -14 Td
+50 300 Td (OM = Overall Mean) Tj
+-50 -14 Td
+50 286 Td (WM2 = Sum of category weighted means) Tj
+-50 -14 Td
+50 272 Td (k = Total number of categories) Tj
+-50 -14 Td
+50 258 Td (4. Standard Deviation) Tj
+-50 -14 Td
+50 244 Td (Used to measure the spread or variation of responses from the mean.) Tj
+-50 -14 Td
+50 230 Td (SD = \(xx2\)2/N1) Tj
+-50 -14 Td
+50 216 Td (Where:) Tj
+-50 -14 Td
+50 202 Td (SD = Standard Deviation) Tj
+-50 -14 Td
+50 188 Td (x = Individual response value) Tj
+-50 -14 Td
+50 174 Td (xbar = Mean value) Tj
+-50 -14 Td
+50 160 Td (= Summation) Tj
+-50 -14 Td
+50 146 Td (N = Total number of respondents) Tj
+-50 -14 Td
+50 132 Td (5. Overall Standard Deviation) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 2106 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Used to determine the overall consistency of responses across all categories.) Tj
+-50 -14 Td
+50 776 Td (OSD = SD/k) Tj
+-50 -14 Td
+50 762 Td (Where:) Tj
+-50 -14 Td
+50 748 Td (OSD = Overall Standard Deviation) Tj
+-50 -14 Td
+50 734 Td (SD = Sum of category standard deviations) Tj
+-50 -14 Td
+50 720 Td (k = Total number of categories) Tj
+-50 -14 Td
+50 706 Td (The computed means were interpreted using the descriptive interpretation of the Likert) Tj
+-50 -14 Td
+50 692 Td (scale. Ranking was also used to determine which indicators received higher or lower) Tj
+-50 -14 Td
+50 678 Td (evaluations based on their weighted mean scores.) Tj
+-50 -14 Td
+50 664 Td (Table 3. Functionality Likert Frequency Distribution) Tj
+-50 -14 Td
+50 650 Td (No. Questions) Tj
+-50 -14 Td
+50 636 Td (5) Tj
+-50 -14 Td
+50 622 Td (4) Tj
+-50 -14 Td
+50 608 Td (3) Tj
+-50 -14 Td
+50 594 Td (2) Tj
+-50 -14 Td
+50 580 Td (1) Tj
+-50 -14 Td
+50 566 Td (Weighted Mean) Tj
+-50 -14 Td
+50 552 Td (Interpretation) Tj
+-50 -14 Td
+50 538 Td (Q1: The system provides the) Tj
+-50 -14 Td
+50 524 Td (necessary features for complaint) Tj
+-50 -14 Td
+50 510 Td (and document management) Tj
+-50 -14 Td
+50 496 Td (35) Tj
+-50 -14 Td
+50 482 Td (20) Tj
+-50 -14 Td
+50 468 Td (4) Tj
+-50 -14 Td
+50 454 Td (1) Tj
+-50 -14 Td
+50 440 Td (0) Tj
+-50 -14 Td
+50 426 Td (4.48) Tj
+-50 -14 Td
+50 412 Td (Very Good) Tj
+-50 -14 Td
+50 398 Td (Q2: The complaint submission and) Tj
+-50 -14 Td
+50 384 Td (document request features work) Tj
+-50 -14 Td
+50 370 Td (properly) Tj
+-50 -14 Td
+50 356 Td (38) Tj
+-50 -14 Td
+50 342 Td (20) Tj
+-50 -14 Td
+50 328 Td (1) Tj
+-50 -14 Td
+50 314 Td (1) Tj
+-50 -14 Td
+50 300 Td (0) Tj
+-50 -14 Td
+50 286 Td (4.58) Tj
+-50 -14 Td
+50 272 Td (Excellent) Tj
+-50 -14 Td
+50 258 Td (Q3:The dashboard displays accurate) Tj
+-50 -14 Td
+50 244 Td (and updated information) Tj
+-50 -14 Td
+50 230 Td (46) Tj
+-50 -14 Td
+50 216 Td (10) Tj
+-50 -14 Td
+50 202 Td (2) Tj
+-50 -14 Td
+50 188 Td (1) Tj
+-50 -14 Td
+50 174 Td (1) Tj
+-50 -14 Td
+50 160 Td (4.65) Tj
+-50 -14 Td
+50 146 Td (Excellent) Tj
+-50 -14 Td
+50 132 Td (Overall MEAN) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 2238 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (4.57) Tj
+-50 -14 Td
+50 776 Td (Excellent) Tj
+-50 -14 Td
+50 762 Td (The table 3. Presents the evaluation result of the system when it comes to functionality) Tj
+-50 -14 Td
+50 748 Td (Likert scale. The result shows that Q1 obtained a weighted mean score of 4.60 and Q3 has a) Tj
+-50 -14 Td
+50 734 Td (weighted mean of 4.56, both are interpreted as Excellent. Meanwhile the Q2 weighted mean of) Tj
+-50 -14 Td
+50 720 Td (4.45 interpreted as Very Good. The overall mean of 4.54 indicates that the system) Tj
+-50 -14 Td
+50 706 Td (functionality is rated as Excellent by the respondents.) Tj
+-50 -14 Td
+50 692 Td (Table 4. Reliability Likert Frequency Distribution) Tj
+-50 -14 Td
+50 678 Td (No. Questions) Tj
+-50 -14 Td
+50 664 Td (5) Tj
+-50 -14 Td
+50 650 Td (4) Tj
+-50 -14 Td
+50 636 Td (3) Tj
+-50 -14 Td
+50 622 Td (2) Tj
+-50 -14 Td
+50 608 Td (1) Tj
+-50 -14 Td
+50 594 Td (Weighted Mean) Tj
+-50 -14 Td
+50 580 Td (Interpretation) Tj
+-50 -14 Td
+50 566 Td (Q1: The system performs consistently) Tj
+-50 -14 Td
+50 552 Td (without errors or crashes) Tj
+-50 -14 Td
+50 538 Td (40) Tj
+-50 -14 Td
+50 524 Td (15) Tj
+-50 -14 Td
+50 510 Td (2) Tj
+-50 -14 Td
+50 496 Td (3) Tj
+-50 -14 Td
+50 482 Td (0) Tj
+-50 -14 Td
+50 468 Td (4.53) Tj
+-50 -14 Td
+50 454 Td (Excellent) Tj
+-50 -14 Td
+50 440 Td (Q2: Submitted complaints and) Tj
+-50 -14 Td
+50 426 Td (requests are saved reliably) Tj
+-50 -14 Td
+50 412 Td (40) Tj
+-50 -14 Td
+50 398 Td (15) Tj
+-50 -14 Td
+50 384 Td (3) Tj
+-50 -14 Td
+50 370 Td (2) Tj
+-50 -14 Td
+50 356 Td (0) Tj
+-50 -14 Td
+50 342 Td (4.55) Tj
+-50 -14 Td
+50 328 Td (Excellent) Tj
+-50 -14 Td
+50 314 Td (Q3: FThe system is accessible) Tj
+-50 -14 Td
+50 300 Td (whenever needed) Tj
+-50 -14 Td
+50 286 Td (38) Tj
+-50 -14 Td
+50 272 Td (16) Tj
+-50 -14 Td
+50 258 Td (5) Tj
+-50 -14 Td
+50 244 Td (2) Tj
+-50 -14 Td
+50 230 Td (0) Tj
+-50 -14 Td
+50 216 Td (4.52) Tj
+-50 -14 Td
+50 202 Td (Excellent) Tj
+-50 -14 Td
+50 188 Td (Overall MEAN) Tj
+-50 -14 Td
+50 174 Td (4.53) Tj
+-50 -14 Td
+50 160 Td (Excellent) Tj
+-50 -14 Td
+50 146 Td (Table 4. presents the respondents' evaluation of the system in terms of reliability,) Tj
+-50 -14 Td
+50 132 Td (focusing on the consistency, dependability, and ability of the system to perform) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 2279 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (effectively. The results show that Q1, Q2, and Q3 obtained weighted mean scores of 4.53,) Tj
+-50 -14 Td
+50 776 Td (4.52, and 4.55, respectively, which were interpreted as Excellent, while Q4 obtained 4.32,) Tj
+-50 -14 Td
+50 762 Td (interpreted as Very Good. The overall mean of 4.48 indicates that the respondents evaluated) Tj
+-50 -14 Td
+50 748 Td (the reliability of the MEDIHELP system as Very Good.) Tj
+-50 -14 Td
+50 734 Td (Table 5. Usability Likert Frequency Distribution) Tj
+-50 -14 Td
+50 720 Td (No. Questions) Tj
+-50 -14 Td
+50 706 Td (5) Tj
+-50 -14 Td
+50 692 Td (4) Tj
+-50 -14 Td
+50 678 Td (3) Tj
+-50 -14 Td
+50 664 Td (2) Tj
+-50 -14 Td
+50 650 Td (1) Tj
+-50 -14 Td
+50 636 Td (Weighted Mean) Tj
+-50 -14 Td
+50 622 Td (Interpretation) Tj
+-50 -14 Td
+50 608 Td (Q1: The system is easy to understand) Tj
+-50 -14 Td
+50 594 Td (and navigate) Tj
+-50 -14 Td
+50 580 Td (42) Tj
+-50 -14 Td
+50 566 Td (15) Tj
+-50 -14 Td
+50 552 Td (2) Tj
+-50 -14 Td
+50 538 Td (1) Tj
+-50 -14 Td
+50 524 Td (0) Tj
+-50 -14 Td
+50 510 Td (4.63) Tj
+-50 -14 Td
+50 496 Td (Excellent) Tj
+-50 -14 Td
+50 482 Td (Q2: The complaint and document) Tj
+-50 -14 Td
+50 468 Td (request processes are) Tj
+-50 -14 Td
+50 454 Td (user-friendly) Tj
+-50 -14 Td
+50 440 Td (42) Tj
+-50 -14 Td
+50 426 Td (13) Tj
+-50 -14 Td
+50 412 Td (4) Tj
+-50 -14 Td
+50 398 Td (1) Tj
+-50 -14 Td
+50 384 Td (0) Tj
+-50 -14 Td
+50 370 Td (4.60) Tj
+-50 -14 Td
+50 356 Td (Excellent) Tj
+-50 -14 Td
+50 342 Td (Q3: The accessibility features \(dark) Tj
+-50 -14 Td
+50 328 Td (mode, font size, screen reader) Tj
+-50 -14 Td
+50 314 Td (mode\) are useful) Tj
+-50 -14 Td
+50 300 Td (43) Tj
+-50 -14 Td
+50 286 Td (12) Tj
+-50 -14 Td
+50 272 Td (4) Tj
+-50 -14 Td
+50 258 Td (1) Tj
+-50 -14 Td
+50 244 Td (0) Tj
+-50 -14 Td
+50 230 Td (4.62) Tj
+-50 -14 Td
+50 216 Td (Excellent) Tj
+-50 -14 Td
+50 202 Td (Overall MEAN) Tj
+-50 -14 Td
+50 188 Td (4.62) Tj
+-50 -14 Td
+50 174 Td (Excellent) Tj
+-50 -14 Td
+50 160 Td (Table 5 presents the respondents' evaluation of the system in terms of usability, focusing) Tj
+-50 -14 Td
+50 146 Td (on ease of use, navigation, and user interaction. The results show that Q1 and Q3 obtained) Tj
+-50 -14 Td
+50 132 Td (weighted mean scores of 4.60 and 4.56, interpreted as Excellent, while Q2 obtained 4.45,) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Length 2260 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (interpreted as Very Good. The overall mean of 4.54 indicates that the respondents rated the) Tj
+-50 -14 Td
+50 776 Td (usability of the system as Excellent.) Tj
+-50 -14 Td
+50 762 Td (Table 6. Performance Efficiency Likert Frequency Distribution) Tj
+-50 -14 Td
+50 748 Td (No. Questions) Tj
+-50 -14 Td
+50 734 Td (5) Tj
+-50 -14 Td
+50 720 Td (4) Tj
+-50 -14 Td
+50 706 Td (3) Tj
+-50 -14 Td
+50 692 Td (2) Tj
+-50 -14 Td
+50 678 Td (1) Tj
+-50 -14 Td
+50 664 Td (Weighted Mean) Tj
+-50 -14 Td
+50 650 Td (Interpretation) Tj
+-50 -14 Td
+50 636 Td (Q1: The system responds quickly) Tj
+-50 -14 Td
+50 622 Td (when performing tasks) Tj
+-50 -14 Td
+50 608 Td (41) Tj
+-50 -14 Td
+50 594 Td (13) Tj
+-50 -14 Td
+50 580 Td (4) Tj
+-50 -14 Td
+50 566 Td (2) Tj
+-50 -14 Td
+50 552 Td (0) Tj
+-50 -14 Td
+50 538 Td (4.55) Tj
+-50 -14 Td
+50 524 Td (Excellent) Tj
+-50 -14 Td
+50 510 Td (Q2: Page loading and file uploads are) Tj
+-50 -14 Td
+50 496 Td (efficient) Tj
+-50 -14 Td
+50 482 Td (36) Tj
+-50 -14 Td
+50 468 Td (17) Tj
+-50 -14 Td
+50 454 Td (5) Tj
+-50 -14 Td
+50 440 Td (2) Tj
+-50 -14 Td
+50 426 Td (0) Tj
+-50 -14 Td
+50 412 Td (4.45) Tj
+-50 -14 Td
+50 398 Td (Very Good) Tj
+-50 -14 Td
+50 384 Td (Q3: The system maintains good) Tj
+-50 -14 Td
+50 370 Td (performance during continuous) Tj
+-50 -14 Td
+50 356 Td (use) Tj
+-50 -14 Td
+50 342 Td (40) Tj
+-50 -14 Td
+50 328 Td (16) Tj
+-50 -14 Td
+50 314 Td (3) Tj
+-50 -14 Td
+50 300 Td (1) Tj
+-50 -14 Td
+50 286 Td (0) Tj
+-50 -14 Td
+50 272 Td (4.48) Tj
+-50 -14 Td
+50 258 Td (Very Good) Tj
+-50 -14 Td
+50 244 Td (Overall MEAN) Tj
+-50 -14 Td
+50 230 Td (4.49) Tj
+-50 -14 Td
+50 216 Td (Very Good) Tj
+-50 -14 Td
+50 202 Td (Table 6 presents the respondents' evaluation of the system in terms of performance, focusing) Tj
+-50 -14 Td
+50 188 Td (on the efficiency and responsiveness of the system features. The findings show that the) Tj
+-50 -14 Td
+50 174 Td (weighted mean scores ranged from 4.48 to 4.60, indicating positive evaluations from) Tj
+-50 -14 Td
+50 160 Td (respondents. The overall mean of 4.54 indicates that the performance of the MEDIHELP system) Tj
+-50 -14 Td
+50 146 Td (was rated as Excellent.) Tj
+-50 -14 Td
+50 132 Td (The Performance Efficiency category obtained a Central Tendency \(CT\) of 4.54, indicating) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Length 3076 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (that the system demonstrates excellent performance efficiency. The mean \(4.5367\) and median) Tj
+-50 -14 Td
+50 776 Td (\(4.53\) are nearly identical, suggesting that the responses are symmetrically distributed and) Tj
+-50 -14 Td
+50 762 Td (that respondents provided consistent ratings.) Tj
+-50 -14 Td
+50 748 Td (In terms of variability, the category has a standard deviation of 0.0603 and an) Tj
+-50 -14 Td
+50 734 Td (interquartile range \(IQR\) of 0.060, indicating very low variability among responses. This) Tj
+-50 -14 Td
+50 720 Td (means that respondents generally agreed in their assessment of the system's performance) Tj
+-50 -14 Td
+50 706 Td (efficiency. Furthermore, no outliers were detected, indicating that all ratings fell within) Tj
+-50 -14 Td
+50 692 Td (the expected range and that no unusual responses were observed.) Tj
+-50 -14 Td
+50 678 Td (Table 7. Compatibility Likert Frequency Distribution) Tj
+-50 -14 Td
+50 664 Td (No. Questions) Tj
+-50 -14 Td
+50 650 Td (5) Tj
+-50 -14 Td
+50 636 Td (4) Tj
+-50 -14 Td
+50 622 Td (3) Tj
+-50 -14 Td
+50 608 Td (2) Tj
+-50 -14 Td
+50 594 Td (1) Tj
+-50 -14 Td
+50 580 Td (Weighted Mean) Tj
+-50 -14 Td
+50 566 Td (Interpretation) Tj
+-50 -14 Td
+50 552 Td (Q1: The system works properly on) Tj
+-50 -14 Td
+50 538 Td (different browsers and devices) Tj
+-50 -14 Td
+50 524 Td (45) Tj
+-50 -14 Td
+50 510 Td (12) Tj
+-50 -14 Td
+50 496 Td (2) Tj
+-50 -14 Td
+50 482 Td (1) Tj
+-50 -14 Td
+50 468 Td (0) Tj
+-50 -14 Td
+50 454 Td (4.68) Tj
+-50 -14 Td
+50 440 Td (Excellent) Tj
+-50 -14 Td
+50 426 Td (Q2: The system works properly on) Tj
+-50 -14 Td
+50 412 Td (different browsers and devices) Tj
+-50 -14 Td
+50 398 Td (42) Tj
+-50 -14 Td
+50 384 Td (14) Tj
+-50 -14 Td
+50 370 Td (2) Tj
+-50 -14 Td
+50 356 Td (1) Tj
+-50 -14 Td
+50 342 Td (1) Tj
+-50 -14 Td
+50 328 Td (4.58) Tj
+-50 -14 Td
+50 314 Td (Excellent) Tj
+-50 -14 Td
+50 300 Td (Overall MEAN) Tj
+-50 -14 Td
+50 286 Td (4.63) Tj
+-50 -14 Td
+50 272 Td (Excellent) Tj
+-50 -14 Td
+50 258 Td (Table 7 presents the respondents' evaluation of the system in terms of compatibility,) Tj
+-50 -14 Td
+50 244 Td (focusing on how well the system functions across different environments and user conditions.) Tj
+-50 -14 Td
+50 230 Td (The results show weighted mean scores of 4.54 and 4.50, both interpreted as Excellent. The) Tj
+-50 -14 Td
+50 216 Td (overall mean of 4.52 indicates that respondents considered the system highly compatible.) Tj
+-50 -14 Td
+50 202 Td (The Compatibility category obtained a Central Tendency \(CT\) of 4.52, which indicates that) Tj
+-50 -14 Td
+50 188 Td (the system demonstrates excellent compatibility. Since the mean \(4.52\) and median \(4.52\) are) Tj
+-50 -14 Td
+50 174 Td (equal, the distribution of responses is symmetrical, suggesting a high degree of consistency) Tj
+-50 -14 Td
+50 160 Td (among respondent ratings.) Tj
+-50 -14 Td
+50 146 Td (In terms of variability, the category has a standard deviation of 0.0283 and an) Tj
+-50 -14 Td
+50 132 Td (interquartile range \(IQR\) of 0.04, indicating very low variability in responses. This means) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 22 0 R >>
+endobj
+24 0 obj
+<< /Length 2290 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (that respondents shared similar perceptions regarding the compatibility of the system.) Tj
+-50 -14 Td
+50 776 Td (Additionally, no outliers were identified, indicating that all responses were within the) Tj
+-50 -14 Td
+50 762 Td (normal range and that no extreme ratings were recorded.) Tj
+-50 -14 Td
+50 748 Td (Table 8. Security Likert Frequency Distribution) Tj
+-50 -14 Td
+50 734 Td (No. Questions) Tj
+-50 -14 Td
+50 720 Td (5) Tj
+-50 -14 Td
+50 706 Td (4) Tj
+-50 -14 Td
+50 692 Td (3) Tj
+-50 -14 Td
+50 678 Td (2) Tj
+-50 -14 Td
+50 664 Td (1) Tj
+-50 -14 Td
+50 650 Td (Weighted Mean) Tj
+-50 -14 Td
+50 636 Td (Interpretation) Tj
+-50 -14 Td
+50 622 Td (Q1: The login and authentication) Tj
+-50 -14 Td
+50 608 Td (features secure user accounts) Tj
+-50 -14 Td
+50 594 Td (properly) Tj
+-50 -14 Td
+50 580 Td (38) Tj
+-50 -14 Td
+50 566 Td (15) Tj
+-50 -14 Td
+50 552 Td (2) Tj
+-50 -14 Td
+50 538 Td (5) Tj
+-50 -14 Td
+50 524 Td (0) Tj
+-50 -14 Td
+50 510 Td (4.43) Tj
+-50 -14 Td
+50 496 Td (Very Good) Tj
+-50 -14 Td
+50 482 Td (Q2: The system protects the) Tj
+-50 -14 Td
+50 468 Td (confidentiality of user information) Tj
+-50 -14 Td
+50 454 Td (and complaints) Tj
+-50 -14 Td
+50 440 Td (40) Tj
+-50 -14 Td
+50 426 Td (14) Tj
+-50 -14 Td
+50 412 Td (3) Tj
+-50 -14 Td
+50 398 Td (3) Tj
+-50 -14 Td
+50 384 Td (0) Tj
+-50 -14 Td
+50 370 Td (4.52) Tj
+-50 -14 Td
+50 356 Td (Excellent) Tj
+-50 -14 Td
+50 342 Td (Q3: Only authorized users can access) Tj
+-50 -14 Td
+50 328 Td (and manage their records) Tj
+-50 -14 Td
+50 314 Td (43) Tj
+-50 -14 Td
+50 300 Td (13) Tj
+-50 -14 Td
+50 286 Td (3) Tj
+-50 -14 Td
+50 272 Td (1) Tj
+-50 -14 Td
+50 258 Td (0) Tj
+-50 -14 Td
+50 244 Td (4.63) Tj
+-50 -14 Td
+50 230 Td (Excellent) Tj
+-50 -14 Td
+50 216 Td (Overall MEAN) Tj
+-50 -14 Td
+50 202 Td (4.53) Tj
+-50 -14 Td
+50 188 Td (Excellent) Tj
+-50 -14 Td
+50 174 Td (Table 8 presents the respondents' evaluation of the system in terms of security, focusing on) Tj
+-50 -14 Td
+50 160 Td (the protection of user information and system safety. The findings show that most indicators) Tj
+-50 -14 Td
+50 146 Td (were interpreted as Excellent, with weighted mean scores ranging from 4.48 to 4.65. The) Tj
+-50 -14 Td
+50 132 Td (overall mean of 4.55 indicates that respondents rated the security features of the system as) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 24 0 R >>
+endobj
+26 0 obj
+<< /Length 2889 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Excellent.) Tj
+-50 -14 Td
+50 776 Td (The Security category obtained a Central Tendency \(CT\) of 4.55, indicating that the system) Tj
+-50 -14 Td
+50 762 Td (exhibits excellent security characteristics. The mean \(4.5533\) and median \(4.53\) are very) Tj
+-50 -14 Td
+50 748 Td (close to one another, suggesting that the responses are approximately symmetrical and that) Tj
+-50 -14 Td
+50 734 Td (respondents provided generally consistent evaluations.) Tj
+-50 -14 Td
+50 720 Td (In terms of variability, the category has a standard deviation of 0.0873 and an) Tj
+-50 -14 Td
+50 706 Td (interquartile range \(IQR\) of 0.085, indicating low variability among responses. This) Tj
+-50 -14 Td
+50 692 Td (suggests that respondents largely agreed in their assessment of the system's security.) Tj
+-50 -14 Td
+50 678 Td (Moreover, no outliers were detected, showing that all ratings were within the expected range) Tj
+-50 -14 Td
+50 664 Td (and that no unusual responses were observed.) Tj
+-50 -14 Td
+50 650 Td (Table 9. Maintainability Likert Frequency Distribution) Tj
+-50 -14 Td
+50 636 Td (No. Questions) Tj
+-50 -14 Td
+50 622 Td (5) Tj
+-50 -14 Td
+50 608 Td (4) Tj
+-50 -14 Td
+50 594 Td (3) Tj
+-50 -14 Td
+50 580 Td (2) Tj
+-50 -14 Td
+50 566 Td (1) Tj
+-50 -14 Td
+50 552 Td (Weighted Mean) Tj
+-50 -14 Td
+50 538 Td (Interpretation) Tj
+-50 -14 Td
+50 524 Td (Q1: The system structure and features) Tj
+-50 -14 Td
+50 510 Td (are organized and consistent) Tj
+-50 -14 Td
+50 496 Td (40) Tj
+-50 -14 Td
+50 482 Td (16) Tj
+-50 -14 Td
+50 468 Td (3) Tj
+-50 -14 Td
+50 454 Td (1) Tj
+-50 -14 Td
+50 440 Td (0) Tj
+-50 -14 Td
+50 426 Td (4.58) Tj
+-50 -14 Td
+50 412 Td (Excellent) Tj
+-50 -14 Td
+50 398 Td (Q2: The system can easily be) Tj
+-50 -14 Td
+50 384 Td (improved or updated when) Tj
+-50 -14 Td
+50 370 Td (necessary) Tj
+-50 -14 Td
+50 356 Td (40) Tj
+-50 -14 Td
+50 342 Td (17) Tj
+-50 -14 Td
+50 328 Td (2) Tj
+-50 -14 Td
+50 314 Td (1) Tj
+-50 -14 Td
+50 300 Td (0) Tj
+-50 -14 Td
+50 286 Td (4.60) Tj
+-50 -14 Td
+50 272 Td (Excellent) Tj
+-50 -14 Td
+50 258 Td (Overall MEAN) Tj
+-50 -14 Td
+50 244 Td (4.59) Tj
+-50 -14 Td
+50 230 Td (Excellent) Tj
+-50 -14 Td
+50 216 Td (Table 9 presents the respondents' evaluation of the system in terms of maintainability,) Tj
+-50 -14 Td
+50 202 Td (focusing on the ease of updating, modifying, and improving the system. Results show that) Tj
+-50 -14 Td
+50 188 Td (most indicators received Excellent interpretations, while some were rated Very Good. The) Tj
+-50 -14 Td
+50 174 Td (overall mean of 4.52 indicates that the maintainability of the system was evaluated as) Tj
+-50 -14 Td
+50 160 Td (Excellent by the respondents) Tj
+-50 -14 Td
+50 146 Td (The table presents the evaluation result of the system in terms of maintainability using the) Tj
+-50 -14 Td
+50 132 Td (Likert scale. The results show that Q4 obtained the highest weighted mean score of 4.66,) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+27 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 26 0 R >>
+endobj
+28 0 obj
+<< /Length 2843 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (followed by Q5 with 4.63, Q2 with 4.61, and Q1 with 4.55, all interpreted as Excellent.) Tj
+-50 -14 Td
+50 776 Td (Meanwhile, Q3 obtained a weighted mean score of 4.34, interpreted as Very Good. The overall) Tj
+-50 -14 Td
+50 762 Td (mean of 4.56 indicates that the system's maintainability is rated as Excellent by the) Tj
+-50 -14 Td
+50 748 Td (respondents.) Tj
+-50 -14 Td
+50 734 Td (The MAINTAINABILITY category obtained a Central Tendency \(CT\) of 4.56, which indicates that) Tj
+-50 -14 Td
+50 720 Td (the system is evaluated as Excellent.The closeness of the mean and median shows that the) Tj
+-50 -14 Td
+50 706 Td (responses are symmetrically distributed, meaning the ratings are consistent among) Tj
+-50 -14 Td
+50 692 Td (respondents.) Tj
+-50 -14 Td
+50 678 Td (In terms of Variability the category has a standard deviation of 0.12 and an IQR of 0.20,) Tj
+-50 -14 Td
+50 664 Td (which indicate low variability in the responses. This means that the respondents' ratings) Tj
+-50 -14 Td
+50 650 Td (are closely grouped and show a high level of agreement regarding the maintainability quality) Tj
+-50 -14 Td
+50 636 Td (of the system. Additionally, there are no outliers, showing that all responses are within) Tj
+-50 -14 Td
+50 622 Td (the expected range and no unusual ratings were observed.) Tj
+-50 -14 Td
+50 608 Td (Table 10. Portability Likert Frequency Distribution) Tj
+-50 -14 Td
+50 594 Td (No. Questions) Tj
+-50 -14 Td
+50 580 Td (5) Tj
+-50 -14 Td
+50 566 Td (4) Tj
+-50 -14 Td
+50 552 Td (3) Tj
+-50 -14 Td
+50 538 Td (2) Tj
+-50 -14 Td
+50 524 Td (1) Tj
+-50 -14 Td
+50 510 Td (Weighted Mean) Tj
+-50 -14 Td
+50 496 Td (Interpretation) Tj
+-50 -14 Td
+50 482 Td (Q1: The system can easily adapt to) Tj
+-50 -14 Td
+50 468 Td (different devices and environments) Tj
+-50 -14 Td
+50 454 Td (.) Tj
+-50 -14 Td
+50 440 Td (40) Tj
+-50 -14 Td
+50 426 Td (14) Tj
+-50 -14 Td
+50 412 Td (5) Tj
+-50 -14 Td
+50 398 Td (1) Tj
+-50 -14 Td
+50 384 Td (0) Tj
+-50 -14 Td
+50 370 Td (4.55) Tj
+-50 -14 Td
+50 356 Td (Excellent) Tj
+-50 -14 Td
+50 342 Td (Q2: The system remains functional) Tj
+-50 -14 Td
+50 328 Td (after updates or configuration) Tj
+-50 -14 Td
+50 314 Td (changes.) Tj
+-50 -14 Td
+50 300 Td (38) Tj
+-50 -14 Td
+50 286 Td (17) Tj
+-50 -14 Td
+50 272 Td (3) Tj
+-50 -14 Td
+50 258 Td (2) Tj
+-50 -14 Td
+50 244 Td (0) Tj
+-50 -14 Td
+50 230 Td (4.52) Tj
+-50 -14 Td
+50 216 Td (Excellent) Tj
+-50 -14 Td
+50 202 Td (Overall MEAN) Tj
+-50 -14 Td
+50 188 Td (4.54) Tj
+-50 -14 Td
+50 174 Td (Excellent) Tj
+-50 -14 Td
+50 160 Td (This table presents the respondents' evaluation of the system in terms of portability,) Tj
+-50 -14 Td
+50 146 Td (focusing on the ability of the system to adapt to different devices and environments and) Tj
+-50 -14 Td
+50 132 Td (remain functional after updates or configuration changes. The results show weighted mean) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+29 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 28 0 R >>
+endobj
+30 0 obj
+<< /Length 3286 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (scores ranging from 4.52 to 4.55, both interpreted as Excellent. The overall mean of 4.54) Tj
+-50 -14 Td
+50 776 Td (indicates that respondents rated the portability of the Barangay Service and Complaint) Tj
+-50 -14 Td
+50 762 Td (Management System for Barangay Mambog II as Excellent.) Tj
+-50 -14 Td
+50 748 Td (The evaluation of the system's portability shows consistently high ratings. Q1 obtained a) Tj
+-50 -14 Td
+50 734 Td (weighted mean score of 4.55, interpreted as Excellent, while Q2 obtained a weighted mean) Tj
+-50 -14 Td
+50 720 Td (score of 4.52, also interpreted as Excellent. The overall mean of 4.54 indicates that) Tj
+-50 -14 Td
+50 706 Td (respondents rated the system's portability as Excellent.) Tj
+-50 -14 Td
+50 692 Td (The Portability category obtained an overall mean of 4.54, which indicates that the system) Tj
+-50 -14 Td
+50 678 Td (is evaluated as Excellent. This means that the respondents gave generally consistent and) Tj
+-50 -14 Td
+50 664 Td (positive ratings regarding the portability of the system.) Tj
+-50 -14 Td
+50 650 Td (In terms of variability, the category has a standard deviation of 0.0283 and an IQR of) Tj
+-50 -14 Td
+50 636 Td (0.0242, which indicate very low variability among the responses. This means that the) Tj
+-50 -14 Td
+50 622 Td (respondents strongly agree in their evaluation of the system's portability quality.) Tj
+-50 -14 Td
+50 608 Td (Furthermore, the results show no outliers, indicating that all responses fall within the) Tj
+-50 -14 Td
+50 594 Td (normal range and no unusual ratings were observed.) Tj
+-50 -14 Td
+50 580 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 566 Td (This section presents the statistical results of the evaluation conducted for the Barangay) Tj
+-50 -14 Td
+50 552 Td (Service and Complaint Management System for Barangay Mambog II. The hypothesis testing was) Tj
+-50 -14 Td
+50 538 Td (based on the weighted mean ratings of each ISO/IEC 25010 category using a two-tailed t-test) Tj
+-50 -14 Td
+50 524 Td (at alpha = 0.05.) Tj
+-50 -14 Td
+50 510 Td (FUNCTIONALITY) Tj
+-50 -14 Td
+50 496 Td (DATA SET) Tj
+-50 -14 Td
+50 482 Td (Q1: 4.48) Tj
+-50 -14 Td
+50 468 Td (Q2: 4.58) Tj
+-50 -14 Td
+50 454 Td (Q3: 4.65) Tj
+-50 -14 Td
+50 440 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 426 Td (MEAN) Tj
+-50 -14 Td
+50 412 Td (\(4.48 + 4.58 + 4.65\) / 3) Tj
+-50 -14 Td
+50 398 Td (= 13.71 / 3) Tj
+-50 -14 Td
+50 384 Td (= 4.5700) Tj
+-50 -14 Td
+50 370 Td (MEDIAN) Tj
+-50 -14 Td
+50 356 Td (Arranged Data: 4.48, 4.58, 4.65) Tj
+-50 -14 Td
+50 342 Td (= 4.5800) Tj
+-50 -14 Td
+50 328 Td (MODE) Tj
+-50 -14 Td
+50 314 Td (= NO MODE) Tj
+-50 -14 Td
+50 300 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 286 Td (Since the Mean \(4.5700\) and Median \(4.5800\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 272 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 258 Td (CT = Mean = 4.5700) Tj
+-50 -14 Td
+50 244 Td (RANGE) Tj
+-50 -14 Td
+50 230 Td (4.65 - 4.48 = 0.1700) Tj
+-50 -14 Td
+50 216 Td (IQR) Tj
+-50 -14 Td
+50 202 Td (Arranged Data: 4.48, 4.58, 4.65) Tj
+-50 -14 Td
+50 188 Td (Q1 = 4.48) Tj
+-50 -14 Td
+50 174 Td (Q3 = 4.65) Tj
+-50 -14 Td
+50 160 Td (IQR = Q3 - Q1 = 4.65 - 4.48 = 0.1700) Tj
+-50 -14 Td
+50 146 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 132 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+31 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 30 0 R >>
+endobj
+32 0 obj
+<< /Length 2700 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Q1 4.48 4.5700 -0.0900 0.0081) Tj
+-50 -14 Td
+50 776 Td (Q2 4.58 4.5700 0.0100 0.0001) Tj
+-50 -14 Td
+50 762 Td (Q3 4.65 4.5700 0.0800 0.0064) Tj
+-50 -14 Td
+50 748 Td (TOTAL 0.0146) Tj
+-50 -14 Td
+50 734 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 720 Td (s^2 = 0.0146 / 2 = 0.0073) Tj
+-50 -14 Td
+50 706 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 692 Td (s = 0.0854) Tj
+-50 -14 Td
+50 678 Td (OUTLIERS) Tj
+-50 -14 Td
+50 664 Td (Lower Bound = 4.48 - 1.5\(0.1700\) = 4.2250) Tj
+-50 -14 Td
+50 650 Td (Upper Bound = 4.65 + 1.5\(0.1700\) = 4.9050) Tj
+-50 -14 Td
+50 636 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 622 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 608 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 594 Td ("A researcher claims that the functionality of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 580 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.5700\) and) Tj
+-50 -14 Td
+50 566 Td (SD \(0.0854\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 552 Td (Hypotheses) Tj
+-50 -14 Td
+50 538 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 524 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 510 Td (SE = s / sqrtn = 0.0854 / sqrt3 = 0.0493) Tj
+-50 -14 Td
+50 496 Td (t = \(xbar - mu\) / SE = \(4.5700 - 4.50\) / 0.0493 = 1.4190) Tj
+-50 -14 Td
+50 482 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 468 Td (Computed t = 1.4190) Tj
+-50 -14 Td
+50 454 Td (Since |1.4190| < 4.3027,) Tj
+-50 -14 Td
+50 440 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 426 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 412 Td (functionality rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 398 Td (functionality of the system as highly acceptable with a mean of 4.5700.) Tj
+-50 -14 Td
+50 384 Td (RELIABILITY) Tj
+-50 -14 Td
+50 370 Td (DATA SET) Tj
+-50 -14 Td
+50 356 Td (Q1: 4.53) Tj
+-50 -14 Td
+50 342 Td (Q2: 4.55) Tj
+-50 -14 Td
+50 328 Td (Q3: 4.52) Tj
+-50 -14 Td
+50 314 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 300 Td (MEAN) Tj
+-50 -14 Td
+50 286 Td (\(4.53 + 4.55 + 4.52\) / 3) Tj
+-50 -14 Td
+50 272 Td (= 13.6 / 3) Tj
+-50 -14 Td
+50 258 Td (= 4.5333) Tj
+-50 -14 Td
+50 244 Td (MEDIAN) Tj
+-50 -14 Td
+50 230 Td (Arranged Data: 4.52, 4.53, 4.55) Tj
+-50 -14 Td
+50 216 Td (= 4.5300) Tj
+-50 -14 Td
+50 202 Td (MODE) Tj
+-50 -14 Td
+50 188 Td (= NO MODE) Tj
+-50 -14 Td
+50 174 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 160 Td (Since the Mean \(4.5333\) and Median \(4.5300\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 146 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 132 Td (CT = Mean = 4.5333) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+33 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 32 0 R >>
+endobj
+34 0 obj
+<< /Length 2661 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (RANGE) Tj
+-50 -14 Td
+50 776 Td (4.55 - 4.52 = 0.0300) Tj
+-50 -14 Td
+50 762 Td (IQR) Tj
+-50 -14 Td
+50 748 Td (Arranged Data: 4.52, 4.53, 4.55) Tj
+-50 -14 Td
+50 734 Td (Q1 = 4.52) Tj
+-50 -14 Td
+50 720 Td (Q3 = 4.55) Tj
+-50 -14 Td
+50 706 Td (IQR = Q3 - Q1 = 4.55 - 4.52 = 0.0300) Tj
+-50 -14 Td
+50 692 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 678 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 664 Td (Q1 4.53 4.5333 -0.0033 0.0000) Tj
+-50 -14 Td
+50 650 Td (Q2 4.55 4.5333 0.0167 0.0003) Tj
+-50 -14 Td
+50 636 Td (Q3 4.52 4.5333 -0.0133 0.0002) Tj
+-50 -14 Td
+50 622 Td (TOTAL 0.0005) Tj
+-50 -14 Td
+50 608 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 594 Td (s^2 = 0.0005 / 2 = 0.0002) Tj
+-50 -14 Td
+50 580 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 566 Td (s = 0.0153) Tj
+-50 -14 Td
+50 552 Td (OUTLIERS) Tj
+-50 -14 Td
+50 538 Td (Lower Bound = 4.52 - 1.5\(0.0300\) = 4.4750) Tj
+-50 -14 Td
+50 524 Td (Upper Bound = 4.55 + 1.5\(0.0300\) = 4.5950) Tj
+-50 -14 Td
+50 510 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 496 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 482 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 468 Td ("A researcher claims that the reliability of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 454 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.5333\) and) Tj
+-50 -14 Td
+50 440 Td (SD \(0.0153\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 426 Td (Hypotheses) Tj
+-50 -14 Td
+50 412 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 398 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 384 Td (SE = s / sqrtn = 0.0153 / sqrt3 = 0.0088) Tj
+-50 -14 Td
+50 370 Td (t = \(xbar - mu\) / SE = \(4.5333 - 4.50\) / 0.0088 = 3.7796) Tj
+-50 -14 Td
+50 356 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 342 Td (Computed t = 3.7796) Tj
+-50 -14 Td
+50 328 Td (Since |3.7796| < 4.3027,) Tj
+-50 -14 Td
+50 314 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 300 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 286 Td (reliability rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 272 Td (reliability of the system as highly acceptable with a mean of 4.5333.) Tj
+-50 -14 Td
+50 258 Td (USABILITY) Tj
+-50 -14 Td
+50 244 Td (DATA SET) Tj
+-50 -14 Td
+50 230 Td (Q1: 4.63) Tj
+-50 -14 Td
+50 216 Td (Q2: 4.6) Tj
+-50 -14 Td
+50 202 Td (Q3: 4.62) Tj
+-50 -14 Td
+50 188 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 174 Td (MEAN) Tj
+-50 -14 Td
+50 160 Td (\(4.63 + 4.6 + 4.62\) / 3) Tj
+-50 -14 Td
+50 146 Td (= 13.85 / 3) Tj
+-50 -14 Td
+50 132 Td (= 4.6167) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+35 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 34 0 R >>
+endobj
+36 0 obj
+<< /Length 2827 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (MEDIAN) Tj
+-50 -14 Td
+50 776 Td (Arranged Data: 4.6, 4.62, 4.63) Tj
+-50 -14 Td
+50 762 Td (= 4.6200) Tj
+-50 -14 Td
+50 748 Td (MODE) Tj
+-50 -14 Td
+50 734 Td (= NO MODE) Tj
+-50 -14 Td
+50 720 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 706 Td (Since the Mean \(4.6167\) and Median \(4.6200\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 692 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 678 Td (CT = Mean = 4.6167) Tj
+-50 -14 Td
+50 664 Td (RANGE) Tj
+-50 -14 Td
+50 650 Td (4.63 - 4.6 = 0.0300) Tj
+-50 -14 Td
+50 636 Td (IQR) Tj
+-50 -14 Td
+50 622 Td (Arranged Data: 4.6, 4.62, 4.63) Tj
+-50 -14 Td
+50 608 Td (Q1 = 4.6) Tj
+-50 -14 Td
+50 594 Td (Q3 = 4.63) Tj
+-50 -14 Td
+50 580 Td (IQR = Q3 - Q1 = 4.63 - 4.6 = 0.0300) Tj
+-50 -14 Td
+50 566 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 552 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 538 Td (Q1 4.63 4.6167 0.0133 0.0002) Tj
+-50 -14 Td
+50 524 Td (Q2 4.6 4.6167 -0.0167 0.0003) Tj
+-50 -14 Td
+50 510 Td (Q3 4.62 4.6167 0.0033 0.0000) Tj
+-50 -14 Td
+50 496 Td (TOTAL 0.0005) Tj
+-50 -14 Td
+50 482 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 468 Td (s^2 = 0.0005 / 2 = 0.0002) Tj
+-50 -14 Td
+50 454 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 440 Td (s = 0.0153) Tj
+-50 -14 Td
+50 426 Td (OUTLIERS) Tj
+-50 -14 Td
+50 412 Td (Lower Bound = 4.6 - 1.5\(0.0300\) = 4.5550) Tj
+-50 -14 Td
+50 398 Td (Upper Bound = 4.63 + 1.5\(0.0300\) = 4.6750) Tj
+-50 -14 Td
+50 384 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 370 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 356 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 342 Td ("A researcher claims that the usability of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 328 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.6167\) and) Tj
+-50 -14 Td
+50 314 Td (SD \(0.0153\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 300 Td (Hypotheses) Tj
+-50 -14 Td
+50 286 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 272 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 258 Td (SE = s / sqrtn = 0.0153 / sqrt3 = 0.0088) Tj
+-50 -14 Td
+50 244 Td (t = \(xbar - mu\) / SE = \(4.6167 - 4.50\) / 0.0088 = 13.2288) Tj
+-50 -14 Td
+50 230 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 216 Td (Computed t = 13.2288) Tj
+-50 -14 Td
+50 202 Td (Since |13.2288| > 4.3027,) Tj
+-50 -14 Td
+50 188 Td (Reject H0) Tj
+-50 -14 Td
+50 174 Td (At the 0.05 level of significance, there is sufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 160 Td (usability rating significantly differs from 4.5. Therefore, the claim that the mean rating) Tj
+-50 -14 Td
+50 146 Td (is exactly 4.5 is not supported by the sample data. However, the respondents still evaluated) Tj
+-50 -14 Td
+50 132 Td (the usability of the system as highly acceptable with a mean of 4.6167.) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+37 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 36 0 R >>
+endobj
+38 0 obj
+<< /Length 2435 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (PERFORMANCE EFFICIENCY) Tj
+-50 -14 Td
+50 776 Td (DATA SET) Tj
+-50 -14 Td
+50 762 Td (Q1: 4.55) Tj
+-50 -14 Td
+50 748 Td (Q2: 4.45) Tj
+-50 -14 Td
+50 734 Td (Q3: 4.48) Tj
+-50 -14 Td
+50 720 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 706 Td (MEAN) Tj
+-50 -14 Td
+50 692 Td (\(4.55 + 4.45 + 4.48\) / 3) Tj
+-50 -14 Td
+50 678 Td (= 13.48 / 3) Tj
+-50 -14 Td
+50 664 Td (= 4.4933) Tj
+-50 -14 Td
+50 650 Td (MEDIAN) Tj
+-50 -14 Td
+50 636 Td (Arranged Data: 4.45, 4.48, 4.55) Tj
+-50 -14 Td
+50 622 Td (= 4.4800) Tj
+-50 -14 Td
+50 608 Td (MODE) Tj
+-50 -14 Td
+50 594 Td (= NO MODE) Tj
+-50 -14 Td
+50 580 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 566 Td (Since the Mean \(4.4933\) and Median \(4.4800\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 552 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 538 Td (CT = Mean = 4.4933) Tj
+-50 -14 Td
+50 524 Td (RANGE) Tj
+-50 -14 Td
+50 510 Td (4.55 - 4.45 = 0.1000) Tj
+-50 -14 Td
+50 496 Td (IQR) Tj
+-50 -14 Td
+50 482 Td (Arranged Data: 4.45, 4.48, 4.55) Tj
+-50 -14 Td
+50 468 Td (Q1 = 4.45) Tj
+-50 -14 Td
+50 454 Td (Q3 = 4.55) Tj
+-50 -14 Td
+50 440 Td (IQR = Q3 - Q1 = 4.55 - 4.45 = 0.1000) Tj
+-50 -14 Td
+50 426 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 412 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 398 Td (Q1 4.55 4.4933 0.0567 0.0032) Tj
+-50 -14 Td
+50 384 Td (Q2 4.45 4.4933 -0.0433 0.0019) Tj
+-50 -14 Td
+50 370 Td (Q3 4.48 4.4933 -0.0133 0.0002) Tj
+-50 -14 Td
+50 356 Td (TOTAL 0.0053) Tj
+-50 -14 Td
+50 342 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 328 Td (s^2 = 0.0053 / 2 = 0.0026) Tj
+-50 -14 Td
+50 314 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 300 Td (s = 0.0513) Tj
+-50 -14 Td
+50 286 Td (OUTLIERS) Tj
+-50 -14 Td
+50 272 Td (Lower Bound = 4.45 - 1.5\(0.1000\) = 4.3000) Tj
+-50 -14 Td
+50 258 Td (Upper Bound = 4.55 + 1.5\(0.1000\) = 4.7000) Tj
+-50 -14 Td
+50 244 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 230 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 216 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 202 Td ("A researcher claims that the performance efficiency of the Barangay Service and Complaint) Tj
+-50 -14 Td
+50 188 Td (Management System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean) Tj
+-50 -14 Td
+50 174 Td (\(4.4933\) and SD \(0.0513\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 160 Td (Hypotheses) Tj
+-50 -14 Td
+50 146 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 132 Td (H1: mu 4.50) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+39 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 38 0 R >>
+endobj
+40 0 obj
+<< /Length 2535 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (SE = s / sqrtn = 0.0513 / sqrt3 = 0.0296) Tj
+-50 -14 Td
+50 776 Td (t = \(xbar - mu\) / SE = \(4.4933 - 4.50\) / 0.0296 = -0.2250) Tj
+-50 -14 Td
+50 762 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 748 Td (Computed t = -0.2250) Tj
+-50 -14 Td
+50 734 Td (Since |-0.2250| < 4.3027,) Tj
+-50 -14 Td
+50 720 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 706 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 692 Td (performance efficiency rating significantly differs from 4.5. Therefore, respondents) Tj
+-50 -14 Td
+50 678 Td (evaluated the performance efficiency of the system as highly acceptable with a mean of) Tj
+-50 -14 Td
+50 664 Td (4.4933.) Tj
+-50 -14 Td
+50 650 Td (COMPATIBILITY) Tj
+-50 -14 Td
+50 636 Td (DATA SET) Tj
+-50 -14 Td
+50 622 Td (Q1: 4.68) Tj
+-50 -14 Td
+50 608 Td (Q2: 4.58) Tj
+-50 -14 Td
+50 594 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 580 Td (MEAN) Tj
+-50 -14 Td
+50 566 Td (\(4.68 + 4.58\) / 2) Tj
+-50 -14 Td
+50 552 Td (= 9.26 / 2) Tj
+-50 -14 Td
+50 538 Td (= 4.6300) Tj
+-50 -14 Td
+50 524 Td (MEDIAN) Tj
+-50 -14 Td
+50 510 Td (Arranged Data: 4.58, 4.68) Tj
+-50 -14 Td
+50 496 Td (= 4.6300) Tj
+-50 -14 Td
+50 482 Td (MODE) Tj
+-50 -14 Td
+50 468 Td (= NO MODE) Tj
+-50 -14 Td
+50 454 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 440 Td (Since the Mean \(4.6300\) and Median \(4.6300\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 426 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 412 Td (CT = Mean = 4.6300) Tj
+-50 -14 Td
+50 398 Td (RANGE) Tj
+-50 -14 Td
+50 384 Td (4.68 - 4.58 = 0.1000) Tj
+-50 -14 Td
+50 370 Td (IQR) Tj
+-50 -14 Td
+50 356 Td (Arranged Data: 4.58, 4.68) Tj
+-50 -14 Td
+50 342 Td (Q1 = 4.58) Tj
+-50 -14 Td
+50 328 Td (Q3 = 4.68) Tj
+-50 -14 Td
+50 314 Td (IQR = Q3 - Q1 = 4.68 - 4.58 = 0.1000) Tj
+-50 -14 Td
+50 300 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 286 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 272 Td (Q1 4.68 4.6300 0.0500 0.0025) Tj
+-50 -14 Td
+50 258 Td (Q2 4.58 4.6300 -0.0500 0.0025) Tj
+-50 -14 Td
+50 244 Td (TOTAL 0.0050) Tj
+-50 -14 Td
+50 230 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 216 Td (s^2 = 0.0050 / 1 = 0.0050) Tj
+-50 -14 Td
+50 202 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 188 Td (s = 0.0707) Tj
+-50 -14 Td
+50 174 Td (OUTLIERS) Tj
+-50 -14 Td
+50 160 Td (Lower Bound = 4.58 - 1.5\(0.1000\) = 4.4300) Tj
+-50 -14 Td
+50 146 Td (Upper Bound = 4.68 + 1.5\(0.1000\) = 4.8300) Tj
+-50 -14 Td
+50 132 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+41 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 40 0 R >>
+endobj
+42 0 obj
+<< /Length 2650 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 776 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 762 Td ("A researcher claims that the compatibility of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 748 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.6300\) and) Tj
+-50 -14 Td
+50 734 Td (SD \(0.0707\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 720 Td (Hypotheses) Tj
+-50 -14 Td
+50 706 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 692 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 678 Td (SE = s / sqrtn = 0.0707 / sqrt2 = 0.0500) Tj
+-50 -14 Td
+50 664 Td (t = \(xbar - mu\) / SE = \(4.6300 - 4.50\) / 0.0500 = 2.6000) Tj
+-50 -14 Td
+50 650 Td (Critical Value \(alpha = 0.05, df = 1\) = +/-12.7062) Tj
+-50 -14 Td
+50 636 Td (Computed t = 2.6000) Tj
+-50 -14 Td
+50 622 Td (Since |2.6000| < 12.7062,) Tj
+-50 -14 Td
+50 608 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 594 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 580 Td (compatibility rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 566 Td (compatibility of the system as highly acceptable with a mean of 4.6300.) Tj
+-50 -14 Td
+50 552 Td (SECURITY) Tj
+-50 -14 Td
+50 538 Td (DATA SET) Tj
+-50 -14 Td
+50 524 Td (Q1: 4.43) Tj
+-50 -14 Td
+50 510 Td (Q2: 4.52) Tj
+-50 -14 Td
+50 496 Td (Q3: 4.63) Tj
+-50 -14 Td
+50 482 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 468 Td (MEAN) Tj
+-50 -14 Td
+50 454 Td (\(4.43 + 4.52 + 4.63\) / 3) Tj
+-50 -14 Td
+50 440 Td (= 13.58 / 3) Tj
+-50 -14 Td
+50 426 Td (= 4.5267) Tj
+-50 -14 Td
+50 412 Td (MEDIAN) Tj
+-50 -14 Td
+50 398 Td (Arranged Data: 4.43, 4.52, 4.63) Tj
+-50 -14 Td
+50 384 Td (= 4.5200) Tj
+-50 -14 Td
+50 370 Td (MODE) Tj
+-50 -14 Td
+50 356 Td (= NO MODE) Tj
+-50 -14 Td
+50 342 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 328 Td (Since the Mean \(4.5267\) and Median \(4.5200\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 314 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 300 Td (CT = Mean = 4.5267) Tj
+-50 -14 Td
+50 286 Td (RANGE) Tj
+-50 -14 Td
+50 272 Td (4.63 - 4.43 = 0.2000) Tj
+-50 -14 Td
+50 258 Td (IQR) Tj
+-50 -14 Td
+50 244 Td (Arranged Data: 4.43, 4.52, 4.63) Tj
+-50 -14 Td
+50 230 Td (Q1 = 4.43) Tj
+-50 -14 Td
+50 216 Td (Q3 = 4.63) Tj
+-50 -14 Td
+50 202 Td (IQR = Q3 - Q1 = 4.63 - 4.43 = 0.2000) Tj
+-50 -14 Td
+50 188 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 174 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 160 Td (Q1 4.43 4.5267 -0.0967 0.0093) Tj
+-50 -14 Td
+50 146 Td (Q2 4.52 4.5267 -0.0067 0.0000) Tj
+-50 -14 Td
+50 132 Td (Q3 4.63 4.5267 0.1033 0.0107) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+43 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 42 0 R >>
+endobj
+44 0 obj
+<< /Length 2631 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (TOTAL 0.0201) Tj
+-50 -14 Td
+50 776 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 762 Td (s^2 = 0.0201 / 2 = 0.0100) Tj
+-50 -14 Td
+50 748 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 734 Td (s = 0.1002) Tj
+-50 -14 Td
+50 720 Td (OUTLIERS) Tj
+-50 -14 Td
+50 706 Td (Lower Bound = 4.43 - 1.5\(0.2000\) = 4.1300) Tj
+-50 -14 Td
+50 692 Td (Upper Bound = 4.63 + 1.5\(0.2000\) = 4.9300) Tj
+-50 -14 Td
+50 678 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 664 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 650 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 636 Td ("A researcher claims that the security of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 622 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.5267\) and) Tj
+-50 -14 Td
+50 608 Td (SD \(0.1002\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 594 Td (Hypotheses) Tj
+-50 -14 Td
+50 580 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 566 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 552 Td (SE = s / sqrtn = 0.1002 / sqrt3 = 0.0578) Tj
+-50 -14 Td
+50 538 Td (t = \(xbar - mu\) / SE = \(4.5267 - 4.50\) / 0.0578 = 0.4611) Tj
+-50 -14 Td
+50 524 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 510 Td (Computed t = 0.4611) Tj
+-50 -14 Td
+50 496 Td (Since |0.4611| < 4.3027,) Tj
+-50 -14 Td
+50 482 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 468 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 454 Td (security rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 440 Td (security of the system as highly acceptable with a mean of 4.5267.) Tj
+-50 -14 Td
+50 426 Td (MAINTAINABILITY) Tj
+-50 -14 Td
+50 412 Td (DATA SET) Tj
+-50 -14 Td
+50 398 Td (Q1: 4.58) Tj
+-50 -14 Td
+50 384 Td (Q2: 4.6) Tj
+-50 -14 Td
+50 370 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 356 Td (MEAN) Tj
+-50 -14 Td
+50 342 Td (\(4.58 + 4.6\) / 2) Tj
+-50 -14 Td
+50 328 Td (= 9.18 / 2) Tj
+-50 -14 Td
+50 314 Td (= 4.5900) Tj
+-50 -14 Td
+50 300 Td (MEDIAN) Tj
+-50 -14 Td
+50 286 Td (Arranged Data: 4.58, 4.6) Tj
+-50 -14 Td
+50 272 Td (= 4.5900) Tj
+-50 -14 Td
+50 258 Td (MODE) Tj
+-50 -14 Td
+50 244 Td (= NO MODE) Tj
+-50 -14 Td
+50 230 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 216 Td (Since the Mean \(4.5900\) and Median \(4.5900\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 202 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 188 Td (CT = Mean = 4.5900) Tj
+-50 -14 Td
+50 174 Td (RANGE) Tj
+-50 -14 Td
+50 160 Td (4.6 - 4.58 = 0.0200) Tj
+-50 -14 Td
+50 146 Td (IQR) Tj
+-50 -14 Td
+50 132 Td (Arranged Data: 4.58, 4.6) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+45 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 44 0 R >>
+endobj
+46 0 obj
+<< /Length 2641 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Q1 = 4.58) Tj
+-50 -14 Td
+50 776 Td (Q3 = 4.6) Tj
+-50 -14 Td
+50 762 Td (IQR = Q3 - Q1 = 4.6 - 4.58 = 0.0200) Tj
+-50 -14 Td
+50 748 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 734 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 720 Td (Q1 4.58 4.5900 -0.0100 0.0001) Tj
+-50 -14 Td
+50 706 Td (Q2 4.6 4.5900 0.0100 0.0001) Tj
+-50 -14 Td
+50 692 Td (TOTAL 0.0002) Tj
+-50 -14 Td
+50 678 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 664 Td (s^2 = 0.0002 / 1 = 0.0002) Tj
+-50 -14 Td
+50 650 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 636 Td (s = 0.0141) Tj
+-50 -14 Td
+50 622 Td (OUTLIERS) Tj
+-50 -14 Td
+50 608 Td (Lower Bound = 4.58 - 1.5\(0.0200\) = 4.5500) Tj
+-50 -14 Td
+50 594 Td (Upper Bound = 4.6 + 1.5\(0.0200\) = 4.6300) Tj
+-50 -14 Td
+50 580 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 566 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 552 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 538 Td ("A researcher claims that the maintainability of the Barangay Service and Complaint) Tj
+-50 -14 Td
+50 524 Td (Management System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean) Tj
+-50 -14 Td
+50 510 Td (\(4.5900\) and SD \(0.0141\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 496 Td (Hypotheses) Tj
+-50 -14 Td
+50 482 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 468 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 454 Td (SE = s / sqrtn = 0.0141 / sqrt2 = 0.0100) Tj
+-50 -14 Td
+50 440 Td (t = \(xbar - mu\) / SE = \(4.5900 - 4.50\) / 0.0100 = 9.0000) Tj
+-50 -14 Td
+50 426 Td (Critical Value \(alpha = 0.05, df = 1\) = +/-12.7062) Tj
+-50 -14 Td
+50 412 Td (Computed t = 9.0000) Tj
+-50 -14 Td
+50 398 Td (Since |9.0000| < 12.7062,) Tj
+-50 -14 Td
+50 384 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 370 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 356 Td (maintainability rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 342 Td (maintainability of the system as highly acceptable with a mean of 4.5900.) Tj
+-50 -14 Td
+50 328 Td (PORTABILITY) Tj
+-50 -14 Td
+50 314 Td (DATA SET) Tj
+-50 -14 Td
+50 300 Td (Q1: 4.55) Tj
+-50 -14 Td
+50 286 Td (Q2: 4.52) Tj
+-50 -14 Td
+50 272 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 258 Td (MEAN) Tj
+-50 -14 Td
+50 244 Td (\(4.55 + 4.52\) / 2) Tj
+-50 -14 Td
+50 230 Td (= 9.07 / 2) Tj
+-50 -14 Td
+50 216 Td (= 4.5350) Tj
+-50 -14 Td
+50 202 Td (MEDIAN) Tj
+-50 -14 Td
+50 188 Td (Arranged Data: 4.52, 4.55) Tj
+-50 -14 Td
+50 174 Td (= 4.5350) Tj
+-50 -14 Td
+50 160 Td (MODE) Tj
+-50 -14 Td
+50 146 Td (= NO MODE) Tj
+-50 -14 Td
+50 132 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+47 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 46 0 R >>
+endobj
+48 0 obj
+<< /Length 3006 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Since the Mean \(4.5350\) and Median \(4.5350\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 776 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 762 Td (CT = Mean = 4.5350) Tj
+-50 -14 Td
+50 748 Td (RANGE) Tj
+-50 -14 Td
+50 734 Td (4.55 - 4.52 = 0.0300) Tj
+-50 -14 Td
+50 720 Td (IQR) Tj
+-50 -14 Td
+50 706 Td (Arranged Data: 4.52, 4.55) Tj
+-50 -14 Td
+50 692 Td (Q1 = 4.52) Tj
+-50 -14 Td
+50 678 Td (Q3 = 4.55) Tj
+-50 -14 Td
+50 664 Td (IQR = Q3 - Q1 = 4.55 - 4.52 = 0.0300) Tj
+-50 -14 Td
+50 650 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 636 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 622 Td (Q1 4.55 4.5350 0.0150 0.0002) Tj
+-50 -14 Td
+50 608 Td (Q2 4.52 4.5350 -0.0150 0.0002) Tj
+-50 -14 Td
+50 594 Td (TOTAL 0.0005) Tj
+-50 -14 Td
+50 580 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 566 Td (s^2 = 0.0005 / 1 = 0.0005) Tj
+-50 -14 Td
+50 552 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 538 Td (s = 0.0212) Tj
+-50 -14 Td
+50 524 Td (OUTLIERS) Tj
+-50 -14 Td
+50 510 Td (Lower Bound = 4.52 - 1.5\(0.0300\) = 4.4750) Tj
+-50 -14 Td
+50 496 Td (Upper Bound = 4.55 + 1.5\(0.0300\) = 4.5950) Tj
+-50 -14 Td
+50 482 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 468 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 454 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 440 Td ("A researcher claims that the portability of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 426 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.5350\) and) Tj
+-50 -14 Td
+50 412 Td (SD \(0.0212\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 398 Td (Hypotheses) Tj
+-50 -14 Td
+50 384 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 370 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 356 Td (SE = s / sqrtn = 0.0212 / sqrt2 = 0.0150) Tj
+-50 -14 Td
+50 342 Td (t = \(xbar - mu\) / SE = \(4.5350 - 4.50\) / 0.0150 = 2.3333) Tj
+-50 -14 Td
+50 328 Td (Critical Value \(alpha = 0.05, df = 1\) = +/-12.7062) Tj
+-50 -14 Td
+50 314 Td (Computed t = 2.3333) Tj
+-50 -14 Td
+50 300 Td (Since |2.3333| < 12.7062,) Tj
+-50 -14 Td
+50 286 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 272 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 258 Td (portability rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 244 Td (portability of the system as highly acceptable with a mean of 4.5350.) Tj
+-50 -14 Td
+50 230 Td (SUMMARY OF RESULTS) Tj
+-50 -14 Td
+50 216 Td (Category n Mean SD t-stat Decision) Tj
+-50 -14 Td
+50 202 Td (FUNCTIONALITY 3 4.5700 0.0854 1.4190 Fail to Reject H0) Tj
+-50 -14 Td
+50 188 Td (RELIABILITY 3 4.5333 0.0153 3.7796 Fail to Reject H0) Tj
+-50 -14 Td
+50 174 Td (USABILITY 3 4.6167 0.0153 13.2288 Reject H0) Tj
+-50 -14 Td
+50 160 Td (PERFORMANCE EFFICIENCY 3 4.4933 0.0513 -0.2250 Fail to Reject H0) Tj
+-50 -14 Td
+50 146 Td (COMPATIBILITY 2 4.6300 0.0707 2.6000 Fail to Reject H0) Tj
+-50 -14 Td
+50 132 Td (SECURITY 3 4.5267 0.1002 0.4611 Fail to Reject H0) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+49 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 48 0 R >>
+endobj
+50 0 obj
+<< /Length 4680 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (MAINTAINABILITY 2 4.5900 0.0141 9.0000 Fail to Reject H0) Tj
+-50 -14 Td
+50 776 Td (PORTABILITY 2 4.5350 0.0212 2.3333 Fail to Reject H0) Tj
+-50 -14 Td
+50 762 Td (SUMMARY, CONCLUSION AND RECOMMENDATIONS) Tj
+-50 -14 Td
+50 748 Td (This chapter discusses the summary and the conclusion derived from the study. The) Tj
+-50 -14 Td
+50 734 Td (researchers also presented recommendations that may serve to be of significance to the) Tj
+-50 -14 Td
+50 720 Td (academe and to the future researchers.) Tj
+-50 -14 Td
+50 706 Td (Summary) Tj
+-50 -14 Td
+50 692 Td (This study evaluated the quality of the MediHelp system using the ISO/IEC 25010 Software) Tj
+-50 -14 Td
+50 678 Td (Quality Model, focusing on Functional Suitability, Reliability, Usability, Performance) Tj
+-50 -14 Td
+50 664 Td (Efficiency, Compatibility, Security, Maintainability, and Portability. Data were collected) Tj
+-50 -14 Td
+50 650 Td (from 62 respondents through a structured survey questionnaire.) Tj
+-50 -14 Td
+50 636 Td (The central tendency of each category, measured using the mean, showed consistently high) Tj
+-50 -14 Td
+50 622 Td (ratings: Functionality \(4.5465\), Reliability \(4.4918\), Usability \(4.5519\), Performance) Tj
+-50 -14 Td
+50 608 Td (Efficiency \(4.5465\), Compatibility \(4.5246\), Security \(4.5639\), Maintainability \(4.5485\),) Tj
+-50 -14 Td
+50 594 Td (and Portability \(4.541\). All values fall within the "Excellent" interpretation range.) Tj
+-50 -14 Td
+50 580 Td (In terms of distribution shape, all categories exhibited approximately symmetrical) Tj
+-50 -14 Td
+50 566 Td (distributions, as indicated by the closeness of the mean and median values. This suggests) Tj
+-50 -14 Td
+50 552 Td (that the responses are evenly distributed and not skewed.) Tj
+-50 -14 Td
+50 538 Td (The variability of responses was low across all categories, supported by small standard) Tj
+-50 -14 Td
+50 524 Td (deviation values and the absence of outliers. This indicates a high level of consistency) Tj
+-50 -14 Td
+50 510 Td (among respondents' evaluations.) Tj
+-50 -14 Td
+50 496 Td (Among the evaluated characteristics, Security \(mean = 4.5639\) obtained the highest central) Tj
+-50 -14 Td
+50 482 Td (tendency, making it the strongest feature of the system. Conversely, Reliability \(mean =) Tj
+-50 -14 Td
+50 468 Td (4.4918\) obtained the lowest central tendency, making it the least rated characteristic,) Tj
+-50 -14 Td
+50 454 Td (although it still falls under the "Excellent" category.) Tj
+-50 -14 Td
+50 440 Td (Conclusion) Tj
+-50 -14 Td
+50 426 Td (Based on the statistical results, the MediHelp system meets the quality standards defined by) Tj
+-50 -14 Td
+50 412 Td (the ISO/IEC 25010 model. All evaluated characteristics achieved high mean scores, indicating) Tj
+-50 -14 Td
+50 398 Td (strong user satisfaction across all dimensions of system quality.) Tj
+-50 -14 Td
+50 384 Td (The symmetrical distribution of responses and low variability further confirm that user) Tj
+-50 -14 Td
+50 370 Td (evaluations are consistent and reliable. Additionally, hypothesis testing results show that) Tj
+-50 -14 Td
+50 356 Td (most categories do not significantly differ from the benchmark mean of 4.5, reinforcing that) Tj
+-50 -14 Td
+50 342 Td (the system is highly acceptable. Only usability showed a statistically significant) Tj
+-50 -14 Td
+50 328 Td (difference, indicating it performs even better than the expected standard.) Tj
+-50 -14 Td
+50 314 Td (Given these findings, it can be concluded that the MediHelp system demonstrates a high level) Tj
+-50 -14 Td
+50 300 Td (of quality, reliability, and user acceptance. Therefore, the system is ready for deployment) Tj
+-50 -14 Td
+50 286 Td (and has effectively passed user evaluation.) Tj
+-50 -14 Td
+50 272 Td (Recommendation) Tj
+-50 -14 Td
+50 258 Td (Although all categories were rated as "Excellent," improvements should be directed toward) Tj
+-50 -14 Td
+50 244 Td (the relatively lower-performing characteristics to further enhance system quality.) Tj
+-50 -14 Td
+50 230 Td (The following recommendations are proposed:) Tj
+-50 -14 Td
+50 216 Td (Improve Reliability \(Lowest Mean: 4.4918\)) Tj
+-50 -14 Td
+50 202 Td (Enhance system stability and reduce potential errors or failures.) Tj
+-50 -14 Td
+50 188 Td (Implement more rigorous testing procedures, including stress and fault tolerance testing.) Tj
+-50 -14 Td
+50 174 Td (Enhance Compatibility \(Second Lowest: 4.5246\)) Tj
+-50 -14 Td
+50 160 Td (Ensure seamless functionality across different devices, operating systems, and browsers.) Tj
+-50 -14 Td
+50 146 Td (Conduct cross-platform and cross-environment testing.) Tj
+-50 -14 Td
+50 132 Td (Continuous Monitoring and Updates) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+51 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 50 0 R >>
+endobj
+52 0 obj
+<< /Length 3714 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Maintain strong areas such as Security and Usability through regular updates and system) Tj
+-50 -14 Td
+50 776 Td (audits.) Tj
+-50 -14 Td
+50 762 Td (Expand Testing Scope) Tj
+-50 -14 Td
+50 748 Td (Include a larger and more diverse group of respondents in future evaluations to improve) Tj
+-50 -14 Td
+50 734 Td (generalizability.) Tj
+-50 -14 Td
+50 720 Td (Incorporate Additional Evaluation Metrics) Tj
+-50 -14 Td
+50 706 Td (Future studies may include other quality measures such as user satisfaction indices, system) Tj
+-50 -14 Td
+50 692 Td (performance logs, or real-time analytics.) Tj
+-50 -14 Td
+50 678 Td (REFERENCES) Tj
+-50 -14 Td
+50 664 Td (International Organization for Standardization. \(2011\). ISO/IEC 25010:2011 Systems and) Tj
+-50 -14 Td
+50 650 Td (software engineering-Systems and software Quality Requirements and Evaluation) Tj
+-50 -14 Td
+50 636 Td (\(SQuaRE\)-System and software quality models. Geneva, Switzerland: ISO.) Tj
+-50 -14 Td
+50 622 Td (Pressman, R. S., & Maxim, B. R. \(2020\). Software engineering: A practitioner's approach \(9th) Tj
+-50 -14 Td
+50 608 Td (ed.\). New York, NY: McGraw-Hill Education.) Tj
+-50 -14 Td
+50 594 Td (Roberts, C. M. \(2004\). The dissertation journey: A practical and comprehensive guide to) Tj
+-50 -14 Td
+50 580 Td (planning, writing, and defending your dissertation. Thousand Oaks, CA: Corwin Press.) Tj
+-50 -14 Td
+50 566 Td (Sommerville, I. \(2016\). Software engineering \(10th ed.\). Boston, MA: Pearson Education.) Tj
+-50 -14 Td
+50 552 Td (World Health Organization. \(2023\). Digital health. Geneva, Switzerland: World Health) Tj
+-50 -14 Td
+50 538 Td (Organization.) Tj
+-50 -14 Td
+50 524 Td (World Health Organization - Digital Health) Tj
+-50 -14 Td
+50 510 Td (ISO/IEC 25010 Overview) Tj
+-50 -14 Td
+50 496 Td (National Institutes of Health \(NIH\) - Health Information Technology) Tj
+-50 -14 Td
+50 482 Td (World Health Organization - Global Strategy on Digital Health) Tj
+-50 -14 Td
+50 468 Td (Mesk, B., Drobni, Z., Bnyei, ., Gergely, B., & Gyrffy, Z. \(2017\). Digital health is a) Tj
+-50 -14 Td
+50 454 Td (cultural transformation of traditional healthcare. mHealth, 3\(38\), 1-8.) Tj
+-50 -14 Td
+50 440 Td (Topol, E. J. \(2019\). Deep medicine: How artificial intelligence can make healthcare human) Tj
+-50 -14 Td
+50 426 Td (again. New York, NY: Basic Books.) Tj
+-50 -14 Td
+50 412 Td (Kumar, S., Nilsen, W. J., Abernethy, A., Atienza, A., Patrick, K., Pavel, M., & Swendeman,) Tj
+-50 -14 Td
+50 398 Td (D. \(2013\). Mobile health technology evaluation: The mHealth evidence workshop. American) Tj
+-50 -14 Td
+50 384 Td (Journal of Preventive Medicine, 45\(2\), 228-236.) Tj
+-50 -14 Td
+50 370 Td (APPENDICES) Tj
+-50 -14 Td
+50 356 Td (Appendix ASurvey Questionnaire) Tj
+-50 -14 Td
+50 342 Td (The survey questionnaire used in the study was adapted from the ISO/IEC 25010 Software) Tj
+-50 -14 Td
+50 328 Td (Quality Model. It was utilized to evaluate the system in terms of functionality,) Tj
+-50 -14 Td
+50 314 Td (reliability, usability, performance efficiency, compatibility, security, maintainability,) Tj
+-50 -14 Td
+50 300 Td (and portability.) Tj
+-50 -14 Td
+50 286 Td (Appendix B) Tj
+-50 -14 Td
+50 272 Td (Distribution of RespondentsTotal Respondents: 62IT Respondents: 31 \(50%\)Non-IT Respondents:) Tj
+-50 -14 Td
+50 258 Td (31 \(50%\)) Tj
+-50 -14 Td
+50 244 Td (Appendix CSummary of Evaluation Results) Tj
+-50 -14 Td
+50 230 Td (Quality Characteristic) Tj
+-50 -14 Td
+50 216 Td (Weighted Mean) Tj
+-50 -14 Td
+50 202 Td (Interpretation) Tj
+-50 -14 Td
+50 188 Td (Functionality) Tj
+-50 -14 Td
+50 174 Td (4.54) Tj
+-50 -14 Td
+50 160 Td (Excellent) Tj
+-50 -14 Td
+50 146 Td (Reliability) Tj
+-50 -14 Td
+50 132 Td (4.48) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+53 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 52 0 R >>
+endobj
+54 0 obj
+<< /Length 725 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (Very Good) Tj
+-50 -14 Td
+50 776 Td (Usability) Tj
+-50 -14 Td
+50 762 Td (4.54) Tj
+-50 -14 Td
+50 748 Td (Excellent) Tj
+-50 -14 Td
+50 734 Td (Performance Efficiency) Tj
+-50 -14 Td
+50 720 Td (4.54) Tj
+-50 -14 Td
+50 706 Td (Excellent) Tj
+-50 -14 Td
+50 692 Td (Compatibility) Tj
+-50 -14 Td
+50 678 Td (4.52) Tj
+-50 -14 Td
+50 664 Td (Excellent) Tj
+-50 -14 Td
+50 650 Td (Security) Tj
+-50 -14 Td
+50 636 Td (4.55) Tj
+-50 -14 Td
+50 622 Td (Excellent) Tj
+-50 -14 Td
+50 608 Td (Maintainability) Tj
+-50 -14 Td
+50 594 Td (4.52) Tj
+-50 -14 Td
+50 580 Td (Excellent) Tj
+-50 -14 Td
+50 566 Td (Portability) Tj
+-50 -14 Td
+50 552 Td (4.53) Tj
+-50 -14 Td
+50 538 Td (Excellent) Tj
+-50 -14 Td
+50 524 Td () Tj
+-50 -14 Td
+ET
+endstream
+endobj
+55 0 obj
+<< /Type /Page /Parent 56 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 54 0 R >>
+endobj
+56 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R 43 0 R 45 0 R 47 0 R 49 0 R 51 0 R 53 0 R 55 0 R] /Count 27 >>
+endobj
+57 0 obj
+<< /Type /Catalog /Pages 56 0 R >>
+endobj
+xref
+0 58
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000004459 00000 n 
+0000004586 00000 n 
+0000009448 00000 n 
+0000009575 00000 n 
+0000014292 00000 n 
+0000014419 00000 n 
+0000018863 00000 n 
+0000018990 00000 n 
+0000021913 00000 n 
+0000022042 00000 n 
+0000025433 00000 n 
+0000025562 00000 n 
+0000027721 00000 n 
+0000027850 00000 n 
+0000030141 00000 n 
+0000030270 00000 n 
+0000032602 00000 n 
+0000032731 00000 n 
+0000035044 00000 n 
+0000035173 00000 n 
+0000038302 00000 n 
+0000038431 00000 n 
+0000040774 00000 n 
+0000040903 00000 n 
+0000043845 00000 n 
+0000043974 00000 n 
+0000046870 00000 n 
+0000046999 00000 n 
+0000050338 00000 n 
+0000050467 00000 n 
+0000053220 00000 n 
+0000053349 00000 n 
+0000056063 00000 n 
+0000056192 00000 n 
+0000059072 00000 n 
+0000059201 00000 n 
+0000061689 00000 n 
+0000061818 00000 n 
+0000064406 00000 n 
+0000064535 00000 n 
+0000067238 00000 n 
+0000067367 00000 n 
+0000070051 00000 n 
+0000070180 00000 n 
+0000072874 00000 n 
+0000073003 00000 n 
+0000076062 00000 n 
+0000076191 00000 n 
+0000080924 00000 n 
+0000081053 00000 n 
+0000084820 00000 n 
+0000084949 00000 n 
+0000085726 00000 n 
+0000085855 00000 n 
+0000086093 00000 n 
+trailer
+<< /Size 58 /Root 57 0 R >>
+startxref
+86144
+%%EOF

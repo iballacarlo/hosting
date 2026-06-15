@@ -14,6 +14,7 @@ import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { withAllFirst } from '../utils/sortOptions'
 import { formatResidentId, getDocumentReference } from '../utils/idFormat'
 import { downloadTimestamp, safeDownloadPart } from '../utils/downloadNames'
+import Pagination, { paginateItems } from '../components/Pagination'
 
 const REQUEST_DOC_TYPES = [
   'Barangay Clearance',
@@ -40,9 +41,13 @@ export default function ManageDocuments(){
   const [processingRequest, setProcessingRequest] = useState(null)
   const [rejectConfirm, setRejectConfirm] = useState({ show: false, request: null })
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, request: null })
+  const [receivedConfirm, setReceivedConfirm] = useState({ show: false, request: null })
+  const [activePage, setActivePage] = useState(1)
+  const [completedPage, setCompletedPage] = useState(1)
   const processingModalRef = useRef(null)
   const rejectConfirmRef = useRef(null)
   const deleteConfirmRef = useRef(null)
+  const receivedConfirmRef = useRef(null)
   const [documentFields, setDocumentFields] = useState({
     name: '',
     birthdate: '',
@@ -201,6 +206,7 @@ export default function ManageDocuments(){
   useCloseOnEscape(Boolean(processingRequest), closeProcessingModal, processingModalRef)
   useCloseOnEscape(rejectConfirm.show, () => setRejectConfirm({ show: false, request: null }), rejectConfirmRef)
   useCloseOnEscape(deleteConfirm.show, () => setDeleteConfirm({ show: false, request: null }), deleteConfirmRef)
+  useCloseOnEscape(receivedConfirm.show, () => setReceivedConfirm({ show: false, request: null }), receivedConfirmRef)
 
   const wrapTextToWidth = (text, font, size, maxWidth) => {
     return String(text || '').split('\n').flatMap(line => {
@@ -320,7 +326,8 @@ export default function ManageDocuments(){
 
     const signatureY = issuedY - 56
     drawCentered('_________________________', 14, normalFont, signatureY)
-    drawCentered('Barangay Captain', 14, normalFont, signatureY - 28)
+    drawCentered('Ogel Pilar', 14, boldFont, signatureY - 20)
+    drawCentered('Barangay Captain', 14, normalFont, signatureY - 42)
 
     return pdfDoc.save()
   }
@@ -393,10 +400,28 @@ export default function ManageDocuments(){
     }
   }
 
+  const handleMarkReceived = async (request = receivedConfirm.request) => {
+    if(!request?.request_id) return
+    if(String(request.status || '').toLowerCase() !== 'released'){
+      alert('Only released document requests can be marked as received.')
+      setReceivedConfirm({ show: false, request: null })
+      return
+    }
+
+    try {
+      await api.put(`/docs/${request.request_id}`, { status: 'Received' })
+      setReceivedConfirm({ show: false, request: null })
+      setProcessingRequest(current => current?.request_id === request.request_id ? { ...current, status: 'Received' } : current)
+      load()
+    } catch(err) {
+      alert('Failed to mark as received: ' + (err?.response?.data?.message || err.message))
+    }
+  }
+
   const processingTemplate = processingRequest ? getTemplateForType(processingRequest.document_type || processingRequest.type) : 'Barangay Clearance'
   const documentStatusOptions = ['Submitted', 'Requested', 'Processing', 'Ready', 'Released', 'Received', 'Rejected']
   const activeStatuses = ['Submitted', 'Requested', 'Processing', 'Ready']
-  const isCompletedDocument = (status = '') => ['released', 'received', 'rejected', 'denied'].includes(String(status).toLowerCase())
+  const isCompletedDocument = (status = '') => ['received', 'rejected', 'denied'].includes(String(status).toLowerCase())
   const getVisibleDocuments = () => items.filter(item => {
     if(isCompletedDocument(item.status)) return false
     const matchesStatus = filterStatus === 'All' || item.status === filterStatus
@@ -418,6 +443,15 @@ export default function ManageDocuments(){
       (item.name || item.full_name || formatResidentId(item.resident_id) || '').toString().toLowerCase().includes(searchQuery.toLowerCase())
     return matchesSearch
   })
+  const visibleDocuments = getVisibleDocuments()
+  const completedDocuments = getCompletedDocuments()
+  const visiblePagination = paginateItems(visibleDocuments, activePage)
+  const completedPagination = paginateItems(completedDocuments, completedPage)
+
+  useEffect(() => {
+    setActivePage(1)
+    setCompletedPage(1)
+  }, [filterStatus, searchQuery])
 
   return(
     <div className="app-shell">
@@ -456,7 +490,7 @@ export default function ManageDocuments(){
                 />
               </div>
             </div>
-            {getVisibleDocuments().length > 0 && (
+            {visibleDocuments.length > 0 && (
               <section className="active-section">
                 <h2 className="section-title">Active Document Requests</h2>
                 <div className="table-wrap">
@@ -473,7 +507,7 @@ export default function ManageDocuments(){
                 </thead>
 
                 <tbody>
-                  {getVisibleDocuments()
+                  {visiblePagination.pageItems
                     .map(it=>(
                     <tr
                       key={it.request_id}
@@ -499,6 +533,14 @@ export default function ManageDocuments(){
                           >
                             Reject
                           </Button>
+                          {String(it.status || '').toLowerCase() === 'released' && (
+                            <Button
+                              variant="secondary"
+                              onClick={() => setReceivedConfirm({ show: true, request: it })}
+                            >
+                              Mark Received
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -507,16 +549,24 @@ export default function ManageDocuments(){
 
                   </table>
                 </div>
+                <Pagination
+                  page={visiblePagination.safePage}
+                  totalPages={visiblePagination.totalPages}
+                  totalItems={visibleDocuments.length}
+                  start={visiblePagination.start}
+                  end={visiblePagination.end}
+                  onPageChange={setActivePage}
+                />
               </section>
             )}
 
-            {items.length > 0 && getVisibleDocuments().length === 0 && getCompletedDocuments().length === 0 && (
+            {items.length > 0 && visibleDocuments.length === 0 && completedDocuments.length === 0 && (
               <div className="empty-state">No document requests match your search criteria.</div>
             )}
 
-            {getCompletedDocuments().length > 0 && (
+            {completedDocuments.length > 0 && (
               <section className="completed-section">
-                <h2 className="section-title">Released, Received, and Rejected Requests</h2>
+                <h2 className="section-title">Received and Rejected Requests</h2>
                 <div className="table-wrap">
                   <table>
                     <thead>
@@ -530,27 +580,27 @@ export default function ManageDocuments(){
                       </tr>
                     </thead>
                     <tbody>
-                      {getCompletedDocuments().map(it => (
+                      {completedPagination.pageItems.map(it => (
                         <tr key={`completed-${it.request_id}`}>
                           <td>{getDocumentReference(it)}</td>
                           <td>{it.document_type || it.document}</td>
                           <td>{it.name || it.full_name || formatResidentId(it.resident_id) || '—'}</td>
                           <td>{new Date(it.date_requested || Date.now()).toLocaleDateString('en-US')}</td>
                           <td><StatusBadge status={it.status}/></td>
-                          <td>
-                            <button
-                              type="button"
-                              className="table-action table-action-danger"
-                              onClick={() => setDeleteConfirm({ show: true, request: it })}
-                            >
-                              Delete
-                            </button>
-                          </td>
+                          <td>—</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
+                <Pagination
+                  page={completedPagination.safePage}
+                  totalPages={completedPagination.totalPages}
+                  totalItems={completedDocuments.length}
+                  start={completedPagination.start}
+                  end={completedPagination.end}
+                  onPageChange={setCompletedPage}
+                />
               </section>
             )}
 

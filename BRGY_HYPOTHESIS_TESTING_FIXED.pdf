@@ -1,0 +1,1100 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Length 2556 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 776 Td (This section presents the statistical results of the evaluation conducted for the Barangay) Tj
+-50 -14 Td
+50 762 Td (Service and Complaint Management System for Barangay Mambog II. The hypothesis testing was) Tj
+-50 -14 Td
+50 748 Td (based on the weighted mean ratings of each ISO/IEC 25010 category using a two-tailed t-test) Tj
+-50 -14 Td
+50 734 Td (at alpha = 0.05.) Tj
+-50 -14 Td
+50 720 Td (FUNCTIONALITY) Tj
+-50 -14 Td
+50 706 Td (DATA SET) Tj
+-50 -14 Td
+50 692 Td (Q1: 4.48) Tj
+-50 -14 Td
+50 678 Td (Q2: 4.58) Tj
+-50 -14 Td
+50 664 Td (Q3: 4.65) Tj
+-50 -14 Td
+50 650 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 636 Td (MEAN) Tj
+-50 -14 Td
+50 622 Td (\(4.48 + 4.58 + 4.65\) / 3) Tj
+-50 -14 Td
+50 608 Td (= 13.71 / 3) Tj
+-50 -14 Td
+50 594 Td (= 4.5700) Tj
+-50 -14 Td
+50 580 Td (MEDIAN) Tj
+-50 -14 Td
+50 566 Td (Arranged Data: 4.48, 4.58, 4.65) Tj
+-50 -14 Td
+50 552 Td (= 4.5800) Tj
+-50 -14 Td
+50 538 Td (MODE) Tj
+-50 -14 Td
+50 524 Td (= NO MODE) Tj
+-50 -14 Td
+50 510 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 496 Td (Since the Mean \(4.5700\) and Median \(4.5800\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 482 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 468 Td (CT = Mean = 4.5700) Tj
+-50 -14 Td
+50 454 Td (RANGE) Tj
+-50 -14 Td
+50 440 Td (4.65 - 4.48 = 0.1700) Tj
+-50 -14 Td
+50 426 Td (IQR) Tj
+-50 -14 Td
+50 412 Td (Arranged Data: 4.48, 4.58, 4.65) Tj
+-50 -14 Td
+50 398 Td (Q1 = 4.48) Tj
+-50 -14 Td
+50 384 Td (Q3 = 4.65) Tj
+-50 -14 Td
+50 370 Td (IQR = Q3 - Q1 = 4.65 - 4.48 = 0.1700) Tj
+-50 -14 Td
+50 356 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 342 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 328 Td (Q1 4.48 4.5700 -0.0900 0.0081) Tj
+-50 -14 Td
+50 314 Td (Q2 4.58 4.5700 0.0100 0.0001) Tj
+-50 -14 Td
+50 300 Td (Q3 4.65 4.5700 0.0800 0.0064) Tj
+-50 -14 Td
+50 286 Td (TOTAL 0.0146) Tj
+-50 -14 Td
+50 272 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 258 Td (s^2 = 0.0146 / 2 = 0.0073) Tj
+-50 -14 Td
+50 244 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 230 Td (s = 0.0854) Tj
+-50 -14 Td
+50 216 Td (OUTLIERS) Tj
+-50 -14 Td
+50 202 Td (Lower Bound = 4.48 - 1.5\(0.1700\) = 4.2250) Tj
+-50 -14 Td
+50 188 Td (Upper Bound = 4.65 + 1.5\(0.1700\) = 4.9050) Tj
+-50 -14 Td
+50 174 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 160 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 146 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 132 Td ("A researcher claims that the functionality of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+4 0 obj
+<< /Length 2565 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.5700\) and) Tj
+-50 -14 Td
+50 776 Td (SD \(0.0854\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 762 Td (Hypotheses) Tj
+-50 -14 Td
+50 748 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 734 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 720 Td (SE = s / sqrtn = 0.0854 / sqrt3 = 0.0493) Tj
+-50 -14 Td
+50 706 Td (t = \(xbar - mu\) / SE = \(4.5700 - 4.50\) / 0.0493 = 1.4190) Tj
+-50 -14 Td
+50 692 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 678 Td (Computed t = 1.4190) Tj
+-50 -14 Td
+50 664 Td (Since |1.4190| < 4.3027,) Tj
+-50 -14 Td
+50 650 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 636 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 622 Td (functionality rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 608 Td (functionality of the system as highly acceptable with a mean of 4.5700.) Tj
+-50 -14 Td
+50 594 Td (RELIABILITY) Tj
+-50 -14 Td
+50 580 Td (DATA SET) Tj
+-50 -14 Td
+50 566 Td (Q1: 4.53) Tj
+-50 -14 Td
+50 552 Td (Q2: 4.55) Tj
+-50 -14 Td
+50 538 Td (Q3: 4.52) Tj
+-50 -14 Td
+50 524 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 510 Td (MEAN) Tj
+-50 -14 Td
+50 496 Td (\(4.53 + 4.55 + 4.52\) / 3) Tj
+-50 -14 Td
+50 482 Td (= 13.6 / 3) Tj
+-50 -14 Td
+50 468 Td (= 4.5333) Tj
+-50 -14 Td
+50 454 Td (MEDIAN) Tj
+-50 -14 Td
+50 440 Td (Arranged Data: 4.52, 4.53, 4.55) Tj
+-50 -14 Td
+50 426 Td (= 4.5300) Tj
+-50 -14 Td
+50 412 Td (MODE) Tj
+-50 -14 Td
+50 398 Td (= NO MODE) Tj
+-50 -14 Td
+50 384 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 370 Td (Since the Mean \(4.5333\) and Median \(4.5300\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 356 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 342 Td (CT = Mean = 4.5333) Tj
+-50 -14 Td
+50 328 Td (RANGE) Tj
+-50 -14 Td
+50 314 Td (4.55 - 4.52 = 0.0300) Tj
+-50 -14 Td
+50 300 Td (IQR) Tj
+-50 -14 Td
+50 286 Td (Arranged Data: 4.52, 4.53, 4.55) Tj
+-50 -14 Td
+50 272 Td (Q1 = 4.52) Tj
+-50 -14 Td
+50 258 Td (Q3 = 4.55) Tj
+-50 -14 Td
+50 244 Td (IQR = Q3 - Q1 = 4.55 - 4.52 = 0.0300) Tj
+-50 -14 Td
+50 230 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 216 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 202 Td (Q1 4.53 4.5333 -0.0033 0.0000) Tj
+-50 -14 Td
+50 188 Td (Q2 4.55 4.5333 0.0167 0.0003) Tj
+-50 -14 Td
+50 174 Td (Q3 4.52 4.5333 -0.0133 0.0002) Tj
+-50 -14 Td
+50 160 Td (TOTAL 0.0005) Tj
+-50 -14 Td
+50 146 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 132 Td (s^2 = 0.0005 / 2 = 0.0002) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 2627 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 776 Td (s = 0.0153) Tj
+-50 -14 Td
+50 762 Td (OUTLIERS) Tj
+-50 -14 Td
+50 748 Td (Lower Bound = 4.52 - 1.5\(0.0300\) = 4.4750) Tj
+-50 -14 Td
+50 734 Td (Upper Bound = 4.55 + 1.5\(0.0300\) = 4.5950) Tj
+-50 -14 Td
+50 720 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 706 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 692 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 678 Td ("A researcher claims that the reliability of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 664 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.5333\) and) Tj
+-50 -14 Td
+50 650 Td (SD \(0.0153\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 636 Td (Hypotheses) Tj
+-50 -14 Td
+50 622 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 608 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 594 Td (SE = s / sqrtn = 0.0153 / sqrt3 = 0.0088) Tj
+-50 -14 Td
+50 580 Td (t = \(xbar - mu\) / SE = \(4.5333 - 4.50\) / 0.0088 = 3.7796) Tj
+-50 -14 Td
+50 566 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 552 Td (Computed t = 3.7796) Tj
+-50 -14 Td
+50 538 Td (Since |3.7796| < 4.3027,) Tj
+-50 -14 Td
+50 524 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 510 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 496 Td (reliability rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 482 Td (reliability of the system as highly acceptable with a mean of 4.5333.) Tj
+-50 -14 Td
+50 468 Td (USABILITY) Tj
+-50 -14 Td
+50 454 Td (DATA SET) Tj
+-50 -14 Td
+50 440 Td (Q1: 4.63) Tj
+-50 -14 Td
+50 426 Td (Q2: 4.6) Tj
+-50 -14 Td
+50 412 Td (Q3: 4.62) Tj
+-50 -14 Td
+50 398 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 384 Td (MEAN) Tj
+-50 -14 Td
+50 370 Td (\(4.63 + 4.6 + 4.62\) / 3) Tj
+-50 -14 Td
+50 356 Td (= 13.85 / 3) Tj
+-50 -14 Td
+50 342 Td (= 4.6167) Tj
+-50 -14 Td
+50 328 Td (MEDIAN) Tj
+-50 -14 Td
+50 314 Td (Arranged Data: 4.6, 4.62, 4.63) Tj
+-50 -14 Td
+50 300 Td (= 4.6200) Tj
+-50 -14 Td
+50 286 Td (MODE) Tj
+-50 -14 Td
+50 272 Td (= NO MODE) Tj
+-50 -14 Td
+50 258 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 244 Td (Since the Mean \(4.6167\) and Median \(4.6200\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 230 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 216 Td (CT = Mean = 4.6167) Tj
+-50 -14 Td
+50 202 Td (RANGE) Tj
+-50 -14 Td
+50 188 Td (4.63 - 4.6 = 0.0300) Tj
+-50 -14 Td
+50 174 Td (IQR) Tj
+-50 -14 Td
+50 160 Td (Arranged Data: 4.6, 4.62, 4.63) Tj
+-50 -14 Td
+50 146 Td (Q1 = 4.6) Tj
+-50 -14 Td
+50 132 Td (Q3 = 4.63) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 2741 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (IQR = Q3 - Q1 = 4.63 - 4.6 = 0.0300) Tj
+-50 -14 Td
+50 776 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 762 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 748 Td (Q1 4.63 4.6167 0.0133 0.0002) Tj
+-50 -14 Td
+50 734 Td (Q2 4.6 4.6167 -0.0167 0.0003) Tj
+-50 -14 Td
+50 720 Td (Q3 4.62 4.6167 0.0033 0.0000) Tj
+-50 -14 Td
+50 706 Td (TOTAL 0.0005) Tj
+-50 -14 Td
+50 692 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 678 Td (s^2 = 0.0005 / 2 = 0.0002) Tj
+-50 -14 Td
+50 664 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 650 Td (s = 0.0153) Tj
+-50 -14 Td
+50 636 Td (OUTLIERS) Tj
+-50 -14 Td
+50 622 Td (Lower Bound = 4.6 - 1.5\(0.0300\) = 4.5550) Tj
+-50 -14 Td
+50 608 Td (Upper Bound = 4.63 + 1.5\(0.0300\) = 4.6750) Tj
+-50 -14 Td
+50 594 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 580 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 566 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 552 Td ("A researcher claims that the usability of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 538 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.6167\) and) Tj
+-50 -14 Td
+50 524 Td (SD \(0.0153\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 510 Td (Hypotheses) Tj
+-50 -14 Td
+50 496 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 482 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 468 Td (SE = s / sqrtn = 0.0153 / sqrt3 = 0.0088) Tj
+-50 -14 Td
+50 454 Td (t = \(xbar - mu\) / SE = \(4.6167 - 4.50\) / 0.0088 = 13.2288) Tj
+-50 -14 Td
+50 440 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 426 Td (Computed t = 13.2288) Tj
+-50 -14 Td
+50 412 Td (Since |13.2288| > 4.3027,) Tj
+-50 -14 Td
+50 398 Td (Reject H0) Tj
+-50 -14 Td
+50 384 Td (At the 0.05 level of significance, there is sufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 370 Td (usability rating significantly differs from 4.5. Therefore, the claim that the mean rating) Tj
+-50 -14 Td
+50 356 Td (is exactly 4.5 is not supported by the sample data. However, the respondents still evaluated) Tj
+-50 -14 Td
+50 342 Td (the usability of the system as highly acceptable with a mean of 4.6167.) Tj
+-50 -14 Td
+50 328 Td (PERFORMANCE EFFICIENCY) Tj
+-50 -14 Td
+50 314 Td (DATA SET) Tj
+-50 -14 Td
+50 300 Td (Q1: 4.55) Tj
+-50 -14 Td
+50 286 Td (Q2: 4.45) Tj
+-50 -14 Td
+50 272 Td (Q3: 4.48) Tj
+-50 -14 Td
+50 258 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 244 Td (MEAN) Tj
+-50 -14 Td
+50 230 Td (\(4.55 + 4.45 + 4.48\) / 3) Tj
+-50 -14 Td
+50 216 Td (= 13.48 / 3) Tj
+-50 -14 Td
+50 202 Td (= 4.4933) Tj
+-50 -14 Td
+50 188 Td (MEDIAN) Tj
+-50 -14 Td
+50 174 Td (Arranged Data: 4.45, 4.48, 4.55) Tj
+-50 -14 Td
+50 160 Td (= 4.4800) Tj
+-50 -14 Td
+50 146 Td (MODE) Tj
+-50 -14 Td
+50 132 Td (= NO MODE) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 2788 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 776 Td (Since the Mean \(4.4933\) and Median \(4.4800\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 762 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 748 Td (CT = Mean = 4.4933) Tj
+-50 -14 Td
+50 734 Td (RANGE) Tj
+-50 -14 Td
+50 720 Td (4.55 - 4.45 = 0.1000) Tj
+-50 -14 Td
+50 706 Td (IQR) Tj
+-50 -14 Td
+50 692 Td (Arranged Data: 4.45, 4.48, 4.55) Tj
+-50 -14 Td
+50 678 Td (Q1 = 4.45) Tj
+-50 -14 Td
+50 664 Td (Q3 = 4.55) Tj
+-50 -14 Td
+50 650 Td (IQR = Q3 - Q1 = 4.55 - 4.45 = 0.1000) Tj
+-50 -14 Td
+50 636 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 622 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 608 Td (Q1 4.55 4.4933 0.0567 0.0032) Tj
+-50 -14 Td
+50 594 Td (Q2 4.45 4.4933 -0.0433 0.0019) Tj
+-50 -14 Td
+50 580 Td (Q3 4.48 4.4933 -0.0133 0.0002) Tj
+-50 -14 Td
+50 566 Td (TOTAL 0.0053) Tj
+-50 -14 Td
+50 552 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 538 Td (s^2 = 0.0053 / 2 = 0.0026) Tj
+-50 -14 Td
+50 524 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 510 Td (s = 0.0513) Tj
+-50 -14 Td
+50 496 Td (OUTLIERS) Tj
+-50 -14 Td
+50 482 Td (Lower Bound = 4.45 - 1.5\(0.1000\) = 4.3000) Tj
+-50 -14 Td
+50 468 Td (Upper Bound = 4.55 + 1.5\(0.1000\) = 4.7000) Tj
+-50 -14 Td
+50 454 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 440 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 426 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 412 Td ("A researcher claims that the performance efficiency of the Barangay Service and Complaint) Tj
+-50 -14 Td
+50 398 Td (Management System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean) Tj
+-50 -14 Td
+50 384 Td (\(4.4933\) and SD \(0.0513\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 370 Td (Hypotheses) Tj
+-50 -14 Td
+50 356 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 342 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 328 Td (SE = s / sqrtn = 0.0513 / sqrt3 = 0.0296) Tj
+-50 -14 Td
+50 314 Td (t = \(xbar - mu\) / SE = \(4.4933 - 4.50\) / 0.0296 = -0.2250) Tj
+-50 -14 Td
+50 300 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 286 Td (Computed t = -0.2250) Tj
+-50 -14 Td
+50 272 Td (Since |-0.2250| < 4.3027,) Tj
+-50 -14 Td
+50 258 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 244 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 230 Td (performance efficiency rating significantly differs from 4.5. Therefore, respondents) Tj
+-50 -14 Td
+50 216 Td (evaluated the performance efficiency of the system as highly acceptable with a mean of) Tj
+-50 -14 Td
+50 202 Td (4.4933.) Tj
+-50 -14 Td
+50 188 Td (COMPATIBILITY) Tj
+-50 -14 Td
+50 174 Td (DATA SET) Tj
+-50 -14 Td
+50 160 Td (Q1: 4.68) Tj
+-50 -14 Td
+50 146 Td (Q2: 4.58) Tj
+-50 -14 Td
+50 132 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 2595 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (MEAN) Tj
+-50 -14 Td
+50 776 Td (\(4.68 + 4.58\) / 2) Tj
+-50 -14 Td
+50 762 Td (= 9.26 / 2) Tj
+-50 -14 Td
+50 748 Td (= 4.6300) Tj
+-50 -14 Td
+50 734 Td (MEDIAN) Tj
+-50 -14 Td
+50 720 Td (Arranged Data: 4.58, 4.68) Tj
+-50 -14 Td
+50 706 Td (= 4.6300) Tj
+-50 -14 Td
+50 692 Td (MODE) Tj
+-50 -14 Td
+50 678 Td (= NO MODE) Tj
+-50 -14 Td
+50 664 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 650 Td (Since the Mean \(4.6300\) and Median \(4.6300\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 636 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 622 Td (CT = Mean = 4.6300) Tj
+-50 -14 Td
+50 608 Td (RANGE) Tj
+-50 -14 Td
+50 594 Td (4.68 - 4.58 = 0.1000) Tj
+-50 -14 Td
+50 580 Td (IQR) Tj
+-50 -14 Td
+50 566 Td (Arranged Data: 4.58, 4.68) Tj
+-50 -14 Td
+50 552 Td (Q1 = 4.58) Tj
+-50 -14 Td
+50 538 Td (Q3 = 4.68) Tj
+-50 -14 Td
+50 524 Td (IQR = Q3 - Q1 = 4.68 - 4.58 = 0.1000) Tj
+-50 -14 Td
+50 510 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 496 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 482 Td (Q1 4.68 4.6300 0.0500 0.0025) Tj
+-50 -14 Td
+50 468 Td (Q2 4.58 4.6300 -0.0500 0.0025) Tj
+-50 -14 Td
+50 454 Td (TOTAL 0.0050) Tj
+-50 -14 Td
+50 440 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 426 Td (s^2 = 0.0050 / 1 = 0.0050) Tj
+-50 -14 Td
+50 412 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 398 Td (s = 0.0707) Tj
+-50 -14 Td
+50 384 Td (OUTLIERS) Tj
+-50 -14 Td
+50 370 Td (Lower Bound = 4.58 - 1.5\(0.1000\) = 4.4300) Tj
+-50 -14 Td
+50 356 Td (Upper Bound = 4.68 + 1.5\(0.1000\) = 4.8300) Tj
+-50 -14 Td
+50 342 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 328 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 314 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 300 Td ("A researcher claims that the compatibility of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 286 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.6300\) and) Tj
+-50 -14 Td
+50 272 Td (SD \(0.0707\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 258 Td (Hypotheses) Tj
+-50 -14 Td
+50 244 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 230 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 216 Td (SE = s / sqrtn = 0.0707 / sqrt2 = 0.0500) Tj
+-50 -14 Td
+50 202 Td (t = \(xbar - mu\) / SE = \(4.6300 - 4.50\) / 0.0500 = 2.6000) Tj
+-50 -14 Td
+50 188 Td (Critical Value \(alpha = 0.05, df = 1\) = +/-12.7062) Tj
+-50 -14 Td
+50 174 Td (Computed t = 2.6000) Tj
+-50 -14 Td
+50 160 Td (Since |2.6000| < 12.7062,) Tj
+-50 -14 Td
+50 146 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 132 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 2543 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (compatibility rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 776 Td (compatibility of the system as highly acceptable with a mean of 4.6300.) Tj
+-50 -14 Td
+50 762 Td (SECURITY) Tj
+-50 -14 Td
+50 748 Td (DATA SET) Tj
+-50 -14 Td
+50 734 Td (Q1: 4.43) Tj
+-50 -14 Td
+50 720 Td (Q2: 4.52) Tj
+-50 -14 Td
+50 706 Td (Q3: 4.63) Tj
+-50 -14 Td
+50 692 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 678 Td (MEAN) Tj
+-50 -14 Td
+50 664 Td (\(4.43 + 4.52 + 4.63\) / 3) Tj
+-50 -14 Td
+50 650 Td (= 13.58 / 3) Tj
+-50 -14 Td
+50 636 Td (= 4.5267) Tj
+-50 -14 Td
+50 622 Td (MEDIAN) Tj
+-50 -14 Td
+50 608 Td (Arranged Data: 4.43, 4.52, 4.63) Tj
+-50 -14 Td
+50 594 Td (= 4.5200) Tj
+-50 -14 Td
+50 580 Td (MODE) Tj
+-50 -14 Td
+50 566 Td (= NO MODE) Tj
+-50 -14 Td
+50 552 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 538 Td (Since the Mean \(4.5267\) and Median \(4.5200\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 524 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 510 Td (CT = Mean = 4.5267) Tj
+-50 -14 Td
+50 496 Td (RANGE) Tj
+-50 -14 Td
+50 482 Td (4.63 - 4.43 = 0.2000) Tj
+-50 -14 Td
+50 468 Td (IQR) Tj
+-50 -14 Td
+50 454 Td (Arranged Data: 4.43, 4.52, 4.63) Tj
+-50 -14 Td
+50 440 Td (Q1 = 4.43) Tj
+-50 -14 Td
+50 426 Td (Q3 = 4.63) Tj
+-50 -14 Td
+50 412 Td (IQR = Q3 - Q1 = 4.63 - 4.43 = 0.2000) Tj
+-50 -14 Td
+50 398 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 384 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 370 Td (Q1 4.43 4.5267 -0.0967 0.0093) Tj
+-50 -14 Td
+50 356 Td (Q2 4.52 4.5267 -0.0067 0.0000) Tj
+-50 -14 Td
+50 342 Td (Q3 4.63 4.5267 0.1033 0.0107) Tj
+-50 -14 Td
+50 328 Td (TOTAL 0.0201) Tj
+-50 -14 Td
+50 314 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 300 Td (s^2 = 0.0201 / 2 = 0.0100) Tj
+-50 -14 Td
+50 286 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 272 Td (s = 0.1002) Tj
+-50 -14 Td
+50 258 Td (OUTLIERS) Tj
+-50 -14 Td
+50 244 Td (Lower Bound = 4.43 - 1.5\(0.2000\) = 4.1300) Tj
+-50 -14 Td
+50 230 Td (Upper Bound = 4.63 + 1.5\(0.2000\) = 4.9300) Tj
+-50 -14 Td
+50 216 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 202 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 188 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 174 Td ("A researcher claims that the security of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 160 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.5267\) and) Tj
+-50 -14 Td
+50 146 Td (SD \(0.1002\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 132 Td (Hypotheses) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 2475 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 776 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 762 Td (SE = s / sqrtn = 0.1002 / sqrt3 = 0.0578) Tj
+-50 -14 Td
+50 748 Td (t = \(xbar - mu\) / SE = \(4.5267 - 4.50\) / 0.0578 = 0.4611) Tj
+-50 -14 Td
+50 734 Td (Critical Value \(alpha = 0.05, df = 2\) = +/-4.3027) Tj
+-50 -14 Td
+50 720 Td (Computed t = 0.4611) Tj
+-50 -14 Td
+50 706 Td (Since |0.4611| < 4.3027,) Tj
+-50 -14 Td
+50 692 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 678 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 664 Td (security rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 650 Td (security of the system as highly acceptable with a mean of 4.5267.) Tj
+-50 -14 Td
+50 636 Td (MAINTAINABILITY) Tj
+-50 -14 Td
+50 622 Td (DATA SET) Tj
+-50 -14 Td
+50 608 Td (Q1: 4.58) Tj
+-50 -14 Td
+50 594 Td (Q2: 4.6) Tj
+-50 -14 Td
+50 580 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 566 Td (MEAN) Tj
+-50 -14 Td
+50 552 Td (\(4.58 + 4.6\) / 2) Tj
+-50 -14 Td
+50 538 Td (= 9.18 / 2) Tj
+-50 -14 Td
+50 524 Td (= 4.5900) Tj
+-50 -14 Td
+50 510 Td (MEDIAN) Tj
+-50 -14 Td
+50 496 Td (Arranged Data: 4.58, 4.6) Tj
+-50 -14 Td
+50 482 Td (= 4.5900) Tj
+-50 -14 Td
+50 468 Td (MODE) Tj
+-50 -14 Td
+50 454 Td (= NO MODE) Tj
+-50 -14 Td
+50 440 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 426 Td (Since the Mean \(4.5900\) and Median \(4.5900\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 412 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 398 Td (CT = Mean = 4.5900) Tj
+-50 -14 Td
+50 384 Td (RANGE) Tj
+-50 -14 Td
+50 370 Td (4.6 - 4.58 = 0.0200) Tj
+-50 -14 Td
+50 356 Td (IQR) Tj
+-50 -14 Td
+50 342 Td (Arranged Data: 4.58, 4.6) Tj
+-50 -14 Td
+50 328 Td (Q1 = 4.58) Tj
+-50 -14 Td
+50 314 Td (Q3 = 4.6) Tj
+-50 -14 Td
+50 300 Td (IQR = Q3 - Q1 = 4.6 - 4.58 = 0.0200) Tj
+-50 -14 Td
+50 286 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 272 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 258 Td (Q1 4.58 4.5900 -0.0100 0.0001) Tj
+-50 -14 Td
+50 244 Td (Q2 4.6 4.5900 0.0100 0.0001) Tj
+-50 -14 Td
+50 230 Td (TOTAL 0.0002) Tj
+-50 -14 Td
+50 216 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 202 Td (s^2 = 0.0002 / 1 = 0.0002) Tj
+-50 -14 Td
+50 188 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 174 Td (s = 0.0141) Tj
+-50 -14 Td
+50 160 Td (OUTLIERS) Tj
+-50 -14 Td
+50 146 Td (Lower Bound = 4.58 - 1.5\(0.0200\) = 4.5500) Tj
+-50 -14 Td
+50 132 Td (Upper Bound = 4.6 + 1.5\(0.0200\) = 4.6300) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 2661 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 776 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 762 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 748 Td ("A researcher claims that the maintainability of the Barangay Service and Complaint) Tj
+-50 -14 Td
+50 734 Td (Management System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean) Tj
+-50 -14 Td
+50 720 Td (\(4.5900\) and SD \(0.0141\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 706 Td (Hypotheses) Tj
+-50 -14 Td
+50 692 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 678 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 664 Td (SE = s / sqrtn = 0.0141 / sqrt2 = 0.0100) Tj
+-50 -14 Td
+50 650 Td (t = \(xbar - mu\) / SE = \(4.5900 - 4.50\) / 0.0100 = 9.0000) Tj
+-50 -14 Td
+50 636 Td (Critical Value \(alpha = 0.05, df = 1\) = +/-12.7062) Tj
+-50 -14 Td
+50 622 Td (Computed t = 9.0000) Tj
+-50 -14 Td
+50 608 Td (Since |9.0000| < 12.7062,) Tj
+-50 -14 Td
+50 594 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 580 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 566 Td (maintainability rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 552 Td (maintainability of the system as highly acceptable with a mean of 4.5900.) Tj
+-50 -14 Td
+50 538 Td (PORTABILITY) Tj
+-50 -14 Td
+50 524 Td (DATA SET) Tj
+-50 -14 Td
+50 510 Td (Q1: 4.55) Tj
+-50 -14 Td
+50 496 Td (Q2: 4.52) Tj
+-50 -14 Td
+50 482 Td (MEASURE OF CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 468 Td (MEAN) Tj
+-50 -14 Td
+50 454 Td (\(4.55 + 4.52\) / 2) Tj
+-50 -14 Td
+50 440 Td (= 9.07 / 2) Tj
+-50 -14 Td
+50 426 Td (= 4.5350) Tj
+-50 -14 Td
+50 412 Td (MEDIAN) Tj
+-50 -14 Td
+50 398 Td (Arranged Data: 4.52, 4.55) Tj
+-50 -14 Td
+50 384 Td (= 4.5350) Tj
+-50 -14 Td
+50 370 Td (MODE) Tj
+-50 -14 Td
+50 356 Td (= NO MODE) Tj
+-50 -14 Td
+50 342 Td (SHAPE DISTRIBUTION) Tj
+-50 -14 Td
+50 328 Td (Since the Mean \(4.5350\) and Median \(4.5350\) are close, the distribution is symmetrical.) Tj
+-50 -14 Td
+50 314 Td (CENTRAL TENDENCY) Tj
+-50 -14 Td
+50 300 Td (CT = Mean = 4.5350) Tj
+-50 -14 Td
+50 286 Td (RANGE) Tj
+-50 -14 Td
+50 272 Td (4.55 - 4.52 = 0.0300) Tj
+-50 -14 Td
+50 258 Td (IQR) Tj
+-50 -14 Td
+50 244 Td (Arranged Data: 4.52, 4.55) Tj
+-50 -14 Td
+50 230 Td (Q1 = 4.52) Tj
+-50 -14 Td
+50 216 Td (Q3 = 4.55) Tj
+-50 -14 Td
+50 202 Td (IQR = Q3 - Q1 = 4.55 - 4.52 = 0.0300) Tj
+-50 -14 Td
+50 188 Td (STANDARD DEVIATION TABLE) Tj
+-50 -14 Td
+50 174 Td (QUESTION xi u xi - u \(xi - u\)^2) Tj
+-50 -14 Td
+50 160 Td (Q1 4.55 4.5350 0.0150 0.0002) Tj
+-50 -14 Td
+50 146 Td (Q2 4.52 4.5350 -0.0150 0.0002) Tj
+-50 -14 Td
+50 132 Td (TOTAL 0.0005) Tj
+-50 -14 Td
+ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Length 2459 >>
+stream
+BT
+/F1 9 Tf
+14 TL
+50 790 Td (SAMPLE VARIANCE) Tj
+-50 -14 Td
+50 776 Td (s^2 = 0.0005 / 1 = 0.0005) Tj
+-50 -14 Td
+50 762 Td (STANDARD DEVIATION) Tj
+-50 -14 Td
+50 748 Td (s = 0.0212) Tj
+-50 -14 Td
+50 734 Td (OUTLIERS) Tj
+-50 -14 Td
+50 720 Td (Lower Bound = 4.52 - 1.5\(0.0300\) = 4.4750) Tj
+-50 -14 Td
+50 706 Td (Upper Bound = 4.55 + 1.5\(0.0300\) = 4.5950) Tj
+-50 -14 Td
+50 692 Td (All items fall inside the bounds. = NO OUTLIERS) Tj
+-50 -14 Td
+50 678 Td (HYPOTHESIS TESTING) Tj
+-50 -14 Td
+50 664 Td (Problem Statement \(Claim\)) Tj
+-50 -14 Td
+50 650 Td ("A researcher claims that the portability of the Barangay Service and Complaint Management) Tj
+-50 -14 Td
+50 636 Td (System for Barangay Mambog II has a mean rating of 4.5. Using the computed mean \(4.5350\) and) Tj
+-50 -14 Td
+50 622 Td (SD \(0.0212\), test at alpha = 0.05.") Tj
+-50 -14 Td
+50 608 Td (Hypotheses) Tj
+-50 -14 Td
+50 594 Td (H0: mu = 4.50) Tj
+-50 -14 Td
+50 580 Td (H1: mu 4.50) Tj
+-50 -14 Td
+50 566 Td (SE = s / sqrtn = 0.0212 / sqrt2 = 0.0150) Tj
+-50 -14 Td
+50 552 Td (t = \(xbar - mu\) / SE = \(4.5350 - 4.50\) / 0.0150 = 2.3333) Tj
+-50 -14 Td
+50 538 Td (Critical Value \(alpha = 0.05, df = 1\) = +/-12.7062) Tj
+-50 -14 Td
+50 524 Td (Computed t = 2.3333) Tj
+-50 -14 Td
+50 510 Td (Since |2.3333| < 12.7062,) Tj
+-50 -14 Td
+50 496 Td (Fail to Reject H0) Tj
+-50 -14 Td
+50 482 Td (At the 0.05 level of significance, there is insufficient evidence to conclude that the) Tj
+-50 -14 Td
+50 468 Td (portability rating significantly differs from 4.5. Therefore, respondents evaluated the) Tj
+-50 -14 Td
+50 454 Td (portability of the system as highly acceptable with a mean of 4.5350.) Tj
+-50 -14 Td
+50 440 Td (SUMMARY OF RESULTS) Tj
+-50 -14 Td
+50 426 Td (Category n Mean SD t-stat Decision) Tj
+-50 -14 Td
+50 412 Td (FUNCTIONALITY 3 4.5700 0.0854 1.4190 Fail to Reject H0) Tj
+-50 -14 Td
+50 398 Td (RELIABILITY 3 4.5333 0.0153 3.7796 Fail to Reject H0) Tj
+-50 -14 Td
+50 384 Td (USABILITY 3 4.6167 0.0153 13.2288 Reject H0) Tj
+-50 -14 Td
+50 370 Td (PERFORMANCE EFFICIENCY 3 4.4933 0.0513 -0.2250 Fail to Reject H0) Tj
+-50 -14 Td
+50 356 Td (COMPATIBILITY 2 4.6300 0.0707 2.6000 Fail to Reject H0) Tj
+-50 -14 Td
+50 342 Td (SECURITY 3 4.5267 0.1002 0.4611 Fail to Reject H0) Tj
+-50 -14 Td
+50 328 Td (MAINTAINABILITY 2 4.5900 0.0141 9.0000 Fail to Reject H0) Tj
+-50 -14 Td
+50 314 Td (PORTABILITY 2 4.5350 0.0212 2.3333 Fail to Reject H0) Tj
+-50 -14 Td
+50 300 Td () Tj
+-50 -14 Td
+50 286 Td () Tj
+-50 -14 Td
+ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 22 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R] /Count 10 >>
+endobj
+23 0 obj
+<< /Type /Catalog /Pages 22 0 R >>
+endobj
+xref
+0 24
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000002693 00000 n 
+0000002820 00000 n 
+0000005437 00000 n 
+0000005564 00000 n 
+0000008243 00000 n 
+0000008370 00000 n 
+0000011163 00000 n 
+0000011290 00000 n 
+0000014131 00000 n 
+0000014260 00000 n 
+0000016908 00000 n 
+0000017037 00000 n 
+0000019633 00000 n 
+0000019762 00000 n 
+0000022290 00000 n 
+0000022419 00000 n 
+0000025133 00000 n 
+0000025262 00000 n 
+0000027774 00000 n 
+0000027903 00000 n 
+0000028022 00000 n 
+trailer
+<< /Size 24 /Root 23 0 R >>
+startxref
+28073
+%%EOF

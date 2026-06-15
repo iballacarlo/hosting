@@ -1066,3 +1066,55 @@ html.dark .edit-time-warning{
 html.dark .delete-modal-message{
   color: var(--muted, #d1d5db);
 }
+
+/* =========================
+   Pagination
+========================= */
+
+.pagination-bar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 2px 0;
+  color: var(--muted, #6b7280);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.pagination-actions{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn{
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: rgba(37, 99, 235, 0.08);
+  color: rgb(29, 78, 216);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pagination-btn:disabled{
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination-page{
+  min-width: 96px;
+  text-align: center;
+}
+
+@media(max-width:640px){
+  .pagination-bar{
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination-actions{
+    justify-content: space-between;
+  }
+}

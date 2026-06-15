@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
 import { formatResidentId, getDocumentReference } from '../utils/idFormat'
+import Pagination, { paginateItems } from '../components/Pagination'
 
 const EDIT_DOCUMENT_TYPES = sortTextAsc([
   'Barangay Clearance',
@@ -27,17 +28,18 @@ export default function DocumentHistory(){
   const [editFormData, setEditFormData] = useState({})
   const [editTimeExceeded, setEditTimeExceeded] = useState(false)
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({show: false, docId: null, doc: null})
-  const [receivedConfirmModal, setReceivedConfirmModal] = useState({show: false})
   const [previewDocument, setPreviewDocument] = useState(null)
+  const [activePage, setActivePage] = useState(1)
+  const [completedPage, setCompletedPage] = useState(1)
   const selectedDocumentRef = useRef(null)
   const deleteConfirmRef = useRef(null)
-  const receivedConfirmRef = useRef(null)
   const previewDocumentRef = useRef(null)
   const { user: authUser, loading: authLoading } = useAuth()
   const currentUser = authUser
   const maxBirthdate = new Date().toISOString().split('T')[0]
 
-  const isCompletedDocument = (status = '') => ['released', 'received', 'rejected', 'denied'].includes(String(status).toLowerCase())
+  const isCompletedDocument = (status = '') => ['received', 'rejected', 'denied'].includes(String(status).toLowerCase())
+  const isLockedDeleteStatus = (status = '') => ['released', 'received', 'rejected', 'denied'].includes(String(status).toLowerCase())
   const isReadyForPickup = (status = '') => {
     const value = String(status || '').toLowerCase()
     return value.includes('ready') || value.includes('released')
@@ -64,6 +66,13 @@ export default function DocumentHistory(){
   })
   const activeList = list.filter(item => !isCompletedDocument(item.status))
   const completedList = list.filter(item => isCompletedDocument(item.status))
+  const activePagination = paginateItems(activeList, activePage)
+  const completedPagination = paginateItems(completedList, completedPage)
+
+  useEffect(() => {
+    setActivePage(1)
+    setCompletedPage(1)
+  }, [filter, q])
 
   const getOwnerId = (item) => {
     if(!item) return null
@@ -80,7 +89,7 @@ export default function DocumentHistory(){
     const currentUserId = Number(currentUser?.id ?? currentUser?.user_id ?? currentUser?.userId)
     const isOwner = !Number.isNaN(ownerId) && !Number.isNaN(currentUserId) && ownerId === currentUserId
     const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'staff'
-    return isOwner || isAdmin
+    return (isOwner || isAdmin) && !isLockedDeleteStatus(doc?.status)
   }
 
   const getDocumentId = (doc) => {
@@ -180,7 +189,6 @@ export default function DocumentHistory(){
 
   useCloseOnEscape(Boolean(selectedDocument), closeModal, selectedDocumentRef)
   useCloseOnEscape(deleteConfirmModal.show, cancelDeleteDocument, deleteConfirmRef)
-  useCloseOnEscape(receivedConfirmModal.show, () => setReceivedConfirmModal({show: false}), receivedConfirmRef)
   useCloseOnEscape(Boolean(previewDocument), () => setPreviewDocument(null), previewDocumentRef)
 
   const handleEditClick = () => {
@@ -240,39 +248,6 @@ export default function DocumentHistory(){
     setEditFormData({})
   }
 
-  const openReceivedConfirm = () => {
-    setReceivedConfirmModal({show: true})
-  }
-
-  const handleMarkReceived = async () => {
-    const currentUser = authUser
-    if(!currentUser){
-      alert('Not authenticated')
-      setReceivedConfirmModal({show: false})
-      return
-    }
-
-    const status = selectedDocument?.status || ''
-    if(!String(status).toLowerCase().includes('released')){
-      alert('Document is not released')
-      setReceivedConfirmModal({show: false})
-      return
-    }
-
-    try {
-      await api.patch(`/docs/${selectedDocument.request_id}`, { status: 'Received' })
-      const saved = { ...selectedDocument, status: 'Received' }
-      const updatedData = data.map(d => d.request_id === selectedDocument.request_id ? saved : d)
-      setData(updatedData)
-      setSelectedDocument(saved)
-
-      setReceivedConfirmModal({show: false})
-    } catch(err){
-      alert(err?.response?.data?.message || 'Failed to mark as received')
-      setReceivedConfirmModal({show: false})
-    }
-  }
-
   return (
     <div className="app-shell">
       <Sidebar />
@@ -289,7 +264,7 @@ export default function DocumentHistory(){
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
               >
-                {withAllFirst(['Submitted', 'Requested', 'Processing', 'Ready', 'Released', 'Received', 'Rejected']).map(option => (
+                {withAllFirst(['Submitted', 'Released', 'Received', 'Rejected']).map(option => (
                   <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
                 ))}
               </select>
@@ -325,7 +300,7 @@ export default function DocumentHistory(){
                     </tr>
                   </thead>
                   <tbody>
-                    {activeList.map(d => (
+                    {activePagination.pageItems.map(d => (
                       <tr key={documentIdToString(getDocumentId(d)) || d.reference_number || d.id}>
                         <td>{getDocumentReference(d)}</td>
                         <td>{d.name || d.full_name || formatResidentId(d.resident_id) || '—'}</td>
@@ -353,6 +328,14 @@ export default function DocumentHistory(){
                   </tbody>
                   </table>
                 </div>
+                <Pagination
+                  page={activePagination.safePage}
+                  totalPages={activePagination.totalPages}
+                  totalItems={activeList.length}
+                  start={activePagination.start}
+                  end={activePagination.end}
+                  onPageChange={setActivePage}
+                />
               </section>
             )}
             {completedList.length > 0 && (
@@ -371,7 +354,7 @@ export default function DocumentHistory(){
                       </tr>
                     </thead>
                     <tbody>
-                      {completedList.map(d => (
+                      {completedPagination.pageItems.map(d => (
                         <tr key={`completed-${documentIdToString(getDocumentId(d)) || d.reference_number || d.id}`}>
                           <td>{getDocumentReference(d)}</td>
                           <td>{d.name || d.full_name || formatResidentId(d.resident_id) || '—'}</td>
@@ -399,6 +382,14 @@ export default function DocumentHistory(){
                     </tbody>
                   </table>
                 </div>
+                <Pagination
+                  page={completedPagination.safePage}
+                  totalPages={completedPagination.totalPages}
+                  totalItems={completedList.length}
+                  start={completedPagination.start}
+                  end={completedPagination.end}
+                  onPageChange={setCompletedPage}
+                />
               </section>
             )}
             </>
@@ -497,17 +488,6 @@ export default function DocumentHistory(){
                         </button>
                       )}
 
-                      {String(selectedDocument.status || '').toLowerCase().includes('released') && (
-                        <button
-                          className="modal-action-btn modal-action-received mobile-checkmark"
-                          onClick={openReceivedConfirm}
-                          type="button"
-                          aria-label="Mark Received"
-                        >
-                          <span className="mobile-icon" aria-hidden="true">✓</span>
-                          <span className="mobile-label">Mark Received</span>
-                        </button>
-                      )}
 
                       <button 
                         className="modal-action-btn modal-action-edit"
@@ -692,39 +672,6 @@ export default function DocumentHistory(){
                     type="button"
                   >
                     Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* RECEIVED CONFIRMATION MODAL */}
-          {receivedConfirmModal.show && (
-            <div
-              className="modal-overlay"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Confirm received document"
-              onClick={() => setReceivedConfirmModal({show: false})}
-            >
-              <div className="modal-card confirm-delete-modal" ref={receivedConfirmRef} onClick={(e) => e.stopPropagation()}>
-                <h2 className="modal-title">Mark Document as Received?</h2>
-                <p className="delete-modal-message">Are you sure you want to mark this document as received? Administrators will be notified.</p>
-
-                <div className="modal-actions confirm-actions">
-                  <button 
-                    className="modal-action-btn modal-action-cancel"
-                    onClick={() => setReceivedConfirmModal({show: false})}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    className="modal-action-btn modal-action-received"
-                    onClick={handleMarkReceived}
-                    type="button"
-                  >
-                    Mark Received
                   </button>
                 </div>
               </div>

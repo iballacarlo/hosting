@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortCategories, withAllFirst } from '../utils/sortOptions'
 import { formatResidentId, getComplaintReference } from '../utils/idFormat'
+import Pagination, { paginateItems } from '../components/Pagination'
 
 export default function ComplaintHistory(){
 
@@ -24,6 +25,8 @@ export default function ComplaintHistory(){
   const [editRemovedAttachmentIds, setEditRemovedAttachmentIds] = useState([])
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({show: false, complaintId: null, complaint: null})
   const [categories, setCategories] = useState([])
+  const [activePage, setActivePage] = useState(1)
+  const [completedPage, setCompletedPage] = useState(1)
   const selectedComplaintRef = useRef(null)
   const expandedMediaPreviewRef = useRef(null)
   const deleteConfirmRef = useRef(null)
@@ -423,6 +426,13 @@ export default function ComplaintHistory(){
   )
   const activeList = list.filter(item => !isCompletedComplaint(item.status))
   const completedList = list.filter(item => isCompletedComplaint(item.status))
+  const activePagination = paginateItems(activeList, activePage)
+  const completedPagination = paginateItems(completedList, completedPage)
+
+  useEffect(() => {
+    setActivePage(1)
+    setCompletedPage(1)
+  }, [filter, q])
 
   return (
     <div className="app-shell">
@@ -476,7 +486,7 @@ export default function ComplaintHistory(){
                     </tr>
                   </thead>
                   <tbody>
-                    {activeList.map(r => (
+                    {activePagination.pageItems.map(r => (
                       <tr key={complaintIdToString(getComplaintId(r)) || r.ref || r.id}>
                         <td>{getComplaintReference(r)}</td>
                         <td>{r.resident_name || r.name || formatResidentId(r.resident_id) || '—'}</td>
@@ -504,6 +514,14 @@ export default function ComplaintHistory(){
                   </tbody>
                   </table>
                 </div>
+                <Pagination
+                  page={activePagination.safePage}
+                  totalPages={activePagination.totalPages}
+                  totalItems={activeList.length}
+                  start={activePagination.start}
+                  end={activePagination.end}
+                  onPageChange={setActivePage}
+                />
               </section>
             )}
             {completedList.length > 0 && (
@@ -522,7 +540,7 @@ export default function ComplaintHistory(){
                       </tr>
                     </thead>
                     <tbody>
-                      {completedList.map(r => (
+                      {completedPagination.pageItems.map(r => (
                         <tr key={`completed-${complaintIdToString(getComplaintId(r)) || r.ref || r.id}`}>
                           <td>{getComplaintReference(r)}</td>
                           <td>{r.resident_name || r.name || formatResidentId(r.resident_id) || '—'}</td>
@@ -550,6 +568,14 @@ export default function ComplaintHistory(){
                     </tbody>
                   </table>
                 </div>
+                <Pagination
+                  page={completedPagination.safePage}
+                  totalPages={completedPagination.totalPages}
+                  totalItems={completedList.length}
+                  start={completedPagination.start}
+                  end={completedPagination.end}
+                  onPageChange={setCompletedPage}
+                />
               </section>
             )}
             </>
@@ -660,11 +686,6 @@ export default function ComplaintHistory(){
                         </div>
                       </div>
                     )}
-
-                    <div className="complaint-detail-row">
-                      <span className="detail-label">Anonymous:</span>
-                      <span className="detail-value">{Number(selectedComplaint.anonymous) === 1 || selectedComplaint.anonymous === true ? 'Yes' : 'No'}</span>
-                    </div>
 
                     {!isEditableStatus(selectedComplaint.status) && (
                       <div className="edit-time-warning">

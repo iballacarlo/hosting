@@ -22,8 +22,14 @@ const getUserFullName = (user) => {
   return parts.join(' ')
 }
 
+const getTodayInputValue = () => {
+  const today = new Date()
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+}
+
 export default function ComplaintForm(){
   const { user } = useAuth()
+  const todayInputValue = getTodayInputValue()
   const [categories, setCategories] = useState([])
   const [form, setForm] = useState({
     resident_name: '',
@@ -31,8 +37,7 @@ export default function ComplaintForm(){
     title: '',
     description: '',
     location: '',
-    date: '',
-    anonymous: false,
+    date: todayInputValue,
     images: [], // Changed from image to images array
     respondent_name: '',
   })
@@ -44,9 +49,6 @@ export default function ComplaintForm(){
     if(!value || Number.isNaN(date.getTime())) return ''
     return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}/${date.getFullYear()}`
   }
-  // Allow current date and past dates, prevent future dates
-  const today = new Date()
-  const maxComplaintDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [previews, setPreviews] = useState([]) // Store preview URLs
   const [expandedPreview, setExpandedPreview] = useState(null) // For expanded view
@@ -149,19 +151,8 @@ export default function ComplaintForm(){
     if(!form.category) e.category = 'Category required'
     if(!form.title) e.title = 'Title required'
     if(!form.description) e.description = 'Description required'
-    if(!form.date) {
-      e.date = 'Date is required'
-    } else {
-      const selectedDate = new Date(form.date)
-      const today = new Date()
-      // Set to end of today to allow the current date
-      const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999)
-      
-      if(Number.isNaN(selectedDate.getTime())) {
-        e.date = 'Date must be valid'
-      } else if(selectedDate > endOfToday) {
-        e.date = 'Date cannot be in the future. Only current date and past dates are allowed.'
-      }
+    if(form.date !== todayInputValue) {
+      e.date = 'Date is automatically set to today.'
     }
     setErrors(e)
     return Object.keys(e).length === 0
@@ -197,8 +188,7 @@ export default function ComplaintForm(){
     payload.append('title', form.title)
     payload.append('description', form.description)
     payload.append('incident_location', form.location)
-    payload.append('incident_date', form.date || '')
-    payload.append('anonymous', form.anonymous ? '1' : '0')
+    payload.append('incident_date', todayInputValue)
     payload.append('respondent_name', form.respondent_name)
     payload.append('resident_name', residentName)
 
@@ -347,9 +337,11 @@ export default function ComplaintForm(){
                 <input
                   className={`ui-input ${errors.date ? 'ui-error' : ''}`}
                   type="date"
-                  max={maxComplaintDate}
-                  value={form.date}
-                  onChange={e => setField('date', e.target.value)}
+                  min={todayInputValue}
+                  max={todayInputValue}
+                  value={todayInputValue}
+                  readOnly
+                  disabled
                 />
                 {errors.date && <div className="field-error">{errors.date}</div>}
               </div>
@@ -416,19 +408,6 @@ export default function ComplaintForm(){
                   )}
                 </div>
                 <div className="helper">Optional. You can attach multiple evidence files (photos/videos). Max 10MB each.</div>
-              </div>
-
-              {/* Anonymous */}
-              <label className="form-label">Anonymous</label>
-              <div className="form-field">
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={form.anonymous}
-                    onChange={e => setField('anonymous', e.target.checked)}
-                  />
-                  <span>Submit anonymously</span>
-                </label>
               </div>
             </div>
 
