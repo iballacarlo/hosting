@@ -69,6 +69,7 @@ export default function DocumentPreview({ document, fields: suppliedFields }){
             <div>Date Issued: {new Date().toLocaleDateString('en-US')}</div>
             <div className="resident-doc-preview-signature">
               <div>_________________________</div>
+              <div><strong>Ogel Pilar</strong></div>
               <div>Barangay Captain</div>
             </div>
           </div>

@@ -1794,11 +1794,11 @@ if($uri === '/complaints'){
 
     if($user['role'] === 'staff'){
       $stmt = $pdo->query(getComplaintSelectSql());
-      $rows = maskAnonymousComplaints($stmt->fetchAll(), true);
+      $rows = $stmt->fetchAll();
     } else {
       $stmt = $pdo->prepare(getComplaintSelectSql('WHERE c.resident_id = ?'));
       $stmt->execute([$user['id']]);
-      $rows = maskAnonymousComplaints($stmt->fetchAll(), false);
+      $rows = $stmt->fetchAll();
     }
 
     $rows = attachComplaintMedia($pdo, $rows);
@@ -1814,13 +1814,12 @@ if($uri === '/complaints'){
     } else {
       $data = json_decode(file_get_contents('php://input'), true) ?: [];
     }
-    $stmt = $pdo->prepare('INSERT INTO Complaint (resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, anonymous, respondent_name, status, date_submitted, date_updated) VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, "Submitted", NOW(), NOW())');
-    $stmt->execute([$user['id'], $data['category_id'] ?? null, $data['title'] ?? '', $data['description'] ?? '', $data['incident_location'] ?? '', $data['incident_date'] ?? null, !empty($data['anonymous']) ? 1 : 0, $data['respondent_name'] ?? null]);
+    $stmt = $pdo->prepare('INSERT INTO Complaint (resident_id, category_id, assigned_staff_id, title, description, incident_location, incident_date, anonymous, respondent_name, status, date_submitted, date_updated) VALUES (?, ?, NULL, ?, ?, ?, CURDATE(), 0, ?, "Submitted", NOW(), NOW())');
+    $stmt->execute([$user['id'], $data['category_id'] ?? null, $data['title'] ?? '', $data['description'] ?? '', $data['incident_location'] ?? '', $data['respondent_name'] ?? null]);
     $complaintId = $pdo->lastInsertId();
     saveComplaintUploads($pdo, $complaintId);
 
-    $isAnonymous = !empty($data['anonymous']);
-    $authorName = $isAnonymous ? 'Anonymous' : (trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: ($user['email'] ?? 'Resident'));
+    $authorName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: ($user['email'] ?? 'Resident');
     $message = 'New complaint submitted by ' . $authorName . ': ' . trim($data['title'] ?? $data['description'] ?? 'Complaint');
     if($message === ''){
       $message = 'New complaint submitted by ' . $authorName;
@@ -1864,7 +1863,18 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
   $vals = [];
   $statusUpdate = false;
   $newStatus = null;
-  if($user['role'] === 'staff' && isset($data['status'])){ $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status']; }
+  if($user['role'] === 'staff' && isset($data['status'])){
+    $allowedStatusOrder = ['submitted' => 0, 'pending' => 1, 'resolved' => 2, 'closed' => 3];
+    $currentStatusKey = strtolower(trim($existingComplaint['status'] ?? 'Submitted'));
+    $newStatusKey = strtolower(trim($data['status'] ?? ''));
+    if(!array_key_exists($newStatusKey, $allowedStatusOrder)){
+      json(['success'=>false,'message'=>'Invalid complaint status'], 400);
+    }
+    if(($allowedStatusOrder[$newStatusKey] ?? 0) < ($allowedStatusOrder[$currentStatusKey] ?? 0)){
+      json(['success'=>false,'message'=>'Complaint status cannot be moved back to a previous step.'], 400);
+    }
+    $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status'];
+  }
   if($user['role'] === 'staff' && isset($data['assigned_staff_id'])){ $fields[] = 'assigned_staff_id = ?'; $vals[] = $data['assigned_staff_id']; }
   if($user['role'] === 'staff' && isset($data['resolution_notes'])){ $fields[] = 'resolution_notes = ?'; $vals[] = $data['resolution_notes']; }
   if(isset($data['title'])){ $fields[] = 'title = ?'; $vals[] = $data['title']; }
@@ -1874,7 +1884,6 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
   if(isset($data['date'])){ $fields[] = 'incident_date = ?'; $vals[] = $data['date'] ?: null; }
   if(isset($data['incident_date'])){ $fields[] = 'incident_date = ?'; $vals[] = $data['incident_date'] ?: null; }
   if(isset($data['category_id'])){ $fields[] = 'category_id = ?'; $vals[] = $data['category_id']; }
-  if(isset($data['anonymous'])){ $fields[] = 'anonymous = ?'; $vals[] = !empty($data['anonymous']) ? 1 : 0; }
   if(isset($data['respondent_name'])){ $fields[] = 'respondent_name = ?'; $vals[] = $data['respondent_name']; }
   $removedAttachmentIds = [];
   if(isset($data['removed_attachment_ids'])){
@@ -1911,7 +1920,7 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
 
   $stmt = $pdo->prepare(getComplaintSelectSql('WHERE c.complaint_id = ?'));
   $stmt->execute([$id]);
-  $rows = attachComplaintMedia($pdo, maskAnonymousComplaints($stmt->fetchAll(), $user['role'] === 'staff'));
+  $rows = attachComplaintMedia($pdo, $stmt->fetchAll());
   json(['success'=>true,'data'=>$rows[0] ?? null]);
 }
 
@@ -2024,13 +2033,7 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   }
 
   $data = json_decode(file_get_contents('php://input'), true) ?: [];
-  $residentMarksReceived = $isOwner
-    && count($data) === 1
-    && isset($data['status'])
-    && strcasecmp($data['status'], 'Received') === 0
-    && strcasecmp($request['status'] ?? '', 'Released') === 0;
-
-  if($user['role'] !== 'staff' && !$residentMarksReceived){
+  if($user['role'] !== 'staff'){
     if(!$isOwner) json(['success'=>false,'message'=>'Forbidden'], 403);
     if(strcasecmp($request['status'] ?? '', 'Submitted') !== 0){
       json(['success'=>false,'message'=>'Cannot edit a document request that is already in process or completed.'], 403);
@@ -2047,7 +2050,12 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   $vals = [];
   $statusUpdate = false;
   $newStatus = null;
-  if(($user['role'] === 'staff' || $residentMarksReceived) && isset($data['status'])){ $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status']; }
+  if($user['role'] === 'staff' && isset($data['status'])){
+    if(strcasecmp($data['status'], 'Received') === 0 && strcasecmp($request['status'] ?? '', 'Released') !== 0){
+      json(['success'=>false,'message'=>'Only released document requests can be marked as received.'], 400);
+    }
+    $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status'];
+  }
   if($user['role'] === 'staff' && isset($data['processed_by'])){ $fields[] = 'processed_by = ?'; $vals[] = $data['processed_by']; }
   if(isset($data['name'])){ $fields[] = 'full_name = ?'; $vals[] = $data['name']; }
   if(isset($data['full_name'])){ $fields[] = 'full_name = ?'; $vals[] = $data['full_name']; }
@@ -2071,7 +2079,7 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
     if($request && !empty($request['resident_id'])){
       $label = trim($request['document_type'] ?: $request['reference_number'] ?: 'Document request');
       if(strcasecmp($newStatus, 'Received') === 0){
-        createNotification($pdo, null, 'Document request "' . $label . '" has been marked as received by the resident.', 'document_received');
+        createNotification($pdo, intval($request['resident_id']), 'Your document request "' . $label . '" has been marked as received.', 'document_status');
       } else {
         if(strcasecmp($newStatus, 'Released') === 0){
           $message = 'Your document request "' . $label . '" has been released and is ready for pickup at the barangay.';

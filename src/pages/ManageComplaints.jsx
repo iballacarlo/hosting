@@ -11,6 +11,7 @@ import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { withAllFirst } from '../utils/sortOptions'
 import { formatResidentId, getComplaintReference } from '../utils/idFormat'
 import { downloadTimestamp, safeDownloadPart } from '../utils/downloadNames'
+import Pagination, { paginateItems } from '../components/Pagination'
 
 export default function ManageComplaints(){
   const location = useLocation()
@@ -24,6 +25,8 @@ export default function ManageComplaints(){
   const [selectedForStatus, setSelectedForStatus] = useState(null)
   const [highlightedComplaintId, setHighlightedComplaintId] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, complaint: null })
+  const [activePage, setActivePage] = useState(1)
+  const [completedPage, setCompletedPage] = useState(1)
   const deleteConfirmRef = useRef(null)
 
   const resolveMediaUrl = (url) => {
@@ -108,6 +111,12 @@ export default function ManageComplaints(){
   }, [highlightedComplaintId, items])
 
   const statusOptions = ['Submitted', 'Pending', 'Resolved', 'Closed']
+  const statusRank = statusOptions.reduce((acc, status, index) => ({ ...acc, [status.toLowerCase()]: index }), {})
+  const canMoveComplaintStatus = (current, next) => {
+    const currentRank = statusRank[String(current || 'Submitted').toLowerCase()] ?? 0
+    const nextRank = statusRank[String(next || '').toLowerCase()]
+    return nextRank !== undefined && nextRank >= currentRank
+  }
   const activeStatuses = ['Submitted', 'Pending']
   const isCompletedComplaint = (status = '') => ['resolved', 'closed'].includes(String(status).toLowerCase())
   const getVisibleComplaints = () => items.filter(item => {
@@ -131,6 +140,15 @@ export default function ManageComplaints(){
       (item.resident_name || item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
     return matchesSearch
   })
+  const visibleComplaints = getVisibleComplaints()
+  const completedComplaints = getCompletedComplaints()
+  const visiblePagination = paginateItems(visibleComplaints, activePage)
+  const completedPagination = paginateItems(completedComplaints, completedPage)
+
+  useEffect(() => {
+    setActivePage(1)
+    setCompletedPage(1)
+  }, [filterStatus, searchQuery])
 
   async function handleUpdate(id, status){
     const item = items.find(i => i.complaint_id === id)
@@ -147,6 +165,12 @@ export default function ManageComplaints(){
   }
 
   async function confirmChangeStatus(id, status){
+    const item = items.find(i => i.complaint_id === id)
+    if(item && !canMoveComplaintStatus(item.status, status)){
+      alert('Complaint status cannot be moved back to a previous step.')
+      return
+    }
+
     try{
       setSelectedForStatus(prev => ({ ...prev, loading: true }))
       await api.patch(`/complaints/${id}`, { status })
@@ -351,7 +375,7 @@ export default function ManageComplaints(){
 
     const details = [
       `Reference Number: ${getComplaintReference(record)}`,
-      `Complainant: ${record.anonymous ? 'Anonymous' : (record.resident_name || 'Unknown')}`,
+      `Complainant: ${record.resident_name || 'Unknown'}`,
       `Category: ${getCategoryName(record)}`,
       `Incident Location: ${getIncidentLocation(record)}`,
       `Date of Incident: ${incidentDateText}`,
@@ -475,7 +499,16 @@ export default function ManageComplaints(){
     })
     y -= 15
 
-    page.drawText('Barangay Office', {
+    page.drawText('Ogel Pilar', {
+      x: 40,
+      y,
+      size: 10,
+      font: boldFont,
+      color: rgb(0, 0, 0)
+    })
+    y -= 15
+
+    page.drawText('Barangay Captain', {
       x: 40,
       y,
       size: 10,
@@ -702,7 +735,16 @@ export default function ManageComplaints(){
     })
     y -= 15
 
-    page.drawText('Barangay Office', {
+    page.drawText('Ogel Pilar', {
+      x: 40,
+      y,
+      size: 10,
+      font: boldFont,
+      color: rgb(0, 0, 0)
+    })
+    y -= 15
+
+    page.drawText('Barangay Captain', {
       x: 40,
       y,
       size: 10,
@@ -782,7 +824,7 @@ export default function ManageComplaints(){
                 />
               </div>
             </div>
-            {getVisibleComplaints().length > 0 && (
+            {visibleComplaints.length > 0 && (
               <section className="active-section">
                 <h2 className="section-title">Active Complaints</h2>
                 <div className="table-wrap">
@@ -800,7 +842,7 @@ export default function ManageComplaints(){
                 </thead>
 
                 <tbody>
-                  {getVisibleComplaints()
+                  {visiblePagination.pageItems
                     .map(it => (
                     <tr
                       key={it.complaint_id}
@@ -842,7 +884,7 @@ export default function ManageComplaints(){
                             className="table-action"
                             onClick={() => handleDownloadPdf(it)}
                           >
-                            Download PDF
+                            Download Complaint Notice
                           </button>
                         </div>
                       </td>
@@ -852,14 +894,22 @@ export default function ManageComplaints(){
 
                   </table>
                 </div>
+                <Pagination
+                  page={visiblePagination.safePage}
+                  totalPages={visiblePagination.totalPages}
+                  totalItems={visibleComplaints.length}
+                  start={visiblePagination.start}
+                  end={visiblePagination.end}
+                  onPageChange={setActivePage}
+                />
               </section>
             )}
 
-            {items.length > 0 && getVisibleComplaints().length === 0 && getCompletedComplaints().length === 0 && (
+            {items.length > 0 && visibleComplaints.length === 0 && completedComplaints.length === 0 && (
               <div className="empty-state">No complaints match your search criteria.</div>
             )}
 
-            {getCompletedComplaints().length > 0 && (
+            {completedComplaints.length > 0 && (
               <section className="completed-section">
                 <h2 className="section-title">Resolved and Closed Complaints</h2>
                 <div className="table-wrap">
@@ -876,7 +926,7 @@ export default function ManageComplaints(){
                       </tr>
                     </thead>
                     <tbody>
-                      {getCompletedComplaints().map(it => (
+                      {completedPagination.pageItems.map(it => (
                         <tr key={`completed-${it.complaint_id}`}>
                           <td>{getComplaintReference(it)}</td>
                           <td>{it.title || it.description?.slice(0,60) || '—'}</td>
@@ -897,7 +947,7 @@ export default function ManageComplaints(){
                                 View
                               </button>
                               <button type="button" className="table-action" onClick={() => handleDownloadPdf(it)}>
-                                Download PDF
+                                Download Complaint Notice
                               </button>
                               <button
                                 type="button"
@@ -913,6 +963,14 @@ export default function ManageComplaints(){
                     </tbody>
                   </table>
                 </div>
+                <Pagination
+                  page={completedPagination.safePage}
+                  totalPages={completedPagination.totalPages}
+                  totalItems={completedComplaints.length}
+                  start={completedPagination.start}
+                  end={completedPagination.end}
+                  onPageChange={setCompletedPage}
+                />
               </section>
             )}
 
@@ -1002,7 +1060,7 @@ export default function ManageComplaints(){
 
                   <div className="modal-actions">
                     <button className="modal-action-btn" type="button" onClick={() => handleDownloadPdf(selectedComplaint)}>
-                      Download Complaint PDF
+                      Download Complaint Notice
                     </button>
                     <button className="modal-action-btn" type="button" onClick={closeModal}>
                       Close
@@ -1035,17 +1093,19 @@ export default function ManageComplaints(){
                     <div style={{ marginTop: 8 }}>
                       <label style={{ fontWeight: 800, display: 'block', marginBottom: 8 }}>Choose status</label>
                       <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
-                        {statusOptions.map(opt => (
+                        {statusOptions.map(opt => {
+                          const disabled = selectedForStatus.loading || !canMoveComplaintStatus(selectedForStatus.current, opt)
+                          return (
                           <Button
                             key={opt}
                             type="button"
                             variant={selectedForStatus.current === opt ? 'primary' : 'secondary'}
                             onClick={() => confirmChangeStatus(selectedForStatus.id, opt)}
-                            disabled={selectedForStatus.loading}
+                            disabled={disabled}
                           >
                             {selectedForStatus.loading ? 'Updating...' : opt}
                           </Button>
-                        ))}
+                        )})}
                       </div>
                     </div>
 

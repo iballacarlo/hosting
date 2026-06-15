@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const DEFAULT_PAGE_SIZE = 10
+export const DEFAULT_PAGE_SIZE = 5
 
 export function paginateItems(items, page, pageSize = DEFAULT_PAGE_SIZE){
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize))

@@ -340,7 +340,7 @@ export default function DocumentHistory(){
             )}
             {completedList.length > 0 && (
               <section className="completed-section">
-                <h2 className="section-title">Released, Received, and Rejected Requests</h2>
+                <h2 className="section-title">Received and Rejected Requests</h2>
                 <div className="table-wrap">
                   <table>
                     <thead>

@@ -576,7 +576,6 @@ export default function ManageDocuments(){
                         <th>Resident</th>
                         <th>Date</th>
                         <th>Status</th>
-                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -587,7 +586,6 @@ export default function ManageDocuments(){
                           <td>{it.name || it.full_name || formatResidentId(it.resident_id) || '—'}</td>
                           <td>{new Date(it.date_requested || Date.now()).toLocaleDateString('en-US')}</td>
                           <td><StatusBadge status={it.status}/></td>
-                          <td>—</td>
                         </tr>
                       ))}
                     </tbody>
@@ -746,6 +744,38 @@ export default function ManageDocuments(){
                 </div>
               </div>
             )}
+            {receivedConfirm.show && (
+              <div
+                className="modal-overlay"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Confirm received document request"
+                onClick={() => setReceivedConfirm({ show: false, request: null })}
+              >
+                <div className="modal-card confirm-delete-modal" ref={receivedConfirmRef} onClick={e => e.stopPropagation()}>
+                  <h2 className="modal-title">Mark Document as Received?</h2>
+                  <p className="delete-modal-message">
+                    This will move the request to received records.
+                  </p>
+                  <div className="modal-actions confirm-actions">
+                    <button
+                      type="button"
+                      className="modal-action-btn modal-action-cancel"
+                      onClick={() => setReceivedConfirm({ show: false, request: null })}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="modal-action-btn modal-action-received"
+                      onClick={() => handleMarkReceived(receivedConfirm.request)}
+                    >
+                      Mark Received
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             </>
           )}
 
@@ -754,3 +784,4 @@ export default function ManageDocuments(){
     </div>
   )
 }
+

@@ -9,6 +9,7 @@ import useCloseOnEscape from '../hooks/useCloseOnEscape'
 import { sortTextAsc, withAllFirst } from '../utils/sortOptions'
 import { formatResidentId } from '../utils/idFormat'
 import { addressData } from '../data/addressData'
+import Pagination, { paginateItems } from '../components/Pagination'
 
 export default function ManageResidents(){
 
@@ -27,6 +28,7 @@ export default function ManageResidents(){
   const [selectedResident, setSelectedResident] = useState(null)
   const [selectedForDelete, setSelectedForDelete] = useState(null)
   const [selectedForStatus, setSelectedForStatus] = useState(null)
+  const [page, setPage] = useState(1)
   const sortRef = useRef(null)
 
   async function load(){
@@ -165,6 +167,11 @@ export default function ManageResidents(){
     })
     return residents
   }, [filteredItems, sortField, sortDirection])
+  const residentPagination = paginateItems(sortedItems, page)
+
+  useEffect(() => {
+    setPage(1)
+  }, [query, statusFilter, addressPhase, addressStreet, addressBlock, sortField, sortDirection])
 
   async function confirmChangeStatus(id, status, suspensionEndDate = null){
     try{
@@ -318,7 +325,7 @@ export default function ManageResidents(){
                     </thead>
 
                     <tbody>
-                      {sortedItems.map(it=>(
+                      {residentPagination.pageItems.map(it=>(
                     <tr key={it.resident_id}>
                       <td>{formatResidentId(it.resident_id)}</td>
                       <td>{getResidentName(it)}</td>
@@ -358,6 +365,14 @@ export default function ManageResidents(){
                 </tbody>
 
                   </table>
+                  <Pagination
+                    page={residentPagination.safePage}
+                    totalPages={residentPagination.totalPages}
+                    totalItems={sortedItems.length}
+                    start={residentPagination.start}
+                    end={residentPagination.end}
+                    onPageChange={setPage}
+                  />
                 </div>
               )}
             </>
