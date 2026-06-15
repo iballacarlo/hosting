@@ -883,13 +883,6 @@ export default function ManageComplaints(){
                           >
                             View
                           </button>
-                          <button
-                            type="button"
-                            className="table-action"
-                            onClick={() => handleDownloadPdf(it)}
-                          >
-                            Download Complaint Notice
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -949,9 +942,6 @@ export default function ManageComplaints(){
                             <div className="table-actions-inline">
                               <button type="button" className="table-action" onClick={() => handleViewComplaint(it)}>
                                 View
-                              </button>
-                              <button type="button" className="table-action" onClick={() => handleDownloadPdf(it)}>
-                                Download Complaint Notice
                               </button>
                             </div>
                           </td>
