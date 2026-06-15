@@ -184,6 +184,10 @@ export default function ManageComplaints(){
 
   async function handleDeleteComplaint(complaint){
     if(!complaint?.complaint_id) return
+    if(isCompletedComplaint(complaint.status)){
+      alert('Resolved or closed complaints cannot be deleted.')
+      return
+    }
 
     try{
       await api.delete(`/complaints/${complaint.complaint_id}`)
@@ -948,13 +952,6 @@ export default function ManageComplaints(){
                               </button>
                               <button type="button" className="table-action" onClick={() => handleDownloadPdf(it)}>
                                 Download Complaint Notice
-                              </button>
-                              <button
-                                type="button"
-                                className="table-action table-action-danger"
-                                onClick={() => setDeleteConfirm({ show: true, complaint: it })}
-                              >
-                                Delete
                               </button>
                             </div>
                           </td>

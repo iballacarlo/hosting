@@ -39,7 +39,7 @@ export default function ManageDocuments(){
     { name: 'Residency Certificate', status: 'Disabled' }
   ])
   const [processingRequest, setProcessingRequest] = useState(null)
-  const [rejectConfirm, setRejectConfirm] = useState({ show: false, request: null })
+  const [rejectConfirm, setRejectConfirm] = useState({ show: false, request: null, reason: '' })
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, request: null })
   const [receivedConfirm, setReceivedConfirm] = useState({ show: false, request: null })
   const [activePage, setActivePage] = useState(1)
@@ -204,7 +204,7 @@ export default function ManageDocuments(){
   }
 
   useCloseOnEscape(Boolean(processingRequest), closeProcessingModal, processingModalRef)
-  useCloseOnEscape(rejectConfirm.show, () => setRejectConfirm({ show: false, request: null }), rejectConfirmRef)
+  useCloseOnEscape(rejectConfirm.show, () => setRejectConfirm({ show: false, request: null, reason: '' }), rejectConfirmRef)
   useCloseOnEscape(deleteConfirm.show, () => setDeleteConfirm({ show: false, request: null }), deleteConfirmRef)
   useCloseOnEscape(receivedConfirm.show, () => setReceivedConfirm({ show: false, request: null }), receivedConfirmRef)
 
@@ -376,15 +376,20 @@ export default function ManageDocuments(){
 
   const handleRejectRequest = async (request = processingRequest) => {
     if(!request) return
+    const reason = String(rejectConfirm.reason || '').trim()
+    if(!reason){
+      alert('Please enter a reason for rejecting this document request.')
+      return
+    }
     try {
-      await api.put(`/docs/${request.request_id}`, { status: 'Rejected' })
+      await api.put(`/docs/${request.request_id}`, { status: 'Rejected', notes: reason })
     } catch(err) {
       alert('Failed to reject document: ' + (err?.response?.data?.message || err.message))
       return
     }
     load()
     setProcessingRequest(current => current?.request_id === request.request_id ? null : current)
-    setRejectConfirm({ show: false, request: null })
+    setRejectConfirm({ show: false, request: null, reason: '' })
   }
 
   const handleDeleteRequest = async (request) => {
@@ -529,7 +534,7 @@ export default function ManageDocuments(){
                           </Button>
                           <Button
                             variant="danger"
-                            onClick={() => setRejectConfirm({ show: true, request: it })}
+                            onClick={() => setRejectConfirm({ show: true, request: it, reason: '' })}
                           >
                             Reject
                           </Button>
@@ -686,18 +691,25 @@ export default function ManageDocuments(){
                 role="dialog"
                 aria-modal="true"
                 aria-label="Confirm reject document request"
-                onClick={() => setRejectConfirm({ show: false, request: null })}
+                onClick={() => setRejectConfirm({ show: false, request: null, reason: '' })}
               >
                 <div className="modal-card confirm-delete-modal" ref={rejectConfirmRef} onClick={e => e.stopPropagation()}>
                   <h2 className="modal-title">Reject Document Request?</h2>
                   <p className="delete-modal-message">
-                    Do you want to reject this document request? The resident will be notified.
+                    Enter the reason for rejecting this request. The resident will be notified.
                   </p>
+                  <textarea
+                    className="ui-input ui-textarea"
+                    value={rejectConfirm.reason || ''}
+                    onChange={e => setRejectConfirm(prev => ({ ...prev, reason: e.target.value }))}
+                    placeholder="Reason for rejection"
+                    rows={4}
+                  />
                   <div className="modal-actions confirm-actions">
                     <button
                       type="button"
                       className="modal-action-btn modal-action-cancel"
-                      onClick={() => setRejectConfirm({ show: false, request: null })}
+                      onClick={() => setRejectConfirm({ show: false, request: null, reason: '' })}
                     >
                       Cancel
                     </button>
@@ -705,6 +717,7 @@ export default function ManageDocuments(){
                       type="button"
                       className="modal-action-btn modal-action-delete"
                       onClick={() => handleRejectRequest(rejectConfirm.request)}
+                      disabled={!String(rejectConfirm.reason || '').trim()}
                     >
                       Reject
                     </button>

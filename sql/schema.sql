@@ -126,6 +126,7 @@ CREATE TABLE IF NOT EXISTS Document_Request (
 
   document_type VARCHAR(255),
   purpose VARCHAR(1000),
+  notes TEXT DEFAULT NULL,
 
   status VARCHAR(50) DEFAULT 'Pending',
   reference_number VARCHAR(255) UNIQUE,

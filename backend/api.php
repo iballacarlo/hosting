@@ -521,6 +521,21 @@ function ensureComplaintExtraColumns($pdo){
   $ready = true;
 }
 
+function ensureDocumentRequestExtraColumns($pdo){
+  static $ready = false;
+  if($ready) return;
+
+  foreach([
+    'notes' => 'TEXT DEFAULT NULL',
+  ] as $column => $definition){
+    if(!tableColumnExists($pdo, 'Document_Request', $column)){
+      $pdo->exec('ALTER TABLE Document_Request ADD COLUMN ' . $column . ' ' . $definition);
+    }
+  }
+
+  $ready = true;
+}
+
 function ensureDocumentTypeTable($pdo){
   static $ready = false;
   if($ready) return;
@@ -1935,6 +1950,9 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && $method === 'DELETE'){
   $stmt->execute([$id]);
   $complaint = $stmt->fetch();
   if(!$complaint) json(['success'=>false,'message'=>'Complaint not found']);
+  if(in_array(strtolower($complaint['status'] ?? ''), ['resolved', 'closed'], true)){
+    json(['success'=>false,'message'=>'Resolved or closed complaints cannot be deleted.'], 403);
+  }
 
   $isStaffUser = in_array($user['role'] ?? '', ['staff', 'admin'], true);
   $isOwner = (!$isStaffUser && intval($complaint['resident_id']) === intval($user['id']));
@@ -1958,6 +1976,7 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && $method === 'DELETE'){
 
 // Route: /docs GET/POST
 if($uri === '/docs'){
+  ensureDocumentRequestExtraColumns($pdo);
   if($method === 'GET'){
     $token = getBearerToken();
     $user = findUserByToken($pdo, $token);
@@ -2003,6 +2022,7 @@ if($uri === '/docs'){
 
 // Route: /docs/{id} - update/delete document request
 if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','POST','DELETE'])){
+  ensureDocumentRequestExtraColumns($pdo);
   $token = getBearerToken();
   $user = findUserByToken($pdo, $token);
   if(!$user) json(['success'=>false,'message'=>'Unauthorized']);
@@ -2064,6 +2084,7 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
   if(isset($data['address'])){ $fields[] = 'address = ?'; $vals[] = $data['address']; }
   if(isset($data['document_type'])){ $fields[] = 'document_type = ?'; $vals[] = $data['document_type']; }
   if(isset($data['purpose'])){ $fields[] = 'purpose = ?'; $vals[] = $data['purpose']; }
+  if(isset($data['notes']) && $user['role'] === 'staff'){ $fields[] = 'notes = ?'; $vals[] = trim($data['notes']); }
   if(isset($data['business_name']) && tableColumnExists($pdo, 'Document_Request', 'business_name')){ $fields[] = 'business_name = ?'; $vals[] = $data['business_name']; }
   if(count($fields) === 0) json(['success'=>false,'message'=>'Nothing to update']);
 
@@ -2084,7 +2105,9 @@ if(preg_match('#^/docs/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PATCH','
         if(strcasecmp($newStatus, 'Released') === 0){
           $message = 'Your document request "' . $label . '" has been released and is ready for pickup at the barangay.';
         } elseif(in_array(strtolower($newStatus), ['rejected', 'denied'], true)){
+          $reason = trim($data['notes'] ?? '');
           $message = 'Your document request "' . $label . '" has been rejected.';
+          if($reason !== '') $message .= ' Reason: ' . $reason;
         } else {
           $message = 'Your document request "' . $label . '" status is now ' . $newStatus . '.';
         }

@@ -66,6 +66,7 @@ export default function ComplaintHistory(){
 
   const canDeleteComplaint = (complaint) => {
     if(!currentUser) return false
+    if(isCompletedComplaint(complaint?.status)) return false
     const ownerId = getOwnerId(complaint)
     const currentUserId = Number(currentUser?.id ?? currentUser?.user_id ?? currentUser?.userId)
     const isOwner = !Number.isNaN(ownerId) && !Number.isNaN(currentUserId) && ownerId === currentUserId

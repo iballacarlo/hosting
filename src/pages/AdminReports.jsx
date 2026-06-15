@@ -358,14 +358,13 @@ export default function AdminReports(){
     if(complaints.length > 0){
       lines.push('')
       lines.push(escapeRow(['Complaint Records']))
-      lines.push(escapeRow(['Complaint ID','Date Submitted','Category','Title','Status','Anonymous','Incident Location','Incident Date']))
+      lines.push(escapeRow(['Complaint ID','Date Submitted','Category','Title','Status','Incident Location','Incident Date']))
       complaints.forEach(item => lines.push(escapeRow([
         getComplaintReference(item),
         item.date_submitted,
         item.category || item.category_name,
         item.title,
         item.status,
-        item.anonymous ? 'Yes' : 'No',
         item.incident_location || item.location,
         item.incident_date
       ])))
