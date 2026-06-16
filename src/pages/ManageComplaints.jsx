@@ -110,18 +110,20 @@ export default function ManageComplaints(){
     }
   }, [highlightedComplaintId, items])
 
-  const statusOptions = ['Submitted', 'Pending', 'Resolved', 'Closed']
+  const normalizeComplaintStatus = (status = '') => String(status).toLowerCase() === 'pending' ? 'In Action' : status
+  const statusOptions = ['Submitted', 'In Action', 'Resolved', 'Closed']
   const statusRank = statusOptions.reduce((acc, status, index) => ({ ...acc, [status.toLowerCase()]: index }), {})
   const canMoveComplaintStatus = (current, next) => {
-    const currentRank = statusRank[String(current || 'Submitted').toLowerCase()] ?? 0
+    const currentRank = statusRank[String(normalizeComplaintStatus(current || 'Submitted')).toLowerCase()] ?? 0
     const nextRank = statusRank[String(next || '').toLowerCase()]
-    return nextRank !== undefined && nextRank >= currentRank
+    return nextRank !== undefined && nextRank === currentRank + 1
   }
-  const activeStatuses = ['Submitted', 'Pending']
+  const activeStatuses = ['Submitted', 'In Action']
   const isCompletedComplaint = (status = '') => ['resolved', 'closed'].includes(String(status).toLowerCase())
   const getVisibleComplaints = () => items.filter(item => {
     if(isCompletedComplaint(item.status)) return false
-    const matchesStatus = filterStatus === 'All' || item.status === filterStatus
+    const itemStatus = normalizeComplaintStatus(item.status)
+    const matchesStatus = filterStatus === 'All' || itemStatus === filterStatus
     const matchesSearch = searchQuery === '' ||
       String(item.complaint_id).includes(searchQuery) ||
       getComplaintReference(item).toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -131,7 +133,8 @@ export default function ManageComplaints(){
   })
   const getCompletedComplaints = () => items.filter(item => {
     if(!isCompletedComplaint(item.status)) return false
-    const matchesStatus = filterStatus === 'All' || item.status === filterStatus
+    const itemStatus = normalizeComplaintStatus(item.status)
+    const matchesStatus = filterStatus === 'All' || itemStatus === filterStatus
     if(!matchesStatus) return false
     const matchesSearch = searchQuery === '' ||
       String(item.complaint_id).includes(searchQuery) ||
@@ -167,7 +170,7 @@ export default function ManageComplaints(){
   async function confirmChangeStatus(id, status){
     const item = items.find(i => i.complaint_id === id)
     if(item && !canMoveComplaintStatus(item.status, status)){
-      alert('Complaint status cannot be moved back to a previous step.')
+      alert('Complaint status must move one step at a time.')
       return
     }
 
@@ -858,7 +861,7 @@ export default function ManageComplaints(){
                       <td>{it.resident_name || it.name || formatResidentId(it.resident_id) || '—'}</td>
                       <td>{formatDate(it.date_submitted)}</td>
                       <td>
-                        <StatusBadge status={it.status} />
+                        <StatusBadge status={normalizeComplaintStatus(it.status)} />
                       </td>
                       <td>
                         <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
@@ -872,7 +875,7 @@ export default function ManageComplaints(){
                         <div className="table-actions-inline" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <Button
                             variant="secondary"
-                            onClick={() => setSelectedForStatus({ id: it.complaint_id, current: it.status || 'Submitted' })}
+                            onClick={() => setSelectedForStatus({ id: it.complaint_id, current: normalizeComplaintStatus(it.status || 'Submitted') })}
                           >
                             Change Status
                           </Button>
@@ -929,7 +932,7 @@ export default function ManageComplaints(){
                           <td>{it.title || it.description?.slice(0,60) || '—'}</td>
                           <td>{it.resident_name || it.name || formatResidentId(it.resident_id) || '—'}</td>
                           <td>{formatDate(it.date_submitted)}</td>
-                          <td><StatusBadge status={it.status} /></td>
+                          <td><StatusBadge status={normalizeComplaintStatus(it.status)} /></td>
                           <td>
                             <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
                               {formatDate(it.date_updated || it.date_submitted)}
@@ -1012,7 +1015,7 @@ export default function ManageComplaints(){
 
                   <div className="complaint-detail-row">
                     <span className="detail-label">Status:</span>
-                    <span className="detail-value"><StatusBadge status={selectedComplaint.status} /></span>
+                    <span className="detail-value"><StatusBadge status={normalizeComplaintStatus(selectedComplaint.status)} /></span>
                   </div>
 
                   {selectedComplaint.notes && selectedComplaint.notes.trim() && (
@@ -1086,7 +1089,7 @@ export default function ManageComplaints(){
                           <Button
                             key={opt}
                             type="button"
-                            variant={selectedForStatus.current === opt ? 'primary' : 'secondary'}
+                            variant={normalizeComplaintStatus(selectedForStatus.current) === opt ? 'primary' : 'secondary'}
                             onClick={() => confirmChangeStatus(selectedForStatus.id, opt)}
                             disabled={disabled}
                           >

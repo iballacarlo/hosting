@@ -521,6 +521,18 @@ function ensureComplaintExtraColumns($pdo){
   $ready = true;
 }
 
+function normalizeComplaintStatusValue($status){
+  $value = trim((string)$status);
+  return strcasecmp($value, 'Pending') === 0 ? 'In Action' : $value;
+}
+
+function normalizeComplaintRows($rows){
+  return array_map(function($row){
+    if(isset($row['status'])) $row['status'] = normalizeComplaintStatusValue($row['status']);
+    return $row;
+  }, $rows);
+}
+
 function ensureDocumentRequestExtraColumns($pdo){
   static $ready = false;
   if($ready) return;
@@ -1816,7 +1828,7 @@ if($uri === '/complaints'){
       $rows = $stmt->fetchAll();
     }
 
-    $rows = attachComplaintMedia($pdo, $rows);
+    $rows = normalizeComplaintRows(attachComplaintMedia($pdo, $rows));
     json(['success'=>true,'data'=>$rows]);
   }
   if($method === 'POST'){
@@ -1879,14 +1891,14 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
   $statusUpdate = false;
   $newStatus = null;
   if($user['role'] === 'staff' && isset($data['status'])){
-    $allowedStatusOrder = ['submitted' => 0, 'pending' => 1, 'resolved' => 2, 'closed' => 3];
-    $currentStatusKey = strtolower(trim($existingComplaint['status'] ?? 'Submitted'));
+    $allowedStatusOrder = ['submitted' => 0, 'in action' => 1, 'resolved' => 2, 'closed' => 3];
+    $currentStatusKey = strtolower(normalizeComplaintStatusValue($existingComplaint['status'] ?? 'Submitted'));
     $newStatusKey = strtolower(trim($data['status'] ?? ''));
     if(!array_key_exists($newStatusKey, $allowedStatusOrder)){
       json(['success'=>false,'message'=>'Invalid complaint status'], 400);
     }
-    if(($allowedStatusOrder[$newStatusKey] ?? 0) < ($allowedStatusOrder[$currentStatusKey] ?? 0)){
-      json(['success'=>false,'message'=>'Complaint status cannot be moved back to a previous step.'], 400);
+    if(($allowedStatusOrder[$newStatusKey] ?? -1) !== (($allowedStatusOrder[$currentStatusKey] ?? -1) + 1)){
+      json(['success'=>false,'message'=>'Complaint status must move one step at a time.'], 400);
     }
     $fields[] = 'status = ?'; $vals[] = $data['status']; $statusUpdate = true; $newStatus = $data['status'];
   }
@@ -1935,7 +1947,7 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
 
   $stmt = $pdo->prepare(getComplaintSelectSql('WHERE c.complaint_id = ?'));
   $stmt->execute([$id]);
-  $rows = attachComplaintMedia($pdo, $stmt->fetchAll());
+  $rows = normalizeComplaintRows(attachComplaintMedia($pdo, $stmt->fetchAll()));
   json(['success'=>true,'data'=>$rows[0] ?? null]);
 }
 

@@ -32,6 +32,7 @@ export default function ComplaintHistory(){
   const deleteConfirmRef = useRef(null)
   const { user: authUser, loading: authLoading } = useAuth()
   const currentUser = authUser
+  const normalizeComplaintStatus = (status = '') => String(status).toLowerCase() === 'pending' ? 'In Action' : status
 
   const parseServerDate = (value) => {
     if(!value) return null
@@ -387,7 +388,7 @@ export default function ComplaintHistory(){
 
   const summaryItems = data.slice(0, 3).map(item => ({
     complaint: item.title || item.category || getComplaintReference(item),
-    statusText: `${item.status || 'Pending'} ${getStatusEmoji(item.status)}`
+    statusText: `${normalizeComplaintStatus(item.status || 'In Action')} ${getStatusEmoji(item.status)}`
   }))
 
   const doesComplaintMatchQuery = (complaint, query) => {
@@ -422,7 +423,7 @@ export default function ComplaintHistory(){
 
   const isCompletedComplaint = (status = '') => ['resolved', 'closed'].includes(String(status).toLowerCase())
   const list = data.filter(item =>
-    (filter === 'All' || item.status === filter) &&
+    (filter === 'All' || normalizeComplaintStatus(item.status) === filter) &&
     doesComplaintMatchQuery(item, q)
   )
   const activeList = list.filter(item => !isCompletedComplaint(item.status))
@@ -451,7 +452,7 @@ export default function ComplaintHistory(){
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
               >
-                {withAllFirst(['Submitted', 'Pending', 'Resolved', 'Closed']).map(option => (
+                {withAllFirst(['Submitted', 'In Action', 'Resolved', 'Closed']).map(option => (
                   <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
                 ))}
               </select>
@@ -493,7 +494,7 @@ export default function ComplaintHistory(){
                         <td>{r.resident_name || r.name || formatResidentId(r.resident_id) || '—'}</td>
                         <td>{r.category || r.category_name || r.category_id || '—'}</td>
                         <td>{r.date_submitted ? parseServerDate(r.date_submitted).toLocaleDateString('en-US') : '—'}</td>
-                        <td><StatusBadge status={r.status} /></td>
+                        <td><StatusBadge status={normalizeComplaintStatus(r.status)} /></td>
                         <td>
                           <button 
                             className="table-action"
@@ -547,7 +548,7 @@ export default function ComplaintHistory(){
                           <td>{r.resident_name || r.name || formatResidentId(r.resident_id) || '—'}</td>
                           <td>{r.category || r.category_name || r.category_id || '—'}</td>
                           <td>{r.date_submitted ? parseServerDate(r.date_submitted).toLocaleDateString('en-US') : '—'}</td>
-                          <td><StatusBadge status={r.status} /></td>
+                          <td><StatusBadge status={normalizeComplaintStatus(r.status)} /></td>
                           <td>
                             <button
                               className="table-action"
@@ -648,7 +649,7 @@ export default function ComplaintHistory(){
 
                     <div className="complaint-detail-row">
                       <span className="detail-label">Status:</span>
-                      <span className="detail-value"><StatusBadge status={selectedComplaint.status} /></span>
+                      <span className="detail-value"><StatusBadge status={normalizeComplaintStatus(selectedComplaint.status)} /></span>
                     </div>
 
                     {selectedComplaint.notes && selectedComplaint.notes.trim() && (

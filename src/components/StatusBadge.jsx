@@ -9,6 +9,7 @@ const map = {
   suspended: 'yellow',
   banned: 'red',
   pending: 'yellow',
+  'in action': 'yellow',
   rejected: 'red',
   review: 'blue'
 }
