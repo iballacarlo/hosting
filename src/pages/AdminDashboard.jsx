@@ -61,7 +61,7 @@ export default function AdminDashboard(){
   const totalResidents = residents.length
   const totalComplaints = complaints.length
 
-  const pendingComplaints = complaints.filter(c =>
+  const activeComplaints = complaints.filter(c =>
     ['in action', 'submitted', 'open', 'pending'].some(term => (c.status||'').toLowerCase().includes(term))
   ).length
 
@@ -87,7 +87,7 @@ export default function AdminDashboard(){
   const stats = useMemo(()=>[
     {label:'Residents',value:totalResidents,icon:<Users size={18}/>},
     {label:'Complaints',value:totalComplaints,icon:<ClipboardList size={18}/>},
-    {label:'Pending Complaints',value:pendingComplaints,icon:<AlertCircle size={18}/>},
+    {label:'Active Complaints',value:activeComplaints,icon:<AlertCircle size={18}/>},
     {label:'Resolved Complaints',value:resolvedComplaints,icon:<CheckCircle2 size={18}/>},
     {label:'Document Requests',value:totalDocs,icon:<FileText size={18}/>},
     {label:'Pending Requests',value:pendingDocs,icon:<Clock size={18}/>},
@@ -96,7 +96,7 @@ export default function AdminDashboard(){
   ],[
     totalResidents,
     totalComplaints,
-    pendingComplaints,
+    activeComplaints,
     resolvedComplaints,
     totalDocs,
     pendingDocs,

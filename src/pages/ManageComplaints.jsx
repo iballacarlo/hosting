@@ -110,15 +110,15 @@ export default function ManageComplaints(){
     }
   }, [highlightedComplaintId, items])
 
-  const normalizeComplaintStatus = (status = '') => String(status).toLowerCase() === 'in action' ? 'Pending' : status
-  const statusOptions = ['Submitted', 'Pending', 'Resolved', 'Closed']
+  const normalizeComplaintStatus = (status = '') => String(status).toLowerCase() === 'pending' ? 'In Action' : status
+  const statusOptions = ['Submitted', 'In Action', 'Resolved', 'Closed']
   const statusRank = statusOptions.reduce((acc, status, index) => ({ ...acc, [status.toLowerCase()]: index }), {})
   const canMoveComplaintStatus = (current, next) => {
     const currentRank = statusRank[String(normalizeComplaintStatus(current || 'Submitted')).toLowerCase()] ?? 0
     const nextRank = statusRank[String(next || '').toLowerCase()]
     return nextRank !== undefined && nextRank === currentRank + 1
   }
-  const activeStatuses = ['Submitted', 'Pending']
+  const activeStatuses = ['Submitted', 'In Action']
   const isCompletedComplaint = (status = '') => ['resolved', 'closed'].includes(String(status).toLowerCase())
   const getVisibleComplaints = () => items.filter(item => {
     if(isCompletedComplaint(item.status)) return false

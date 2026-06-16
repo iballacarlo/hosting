@@ -523,7 +523,7 @@ function ensureComplaintExtraColumns($pdo){
 
 function normalizeComplaintStatusValue($status){
   $value = trim((string)$status);
-  return strcasecmp($value, 'In Action') === 0 ? 'Pending' : $value;
+  return strcasecmp($value, 'Pending') === 0 ? 'In Action' : $value;
 }
 
 function normalizeComplaintRows($rows){
@@ -1891,7 +1891,7 @@ if(preg_match('#^/complaints/(\d+)$#', $uri, $m) && in_array($method, ['PUT','PA
   $statusUpdate = false;
   $newStatus = null;
   if($user['role'] === 'staff' && isset($data['status'])){
-    $allowedStatusOrder = ['submitted' => 0, 'pending' => 1, 'resolved' => 2, 'closed' => 3];
+    $allowedStatusOrder = ['submitted' => 0, 'in action' => 1, 'resolved' => 2, 'closed' => 3];
     $currentStatusKey = strtolower(normalizeComplaintStatusValue($existingComplaint['status'] ?? 'Submitted'));
     $newStatus = normalizeComplaintStatusValue($data['status'] ?? '');
     $newStatusKey = strtolower($newStatus);
