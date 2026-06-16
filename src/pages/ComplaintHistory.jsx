@@ -32,7 +32,7 @@ export default function ComplaintHistory(){
   const deleteConfirmRef = useRef(null)
   const { user: authUser, loading: authLoading } = useAuth()
   const currentUser = authUser
-  const normalizeComplaintStatus = (status = '') => String(status).toLowerCase() === 'pending' ? 'In Action' : status
+  const normalizeComplaintStatus = (status = '') => String(status).toLowerCase() === 'in action' ? 'Pending' : status
 
   const parseServerDate = (value) => {
     if(!value) return null
@@ -388,7 +388,7 @@ export default function ComplaintHistory(){
 
   const summaryItems = data.slice(0, 3).map(item => ({
     complaint: item.title || item.category || getComplaintReference(item),
-    statusText: `${normalizeComplaintStatus(item.status || 'In Action')} ${getStatusEmoji(item.status)}`
+    statusText: `${normalizeComplaintStatus(item.status || 'Pending')} ${getStatusEmoji(item.status)}`
   }))
 
   const doesComplaintMatchQuery = (complaint, query) => {
@@ -452,7 +452,7 @@ export default function ComplaintHistory(){
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
               >
-                {withAllFirst(['Submitted', 'In Action', 'Resolved', 'Closed']).map(option => (
+                {withAllFirst(['Submitted', 'Pending', 'Resolved', 'Closed']).map(option => (
                   <option key={option} value={option}>{option === 'All' ? 'All Status' : option}</option>
                 ))}
               </select>
